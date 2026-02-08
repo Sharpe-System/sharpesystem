@@ -1,8 +1,14 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <link rel="stylesheet" href="/assets/site.css">
+  <meta charset="utf-8" />
+  <title>High-Conflict Risk Awareness — SharpeSystem</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
+  <!-- Use ONE global stylesheet -->
+  <link rel="stylesheet" href="/styles.css" />
+
+  <!-- Page-specific styles (keep for now; we can refactor later) -->
   <style>
     :root{
       --bg:#0b0f14;
@@ -19,15 +25,7 @@
       --bad:#fb7185;
     }
     *{box-sizing:border-box}
-    body
-    <div id="site-header"></div>
-<script>
-  fetch('/partials/header.html')
-    .then(r => r.text())
-    .then(html => document.getElementById('site-header').innerHTML = html)
-    .catch(() => {});
-</script>
-{
+    body{
       margin:0;
       font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
       background: radial-gradient(1100px 700px at 15% 5%, rgba(110,231,255,.10), transparent 60%),
@@ -39,7 +37,6 @@
     a{color:var(--accent); text-decoration:none}
     a:hover{text-decoration:underline}
 
-    /* Persistent scope banner (lightweight, every-page friendly) */
     .scopebar{
       position: sticky;
       top: 0;
@@ -127,7 +124,7 @@
       font-size: 13px;
     }
 
-    header{
+    header.page-hero{
       padding: 28px 18px 22px;
       border-bottom:1px solid var(--border);
       background: linear-gradient(180deg, rgba(16,24,38,.9), rgba(11,15,20,.6));
@@ -205,7 +202,7 @@
       border-radius: 14px;
       padding: 16px;
       position: sticky;
-      top: 66px; /* below scopebar */
+      top: 66px;
     }
     @media (max-width: 920px){
       .mini{position: static;}
@@ -293,7 +290,14 @@
 </head>
 
 <body>
-  <!-- Persistent, lightweight disclaimer that can live on every page -->
+  <div id="site-header"></div>
+  <script>
+    fetch('/partials/header.html')
+      .then(r => r.text())
+      .then(html => document.getElementById('site-header').innerHTML = html)
+      .catch(() => {});
+  </script>
+
   <div class="scopebar" role="region" aria-label="Scope and neutrality notice">
     <div class="wrap">
       <div class="scope-row">
@@ -308,7 +312,6 @@
           </div>
         </div>
         <div class="scope-actions">
-          <!-- If you have a dedicated scope page, point this to it -->
           <a href="#scope">Scope</a>
           <a href="#share">Invite</a>
           <a href="#when-not">When not to use</a>
@@ -327,7 +330,7 @@
     </div>
   </div>
 
-  <header>
+  <header class="page-hero">
     <div class="wrap">
       <h1>High-Conflict Situations: Safety, Boundaries, and Risk Awareness</h1>
       <p class="sub">
@@ -339,7 +342,6 @@
 
   <main>
     <div class="wrap grid">
-      <!-- LEFT: content -->
       <section class="panel" aria-label="Main content">
         <h2>Why this page exists</h2>
         <p>
@@ -444,7 +446,6 @@
           </p>
         </details>
 
-        <!-- Footer micro-disclaimer (good for screenshots and partial sharing) -->
         <div class="footer">
           <div><strong>Reminder:</strong> Informational only. Not legal advice. Not strategy. Not a substitute for counsel or safety services.</div>
           <div style="margin-top:6px;">
@@ -453,7 +454,6 @@
         </div>
       </section>
 
-      <!-- RIGHT: invite / share -->
       <aside class="mini" aria-label="Invite the other party">
         <h2>Bring the other party in early (optional)</h2>
         <p>
@@ -498,8 +498,6 @@
   </main>
 
   <script>
-    // Basic invite-message generator.
-    // NOTE: Neutral and non-directive; does not suggest legal actions or law-enforcement interactions.
     function buildInvite() {
       const party = (document.getElementById('partyName').value || '').trim();
       const you = (document.getElementById('yourName').value || '').trim();
