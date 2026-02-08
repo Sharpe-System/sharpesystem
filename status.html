@@ -1,40 +1,47 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
-<meta charset="utf-8">
-<title>Status — Sharpe System</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="style.css">
+  <meta charset="utf-8" />
+  <title>Status — SharpeSystem</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Use ONE global stylesheet -->
+  <link rel="stylesheet" href="/styles.css" />
 </head>
+
 <body>
-<div class="container">
-<nav class="nav">
-<a href="/">Home</a><span class="sep">·</span>
-<a href="start.html">Start Here</a><span class="sep">·</span>
-<a href="trees.html">Decision Trees</a><span class="sep">·</span>
-<a href="status.html">Status</a>
-</nav>
+  <!-- Shared header/nav (single source of truth) -->
+  <div id="site-header"></div>
+  <script>
+    fetch('/partials/header.html')
+      .then(r => r.text())
+      .then(html => { document.getElementById('site-header').innerHTML = html; })
+      .catch(() => {});
+  </script>
 
-<h1>Status</h1>
+  <main class="page">
+    <div class="container content">
+      <h1>Status</h1>
 
-<h2>What this is</h2>
-<ul>
-<li>A decision-support framework for procedural orientation</li>
-<li>Built to reduce confusion and prevent avoidable mistakes</li>
-</ul>
+      <h2>What this is</h2>
+      <ul>
+        <li>A decision-support framework for procedural orientation</li>
+        <li>Built to reduce confusion and prevent avoidable mistakes</li>
+      </ul>
 
-<h2>What this is not</h2>
-<ul>
-<li>Not legal advice</li>
-<li>Not a substitute for an attorney</li>
-</ul>
+      <h2>What this is not</h2>
+      <ul>
+        <li>Not legal advice</li>
+        <li>Not a substitute for an attorney</li>
+      </ul>
 
-<h2>Current build state</h2>
-<ul>
-<li>Static site scaffold is live</li>
-<li>Decision tree content is being drafted</li>
-<li>Custom domain will be connected after registrar transfer window</li>
-</ul>
-</div>
+      <h2>Current build state</h2>
+      <ul>
+        <li>Static site scaffold is live</li>
+        <li>Decision tree content is being drafted</li>
+        <li>Custom domain will be connected after registrar transfer window</li>
+      </ul>
+    </div>
+  </main>
 </body>
 </html>
