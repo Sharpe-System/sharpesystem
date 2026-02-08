@@ -1,8 +1,36 @@
-<h1>Internal Notes</h1>
-<ul>
-<li>Primary value = orientation, not advice</li>
-<li>User enters confused, leaves calibrated</li>
-<li>AI tone: calm, factual, non-reassuring</li>
-<li>No drafting filings initially</li>
-<li>Decision trees must show dead ends explicitly</li>
-</ul>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Internal Notes — SharpeSystem</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Use ONE global stylesheet -->
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+
+<body>
+  <!-- Shared header/nav (single source of truth) -->
+  <div id="site-header"></div>
+  <script>
+    fetch('/partials/header.html')
+      .then(r => r.text())
+      .then(html => { document.getElementById('site-header').innerHTML = html; })
+      .catch(() => {});
+  </script>
+
+  <main class="page">
+    <div class="container content">
+      <h1>Internal Notes</h1>
+
+      <ul>
+        <li>Primary value = orientation, not advice</li>
+        <li>User enters confused, leaves calibrated</li>
+        <li>AI tone: calm, factual, non-reassuring</li>
+        <li>No drafting filings initially</li>
+        <li>Decision trees must show dead ends explicitly</li>
+      </ul>
+    </div>
+  </main>
+</body>
+</html>
