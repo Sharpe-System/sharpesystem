@@ -1,49 +1,58 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
- <meta charset="utf-8">
- <title>Sharpe System</title>
- <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="utf-8" />
+  <title>SharpeSystem</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Use ONE global stylesheet -->
+  <link rel="stylesheet" href="/styles.css" />
 </head>
 
 <body>
- <main style="max-width: 760px; margin: 0 auto; padding: 28px 18px; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; line-height: 1.55;">
- <h1 style="margin: 0 0 10px 0;">Sharpe System</h1>
+  <!-- Shared header/nav (single source of truth) -->
+  <div id="site-header"></div>
+  <script>
+    fetch('/partials/header.html')
+      .then(r => r.text())
+      .then(html => { document.getElementById('site-header').innerHTML = html; })
+      .catch(() => {});
+  </script>
 
- <p style="margin: 0 0 14px 0;">
- If you’re here, you’re probably dealing with something that feels unfamiliar, high-stakes, and oddly disorienting.
- Not just emotionally—procedurally. New words. New timelines. New rules. People talking past each other.
- And the consequences don’t wait for you to catch up.
- </p>
+  <main class="page">
+    <div class="container content">
+      <h1>SharpeSystem</h1>
 
- <p style="margin: 0 0 14px 0;">
- Sharpe System exists because I went through that world myself. I learned—often the hard way—how easy it is to lose
- time, miss leverage, and get dragged into false urgency when you don’t have a map.
- </p>
+      <p>
+        If you’re here, you’re probably dealing with something that feels unfamiliar, high-stakes, and oddly disorienting.
+        Not just emotionally—procedurally. New words. New timelines. New rules. People talking past each other.
+        And the consequences don’t wait for you to catch up.
+      </p>
 
- <p style="margin: 0 0 14px 0;">
- This project is an attempt to give ordinary people a real edge: a fighting chance to orient quickly, think clearly,
- and move forward deliberately in a system that is confusing by default.
- </p>
+      <p>
+        Sharpe System exists because I went through that world myself. I learned—often the hard way—how easy it is to lose
+        time, miss leverage, and get dragged into false urgency when you don’t have a map.
+      </p>
 
- <p style="margin: 0 0 18px 0; opacity: 0.85;">
- Note: This is decision support and procedural orientation. It is not legal advice.
- </p>
+      <p>
+        This project is an attempt to give ordinary people a real edge: a fighting chance to orient quickly, think clearly,
+        and move forward deliberately in a system that is confusing by default.
+      </p>
 
- <div style="margin-top: 42px; text-align: center;">
- <a href="home.html"
- style="display: inline-block; padding: 14px 22px; border: 1px solid #111; border-radius: 10px; text-decoration: none; color: #111; font-weight: 600;">
- Enter the System
- </a>
- </div>
+      <p class="muted">
+        Note: This is decision support and procedural orientation. It is not legal advice.
+      </p>
 
- <div style="margin-top: 22px; text-align: center; font-size: 14px; opacity: 0.75;">
- <a href="status.html" style="color: #111; text-decoration: none;">Status</a>
- &nbsp;·&nbsp;
- <a href="trees.html" style="color: #111; text-decoration: none;">Decision Trees</a>
- </div>
- </main>
+      <div class="cta-center">
+        <a class="button primary" href="/home.html">Enter the System</a>
+      </div>
+
+      <div class="link-row">
+        <a href="/status.html">Status</a>
+        <span class="sep">·</span>
+        <a href="/trees.html">Decision Trees</a>
+      </div>
+    </div>
+  </main>
 </body>
 </html>
-
-
