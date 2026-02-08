@@ -1,36 +1,46 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
-  <link rel="stylesheet" href="/assets/site.css">
+  <meta charset="utf-8" />
+  <title>Home — SharpeSystem</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-<meta charset="utf-8">
-<title>Home — Sharpe System</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="style.css">
+  <!-- Use ONE global stylesheet -->
+  <link rel="stylesheet" href="/styles.css" />
 </head>
+
 <body>
-<div class="container">
-<nav class="nav">
-<a href="home.html">Home</a><span class="sep">·</span>
-<a href="trees.html">Decision Trees</a><span class="sep">·</span>
-<a href="status.html">Status</a>
-</nav>
+  <!-- Shared header/nav (single source of truth) -->
+  <div id="site-header"></div>
+  <script>
+    fetch('/partials/header.html')
+      .then(r => r.text())
+      .then(html => { document.getElementById('site-header').innerHTML = html; })
+      .catch(err => { console.error('Header load failed', err); });
+  </script>
 
-<h1>Home</h1>
+  <main class="page">
+    <div class="container content">
+      <h1>Home</h1>
 
-<p>
-Choose a starting point. This is decision support and procedural orientation—nothing here is legal advice.
-</p>
+      <p>
+        Choose a starting point. This is decision support and procedural orientation—nothing here is legal advice.
+      </p>
 
-<h2>Start with structure</h2>
-<ul>
-<li><a href="trees.html" style="color:#111;">Decision Trees</a> — pick a branch that matches your situation</li>
-<li><a href="status.html" style="color:#111;">Status</a> — what this is / what it is not</li>
-</ul>
+      <h2>Start with structure</h2>
+      <ul>
+        <li>
+          <a href="/trees.html">Decision Trees</a> — pick a branch that matches your situation
+        </li>
+        <li>
+          <a href="/status.html">Status</a> — what this is / what it is not
+        </li>
+      </ul>
 
-<p class="note">
-If you don’t know where you are yet, start with Decision Trees and choose the closest match.
-</p>
-</div>
+      <p class="note">
+        If you don’t know where you are yet, start with Decision Trees and choose the closest match.
+      </p>
+    </div>
+  </main>
 </body>
 </html>
