@@ -1,48 +1,48 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
-<meta charset="utf-8">
-<title>Decision Trees — Sharpe System</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="style.css">
+  <meta charset="utf-8" />
+  <title>Decision Trees — SharpeSystem</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Use ONE global stylesheet -->
+  <link rel="stylesheet" href="/styles.css" />
 </head>
+
 <body>
-<div class="container">
-<nav class="nav">
-<a href="/">Home</a><span class="sep">·</span>
-<a href="start.html">Start Here</a><span class="sep">·</span>
-<a href="trees.html">Decision Trees</a><span class="sep">·</span>
-<a href="status.html">Status</a>
-</nav>
+  <!-- Shared header/nav (single source of truth) -->
+  <div id="site-header"></div>
+  <script>
+    fetch('/partials/header.html')
+      .then(r => r.text())
+      .then(html => { document.getElementById('site-header').innerHTML = html; })
+      .catch(() => {});
+  </script>
 
-<h1>Decision Trees</h1>
+  <main class="page">
+    <div class="container content">
+      <h1>Decision Trees</h1>
 
-<p>
-This section indexes structured decision trees for procedural orientation.
-Pick the branch that best matches your situation.
-</p>
+      <p>
+        This section indexes structured decision trees for procedural orientation.
+        Pick the branch that best matches your situation.
+      </p>
 
-  <h2>Not sure where to start?</h2>
-<ul>
-<li><a href="triage.html">I don’t know what to do — help me figure out what I need</a></li>
-<li><a href="amicable.html">Let’s resolve this amicably (structured communication)</a></li>
-</ul>
+      <h2>Not sure where to start?</h2>
+      <ul>
+        <li><a href="/triage.html">I don’t know what to do — help me figure out what I need</a></li>
+        <li><a href="/amicable.html">Let’s resolve this amicably (structured communication)</a></li>
+      </ul>
 
-<h2>Decision tree index</h2>
-<ul>
-<li>Family law — coming soon</li>
-<li>Protective orders — coming soon</li>
-<li>Criminal procedure orientation — coming soon</li>
-</ul>
+      <h2>Decision tree index</h2>
+      <ul>
+        <li>Family law — coming soon</li>
+        <li>Protective orders — coming soon</li>
+        <li>Criminal procedure orientation — coming soon</li>
+      </ul>
 
-
-<ul>
-<li>Family law — coming soon</li>
-<li>Protective orders — coming soon</li>
-<li>Criminal procedure orientation — coming soon</li>
-</ul>
-
-<p class="note">Decision support only. Not legal advice.</p>
-</div>
+      <p class="note">Decision support only. Not legal advice.</p>
+    </div>
+  </main>
 </body>
 </html>
