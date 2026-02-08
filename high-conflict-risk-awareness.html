@@ -22,7 +22,15 @@
       --bad:#fb7185;
     }
     *{box-sizing:border-box}
-    body{
+    body
+    <div id="site-header"></div>
+<script>
+  fetch('/partials/header.html')
+    .then(r => r.text())
+    .then(html => document.getElementById('site-header').innerHTML = html)
+    .catch(() => {});
+</script>
+{
       margin:0;
       font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
       background: radial-gradient(1100px 700px at 15% 5%, rgba(110,231,255,.10), transparent 60%),
