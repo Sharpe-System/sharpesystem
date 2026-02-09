@@ -5,59 +5,67 @@
   <title>Resolve This Amicably — SharpeSystem</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <!-- Use ONE global stylesheet -->
   <link rel="stylesheet" href="/styles.css" />
 </head>
 
 <body>
-  <!-- Shared header/nav (single source of truth) -->
   <div id="site-header"></div>
   <script>
     fetch('/partials/header.html')
       .then(r => r.text())
       .then(html => { document.getElementById('site-header').innerHTML = html; })
-      .catch(err => { console.error('Header load failed', err); });
+      .catch(() => {});
   </script>
 
   <main class="page">
     <div class="container content">
-      <h1>Let’s resolve this amicably</h1>
 
-      <p>
-        This path is for two people who want structure, clarity, and reduced friction—without performing a war in public.
-        It’s a process guide, not legal advice.
-      </p>
+      <section class="page-hero">
+        <h1>Let’s resolve this amicably</h1>
+        <p class="sub">
+          A structured, low-friction way to communicate and reach agreements early—before conflict hardens into filings.
+          Informational only. Not legal advice.
+        </p>
+      </section>
 
-      <h2>Principles (what makes this work)</h2>
-      <ul>
-        <li>One topic at a time, in writing</li>
-        <li>Concrete proposals, not grievances</li>
-        <li>Time-boxed responses</li>
-        <li>Document agreements immediately</li>
-      </ul>
+      <section class="card">
+        <h2>Principles (what makes this work)</h2>
+        <ul>
+          <li>One topic at a time, in writing</li>
+          <li>Concrete proposals, not grievances</li>
+          <li>Time-boxed responses</li>
+          <li>Document agreements immediately</li>
+        </ul>
 
-      <h2>A simple 4-step structure</h2>
-      <ol>
-        <li><strong>Define the topic</strong> (one sentence)</li>
-        <li><strong>State your proposal</strong> (specific, testable)</li>
-        <li><strong>List constraints</strong> (work schedule, school, travel, finances)</li>
-        <li><strong>Offer two alternatives</strong> (so the other person can say “yes” to something)</li>
-      </ol>
+        <h2>A simple 4-step structure</h2>
+        <ol>
+          <li><strong>Define the topic</strong> (one sentence)</li>
+          <li><strong>State your proposal</strong> (specific, testable)</li>
+          <li><strong>List constraints</strong> (work schedule, school, travel, finances)</li>
+          <li><strong>Offer two alternatives</strong> (so the other person can say “yes” to something)</li>
+        </ol>
 
-      <h2>Template you can copy</h2>
-      <p class="note">Use this format to keep communication productive:</p>
+        <h2>Template you can copy</h2>
+        <p class="note">Use this format to keep communication productive:</p>
 
-      <div class="template-box" role="group" aria-label="Communication template">
-        <p><strong>Topic:</strong> [e.g., schedule for next 30 days]</p>
-        <p><strong>Proposal:</strong> [specific proposal]</p>
-        <p><strong>Constraints:</strong> [hard limits and non-negotiables]</p>
-        <p><strong>Alternatives:</strong> (A) […] (B) […]</p>
-        <p><strong>Response requested by:</strong> [date/time]</p>
-      </div>
+        <div class="template-box" role="group" aria-label="Communication template">
+          <p><strong>Topic:</strong> [e.g., schedule for next 30 days]</p>
+          <p><strong>Proposal:</strong> [specific proposal]</p>
+          <p><strong>Constraints:</strong> [hard limits and non-negotiables]</p>
+          <p><strong>Alternatives:</strong> (A) […] (B) […]</p>
+          <p><strong>Response requested by:</strong> [date/time]</p>
+        </div>
 
-      <div class="cta-row">
-        <a class="button" href="/home.html">Back to Home</a>
-      </div>
+        <div class="cta-row">
+          <a class="button" href="/home.html">Back to Home</a>
+          <a class="button primary" href="/trees.html">Decision Trees</a>
+        </div>
+
+        <p class="muted" style="margin-top:12px;">
+          If sharing this page would escalate conflict or feel unsafe, review privately first.
+        </p>
+      </section>
+
     </div>
   </main>
 </body>
