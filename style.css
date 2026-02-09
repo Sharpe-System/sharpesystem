@@ -1,6 +1,5 @@
 /* ==========================================
-   SharpeSystem — Global Theme (Risk-Style)
-   Premium dark / calm authority / low-noise
+   SharpeSystem — Global Theme (Risk System)
    ========================================== */
 
 :root{
@@ -21,11 +20,12 @@
 
   --max: 980px;
   --radius: 14px;
-
   --shadow: 0 10px 30px rgba(0,0,0,.25);
 
-  /* Typography: keep Risk vibe */
   --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+
+  /* header height used to offset sticky scopebar */
+  --header-h: 56px;
 }
 
 *{box-sizing:border-box}
@@ -39,129 +39,33 @@ body{
     radial-gradient(900px 600px at 80% 10%, rgba(167,139,250,.10), transparent 55%),
     var(--bg);
   color: var(--text);
-  line-height: 1.55;
+  line-height:1.5;
 }
 
-a{ color: var(--accent); text-decoration: none; }
-a:hover{ text-decoration: underline; }
+a{color:var(--accent); text-decoration:none}
+a:hover{text-decoration:underline}
 
 /* Layout */
 .page{ padding: 22px 18px 60px; }
-.container{ max-width: var(--max); margin: 0 auto; }
+.container, .wrap{ max-width: var(--max); margin: 0 auto; }
 .content{}
 
 /* Typography */
 h1{
-  margin: 10px 0 10px;
-  font-size: clamp(26px, 3.0vw, 40px);
-  line-height: 1.15;
+  margin: 10px 0 8px;
+  font-size: clamp(26px, 3.2vw, 40px);
+  line-height:1.15;
 }
-h2{
-  margin: 18px 0 10px;
-  font-size: 18px;
-}
+h2{ margin: 18px 0 10px; font-size: 18px; }
 p{ margin: 10px 0; color: var(--muted); }
 ul, ol{ margin: 10px 0 14px; padding-left: 18px; color: var(--muted); }
 li{ margin: 8px 0; }
+
+.sub{ margin:0; color: var(--muted); max-width: 70ch; font-size: 16px; }
 .muted{ color: var(--soft); font-size: 13px; }
+.hr{ height:1px; background: var(--border); margin: 14px 0; }
 
-/* Panels / cards: makes every simple page look “built” */
-.card, .panel-like{
-  background: linear-gradient(180deg, rgba(16,24,38,.86), rgba(15,22,34,.86));
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 18px;
-  box-shadow: var(--shadow);
-}
-
-/* Give normal pages a hero block automatically */
-.page-hero{
-  background: linear-gradient(180deg, rgba(16,24,38,.9), rgba(11,15,20,.6));
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 18px;
-  box-shadow: 0 12px 30px rgba(0,0,0,.18);
-  margin-bottom: 16px;
-}
-.page-hero .sub{
-  margin: 0;
-  color: var(--muted);
-  max-width: 70ch;
-  font-size: 15px;
-}
-
-/* Notes */
-.note{
-  margin-top: 12px;
-  padding: 12px 12px;
-  border-radius: 12px;
-  border: 1px solid rgba(110,231,255,.18);
-  background: rgba(110,231,255,.06);
-  color: var(--muted);
-  font-size: 14px;
-}
-
-/* Buttons / CTAs */
-.cta-row{
-  margin-top: 16px;
-  display:flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-.cta-center{
-  margin-top: 22px;
-  display:flex;
-  justify-content:center;
-}
-
-.button{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  padding: 12px 14px;
-  border-radius: 12px;
-  font-weight: 800;
-  font-size: 14px;
-  border: 1px solid var(--border);
-  background: rgba(255,255,255,.05);
-  color: var(--text);
-  text-decoration:none;
-  box-shadow: 0 10px 20px rgba(0,0,0,.18);
-}
-.button:hover{
-  text-decoration:none;
-  background: rgba(255,255,255,.08);
-}
-.button.primary{
-  color: #061019;
-  border: none;
-  background: linear-gradient(90deg, var(--accent), var(--accent2));
-}
-
-/* Footer links row */
-.link-row{
-  margin-top: 18px;
-  display:flex;
-  justify-content:center;
-  gap: 10px;
-  align-items:center;
-  flex-wrap: wrap;
-  color: var(--soft);
-  font-size: 13px;
-}
-.sep{ color: var(--soft); }
-
-/* Footer area */
-.footer-links{
-  margin-top: 16px;
-  font-size: 13px;
-  color: var(--soft);
-}
-
-/* ======================================
-   Global Header (matches Risk aesthetic)
-   ====================================== */
-
+/* Global Header / Navigation */
 .site-header{
   position: sticky;
   top: 0;
@@ -179,7 +83,6 @@ li{ margin: 8px 0; }
   justify-content: space-between;
   gap: 14px;
 }
-
 .brand{
   font-weight: 900;
   font-size: 16px;
@@ -202,7 +105,6 @@ li{ margin: 8px 0; }
   color: var(--accent);
   font-weight: 900;
 }
-
 .nav-links{
   display:flex;
   gap: 10px;
@@ -222,6 +124,7 @@ li{ margin: 8px 0; }
   color: var(--text);
   border-color: var(--border);
   background: rgba(255,255,255,.03);
+  text-decoration:none;
 }
 .nav-emphasis{
   color: var(--text) !important;
@@ -229,7 +132,224 @@ li{ margin: 8px 0; }
   background: rgba(110,231,255,.08) !important;
 }
 
-/* Mobile */
+/* Premium containers */
+.page-hero{
+  padding: 22px 18px;
+  border:1px solid var(--border);
+  border-radius: var(--radius);
+  background: linear-gradient(180deg, rgba(16,24,38,.9), rgba(11,15,20,.6));
+  box-shadow: 0 12px 30px rgba(0,0,0,.18);
+  margin-bottom: 16px;
+}
+.card, .panel{
+  background: linear-gradient(180deg, rgba(16,24,38,.86), rgba(15,22,34,.86));
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px;
+  box-shadow: var(--shadow);
+}
+
+.note{
+  margin-top: 12px;
+  padding: 12px 12px;
+  border-radius: 12px;
+  border:1px solid rgba(251,191,36,.25);
+  background: rgba(251,191,36,.08);
+  color: var(--muted);
+  font-size: 14px;
+}
+.note strong{color: #fde68a;}
+
+/* Template box (amicable page etc.) */
+.template-box{
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  background: rgba(255,255,255,.03);
+  color: var(--muted);
+}
+.template-box p{ margin: 8px 0; }
+
+/* Buttons */
+.cta-row{ margin-top: 16px; display:flex; gap: 10px; flex-wrap: wrap; }
+.button{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding: 12px 14px;
+  border-radius: 12px;
+  font-weight: 800;
+  font-size: 14px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,.05);
+  color: var(--text);
+  text-decoration:none;
+  box-shadow: 0 10px 20px rgba(0,0,0,.18);
+}
+.button:hover{ background: rgba(255,255,255,.08); text-decoration:none; }
+.button.primary{
+  color: #061019;
+  border: none;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+}
+
+/* Details blocks */
+details{
+  margin-top: 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: rgba(255,255,255,.03);
+}
+summary{ cursor:pointer; color: var(--muted); font-weight: 650; }
+details p{ margin: 10px 0 0; color: var(--muted); font-size: 14px; }
+
+/* Risk Awareness components (now global) */
+.scopebar{
+  position: sticky;
+  top: var(--header-h);
+  z-index: 50;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(180deg, rgba(16,24,38,.96), rgba(11,15,20,.92));
+  backdrop-filter: blur(8px);
+}
+.scopebar .wrap{ padding: 10px 18px; }
+.scope-row{ display:flex; gap: 10px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+.scope-left{ display:flex; gap:10px; align-items:center; flex-wrap: wrap; min-width: 240px; }
+.kicker{
+  display:inline-flex; gap:10px; align-items:center;
+  padding: 6px 10px;
+  background: rgba(110,231,255,.08);
+  border: 1px solid rgba(110,231,255,.18);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 13px;
+}
+.badge{
+  font-weight:700;
+  color: var(--bg);
+  background: var(--accent);
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  letter-spacing:.2px;
+}
+.scope-mini{ color: var(--muted); font-size: 12px; line-height: 1.35; max-width: 70ch; }
+.scope-actions{ display:flex; gap: 10px; align-items:center; flex-wrap: wrap; justify-content: flex-end; }
+.scope-actions a{
+  font-size: 12px;
+  color: var(--soft);
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,.03);
+  padding: 6px 10px;
+  border-radius: 999px;
+  text-decoration: none;
+}
+.scope-actions a:hover{ color: var(--text); text-decoration:none; }
+.scope-details{
+  margin-top: 10px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 8px 12px;
+  background: rgba(255,255,255,.03);
+}
+.scope-details summary{ cursor:pointer; color: var(--muted); font-weight: 650; font-size: 13px; }
+.scope-details p{ margin: 10px 0 0; color: var(--muted); font-size: 13px; }
+
+.grid{
+  display:grid;
+  grid-template-columns: 1.4fr .9fr;
+  gap: 18px;
+  align-items:start;
+}
+@media (max-width: 920px){ .grid{ grid-template-columns: 1fr; } }
+
+.callout{
+  display:flex; gap:12px; align-items:flex-start;
+  padding: 14px;
+  border-radius: 14px;
+  border:1px solid rgba(52,211,153,.22);
+  background: rgba(52,211,153,.07);
+  margin: 14px 0 0;
+}
+.icon{
+  width: 34px; height: 34px;
+  border-radius: 10px;
+  display:grid; place-items:center;
+  background: rgba(52,211,153,.18);
+  border:1px solid rgba(52,211,153,.24);
+  flex: 0 0 auto;
+  font-weight: 800;
+  color: var(--ok);
+}
+
+.mini{
+  background: linear-gradient(180deg, rgba(16,24,38,.72), rgba(15,22,34,.72));
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px;
+  position: sticky;
+  top: calc(var(--header-h) + 10px);
+  box-shadow: var(--shadow);
+}
+@media (max-width: 920px){ .mini{ position: static; } }
+
+.pill-row{display:flex; gap:8px; flex-wrap:wrap; margin-top: 10px;}
+.pill{
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,.03);
+  color: var(--soft);
+  font-size: 12px;
+}
+
+.footer{
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+  color: var(--soft);
+  font-size: 12px;
+}
+
+.danger{
+  border-color: rgba(251,113,133,.28) !important;
+  background: rgba(251,113,133,.08) !important;
+}
+.danger strong{color: #fecdd3;}
+
+code.inline{
+  padding:2px 6px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: rgba(0,0,0,.25);
+  color: var(--text);
+  font-size: 12px;
+}
+
+/* Bottom nav */
+.bottom-nav{
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  align-items:center;
+  justify-content:space-between;
+}
+.bottom-nav .left,
+.bottom-nav .right{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  align-items:center;
+}
+.bottom-nav .hint{
+  color: var(--soft);
+  font-size: 12px;
+}
+
 @media (max-width: 560px){
   .main-nav{ padding: 10px 14px; }
   .nav-links a{ padding: 7px 9px; }
