@@ -4,13 +4,11 @@
   <meta charset="utf-8" />
   <title>SharpeSystem</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-
-  <!-- Use ONE global stylesheet -->
   <link rel="stylesheet" href="/styles.css" />
 </head>
 
 <body>
-  <!-- Shared header/nav (single source of truth) -->
+  <!-- Shared header/nav -->
   <div id="site-header"></div>
   <script>
     fetch('/partials/header.html')
@@ -21,37 +19,74 @@
 
   <main class="page">
     <div class="container content">
-      <h1>SharpeSystem</h1>
 
-      <p>
-        If you’re here, you’re probably dealing with something that feels unfamiliar, high-stakes, and oddly disorienting.
-        Not just emotionally—procedurally. New words. New timelines. New rules. People talking past each other.
-        And the consequences don’t wait for you to catch up.
-      </p>
+      <!-- Hero -->
+      <section class="page-hero" aria-label="SharpeSystem introduction">
+        <h1>SharpeSystem</h1>
+        <p class="sub">
+          Calm, structured procedural orientation for high-stakes situations.
+          Built to help you think clearly when the system feels unfamiliar.
+        </p>
+      </section>
 
-      <p>
-        Sharpe System exists because I went through that world myself. I learned—often the hard way—how easy it is to lose
-        time, miss leverage, and get dragged into false urgency when you don’t have a map.
-      </p>
+      <!-- Core message -->
+      <section class="card" aria-label="Purpose">
+        <p>
+          If you’re here, you’re likely dealing with something that feels unfamiliar, high-stakes, and oddly disorienting.
+          Not just emotionally — <em>procedurally</em>.
+          New words. New timelines. New rules. People talking past each other.
+          And consequences that don’t wait for you to catch up.
+        </p>
 
-      <p>
-        This project is an attempt to give ordinary people a real edge: a fighting chance to orient quickly, think clearly,
-        and move forward deliberately in a system that is confusing by default.
-      </p>
+        <p>
+          SharpeSystem exists because I went through that world myself.
+          I learned — often the hard way — how easy it is to lose time,
+          miss leverage, and get dragged into false urgency when you don’t have a map.
+        </p>
 
-      <p class="muted">
-        Note: This is decision support and procedural orientation. It is not legal advice.
-      </p>
+        <p>
+          This project is an attempt to give ordinary people a real edge:
+          a fighting chance to orient quickly, think clearly,
+          and move forward deliberately in systems that are confusing by default.
+        </p>
 
-      <div class="cta-center">
-        <a class="button primary" href="/home.html">Enter the System</a>
-      </div>
+        <div class="note" role="note">
+          <strong>Scope:</strong> This site provides decision support and procedural orientation only.
+          It does not provide legal advice, legal strategy, or jurisdiction-specific rules.
+        </div>
 
-      <div class="link-row">
-        <a href="/status.html">Status</a>
-        <span class="sep">·</span>
-        <a href="/trees.html">Decision Trees</a>
-      </div>
+        <div class="cta-row" style="justify-content:center; margin-top:18px;">
+          <a class="button primary" href="/home.html">Enter the System</a>
+        </div>
+      </section>
+
+      <!-- Secondary navigation -->
+      <section class="card" aria-label="Secondary navigation">
+        <h2>Before you continue</h2>
+        <p class="muted">
+          If you want to understand the boundaries of this project or explore structured paths directly:
+        </p>
+
+        <div class="bottom-nav">
+          <div class="left">
+            <a class="button" href="/status.html">Read Status</a>
+            <a class="button" href="/trees.html">Decision Trees</a>
+          </div>
+          <div class="right">
+            <span class="hint">If things feel heated:</span>
+            <a class="button primary" href="/high-conflict-risk-awareness.html">
+              Risk Awareness
+            </a>
+          </div>
+        </div>
+
+        <div class="footer">
+          <div>
+            Designed to reduce confusion, not replace professionals.
+          </div>
+        </div>
+      </section>
+
     </div>
   </main>
 </body>
