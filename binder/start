@@ -1,1 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Start a Matter Binder — SharpeSystem</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+
+<body>
+  <div id="site-header"></div>
+  <script>
+    fetch('/partials/header.html')
+      .then(r => r.text())
+      .then(html => { document.getElementById('site-header').innerHTML = html; })
+      .catch(() => {});
+  </script>
+
+  <header class="page-hero">
+    <div class="wrap">
+      <h1>Start a Matter Binder</h1>
+      <p class="sub">
+        A Matter Binder is a structured, neutral container for everything related to a legal or procedural situation.
+        It helps you organize facts, timelines, documents, and decisions — without giving advice or taking sides.
+      </p>
+    </div>
+  </header>
+
+  <main>
+    <div class="wrap grid">
+      <section class="panel">
+        <h2>What this does</h2>
+        <ul>
+          <li>Reduces confusion by centralizing information</li>
+          <li>Preserves timelines before details are lost</li>
+          <li>Creates a clean record you can share later</li>
+          <li>Avoids emotional or strategic framing</li>
+        </ul>
+
+        <div class="hr"></div>
+
+        <h2>What this does not do</h2>
+        <ul>
+          <li>Does not provide legal advice</li>
+          <li>Does not replace an attorney</li>
+          <li>Does not tell you what to do</li>
+        </ul>
+
+        <div class="note">
+          <strong>Design principle:</strong> This system favors clarity over speed, structure over urgency,
+          and records over memory.
+        </div>
+
+        <div class="hr"></div>
+
+        <button class="btn">
+          Start a new Matter Binder
+        </button>
+
+        <p class="small" style="margin-top:10px;">
+          (No account required at this stage. This is a conceptual walkthrough.)
+        </p>
+      </section>
+
+      <aside class="mini">
+        <h2>Working with an attorney?</h2>
+        <p>
+          A Matter Binder can be shared with an attorney or professional to reduce onboarding time,
+          eliminate repeated explanations, and keep records clean.
+        </p>
+
+        <div class="pill-row">
+          <span class="pill">Client-controlled</span>
+          <span class="pill">Read-only by default</span>
+          <span class="pill">No extra admin</span>
+        </div>
+
+        <div class="hr"></div>
+
+        <a href="/binder/invite.html" class="btn secondary">
+          View Attorney Invite Page
+        </a>
+
+        <p class="small" style="margin-top:10px;">
+          This does not notify anyone. It shows what an attorney would see if invited.
+        </p>
+      </aside>
+    </div>
+  </main>
+</body>
+</html>
 
