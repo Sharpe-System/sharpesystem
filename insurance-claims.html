@@ -1,0 +1,569 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <meta name="theme-color" content="#0b0f14" />
+  <title>SharpeSystem — Insurance Claim Navigator</title>
+  <meta name="description" content="Calm, plain navigation for insurance claims when you’re not sure what to do next." />
+
+  <!-- Global theme -->
+  <link rel="stylesheet" href="/styles.css" />
+
+  <!-- Page-only helpers (minimal) -->
+  <style>
+    /* Keep this tiny. Most styling should come from /styles.css */
+    .two-col{
+      display:grid;
+      grid-template-columns: 1.15fr .85fr;
+      gap: 14px;
+      margin-top: 12px;
+    }
+    @media (max-width: 920px){ .two-col{ grid-template-columns: 1fr; } }
+
+    .chip{
+      display:inline-block;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.08);
+      background: rgba(255,255,255,.03);
+      color: var(--soft);
+      font-size: 12px;
+      font-weight: 760;
+      letter-spacing: .2px;
+      margin-bottom: 10px;
+    }
+
+    .btn-row{ display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin-top: 12px; }
+    .mini{ font-size: 13px; color: var(--soft); }
+
+    .grid{
+      display:grid;
+      grid-template-columns: repeat(12,1fr);
+      gap: 12px;
+      margin-top: 12px;
+    }
+    .tile{
+      grid-column: span 6;
+      padding: 14px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.03);
+    }
+    @media (max-width: 860px){ .tile{ grid-column: span 12; } }
+
+    .tile h3{ margin: 0 0 8px; }
+    .tile p{ margin: 0 0 10px; }
+
+    .hidden{ display:none !important; }
+    .pillbar{ display:flex; gap:8px; flex-wrap:wrap; margin: 10px 0 0; }
+    .pill{
+      font-size: 12px;
+      color: var(--soft);
+      border: 1px solid rgba(255,255,255,.08);
+      background: rgba(255,255,255,.03);
+      padding: 6px 10px;
+      border-radius: 999px;
+    }
+
+    .list-tight{ margin-top: 8px; }
+    .list-tight li{ margin: 6px 0; }
+
+    .panel{
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.03);
+      border-radius: var(--radius);
+      padding: 14px;
+    }
+  </style>
+</head>
+
+<body>
+  <header class="site-header">
+    <div class="main-nav">
+      <a class="brand" href="/">The SharpeSystem</a>
+      <div class="nav-links">
+        <a href="/legal.html">Sharpe Legal</a>
+        <a href="/status.html">Status</a>
+        <a class="nav-emphasis" href="#start">Insurance Claims</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="page" id="start">
+    <div class="container">
+      <section class="content">
+        <div class="chip">Insurance Claim Navigator</div>
+        <h1>Tell me what happened.</h1>
+        <p class="lede">
+          If you got a denial, a request for documents, or a message that made your stomach drop, start here.
+          You don’t need the right words. Just explain it plainly.
+        </p>
+
+        <!-- Minimal "Google-like" front door -->
+        <label class="label" for="story">What happened? (2–8 sentences)</label>
+        <textarea class="input" id="story" rows="6" placeholder="Example: My car was hit and the insurer keeps delaying. They asked for photos and an estimate. I don’t know what they really need or what happens next."></textarea>
+
+        <div class="two-col">
+          <div>
+            <label class="label" for="event">Best guess (optional)</label>
+            <select class="input" id="event">
+              <option value="not_sure" selected>Not sure</option>
+              <option value="auto">Car accident / vehicle damage</option>
+              <option value="property">Home / renters / property damage</option>
+              <option value="medical">Medical bills / claim denial</option>
+              <option value="life">Life insurance / death claim</option>
+              <option value="other">Other</option>
+            </select>
+
+            <label class="label" for="deadline">Any deadline you see? (optional)</label>
+            <input class="input" id="deadline" type="text" placeholder="e.g., 10 days / March 2 / none" />
+
+            <div class="btn-row">
+              <button class="button primary" id="btnGo" type="button">Find my next step</button>
+              <button class="button" id="btnWizard" type="button">I’m not sure what this is</button>
+            </div>
+
+            <p class="mini" style="margin-top:12px;">
+              This does not replace your insurer, your adjuster, or a lawyer. It helps you stay steady and move in order.
+            </p>
+          </div>
+
+          <aside class="panel">
+            <h2 style="margin-top:0;">What you’ll get</h2>
+            <p class="mini">
+              Same format every time:
+            </p>
+            <div class="pillbar">
+              <span class="pill"><strong>What this is</strong></span>
+              <span class="pill"><strong>What matters now</strong></span>
+              <span class="pill"><strong>Next steps</strong></span>
+              <span class="pill"><strong>Do not do yet</strong></span>
+            </div>
+            <div class="hr"></div>
+            <p class="mini">
+              If you’re overwhelmed: that’s normal. The point is to prevent bad moves and missed dates.
+            </p>
+          </aside>
+        </div>
+
+        <!-- Wizard -->
+        <div class="hr hidden" id="wizHr">
+        </div>
+        <section class="hidden" id="wizard">
+          <h2>Quick sorter</h2>
+          <p class="mini">One question at a time. If you don’t know, choose “Not sure.”</p>
+
+          <div class="template-box" id="wizQ"></div>
+
+          <div class="two-col" style="margin-top:12px;">
+            <div>
+              <label class="label" for="wizA">Choose one</label>
+              <select class="input" id="wizA"></select>
+            </div>
+            <div>
+              <label class="label">&nbsp;</label>
+              <div class="btn-row">
+                <button class="button primary" id="wizNext" type="button">Next</button>
+                <button class="button" id="wizBack" type="button">Back</button>
+                <button class="button" id="wizExit" type="button">Exit</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Result -->
+        <div class="hr hidden" id="resHr"></div>
+        <section class="hidden" id="result">
+          <div class="chip" id="resChip">Result</div>
+          <h2 id="resH2" style="margin-top:0;">Here’s the path that fits best.</h2>
+          <p class="mini" id="resLead"></p>
+
+          <div class="two-col">
+            <div class="panel">
+              <h3>Today list</h3>
+              <ul class="list-tight" id="todayList"></ul>
+
+              <div class="hr"></div>
+
+              <h3>Do not do yet</h3>
+              <ul class="list-tight" id="stopList"></ul>
+
+              <div class="hr"></div>
+
+              <h3>What this usually means</h3>
+              <div class="template-box" id="meaning"></div>
+
+              <div class="btn-row" style="margin-top:12px;">
+                <button class="button" id="btnReset" type="button">Back</button>
+                <a class="button primary" href="#services">Optional help</a>
+              </div>
+            </div>
+
+            <aside class="panel">
+              <h3 style="margin-top:0;">What matters now</h3>
+              <div class="template-box" id="matters"></div>
+
+              <div class="hr"></div>
+
+              <div class="note">
+                <strong>Deadline note:</strong>
+                <span id="deadlineEcho">No deadline provided.</span>
+              </div>
+            </aside>
+          </div>
+        </section>
+      </section>
+
+      <section class="content" id="services" style="margin-top:14px;">
+        <div class="chip">Optional help</div>
+        <h2 style="margin-top:0;">Extra help, if you want it.</h2>
+        <p class="mini">
+          Some people just want the path. Others want a checklist, a clean email, or a call plan. These are optional.
+        </p>
+
+        <div class="grid">
+          <div class="tile">
+            <h3>Document checklist</h3>
+            <p>Start with what you already have. Don’t wait for perfect.</p>
+            <a class="button" href="#svc-docs" data-open="svc-docs">Open</a>
+          </div>
+
+          <div class="tile">
+            <h3>Email help</h3>
+            <p>Short. Calm. Firm. No over-explaining.</p>
+            <a class="button" href="#svc-email" data-open="svc-email">Open</a>
+          </div>
+
+          <div class="tile">
+            <h3>Call plan</h3>
+            <p>Questions to ask so you don’t hang up without clarity.</p>
+            <a class="button" href="#svc-call" data-open="svc-call">Open</a>
+          </div>
+
+          <div class="tile">
+            <h3>Inspection prep</h3>
+            <p>What to photograph and how to document damage.</p>
+            <a class="button" href="#svc-inspect" data-open="svc-inspect">Open</a>
+          </div>
+
+          <div class="tile">
+            <h3>Advocate summary</h3>
+            <p>A one-page handoff you can give to an advocate or attorney.</p>
+            <a class="button" href="#svc-summary" data-open="svc-summary">Open</a>
+          </div>
+
+          <div class="tile">
+            <h3>Follow-up schedule</h3>
+            <p>Simple reminders so the next email doesn’t catch you off guard.</p>
+            <a class="button" href="#svc-follow" data-open="svc-follow">Open</a>
+          </div>
+        </div>
+
+        <div class="template-box hidden" id="svc-docs" style="margin-top:12px;">
+          <h3 style="margin-top:0;">Document checklist</h3>
+          <ul class="list-tight">
+            <li>Policy number (or a photo of the card)</li>
+            <li>The letter/email you received (full page, not cropped)</li>
+            <li>Photos of damage or the issue (wide + close)</li>
+            <li>Receipts and estimates (even if incomplete)</li>
+            <li>Claim number and adjuster contact (if you have it)</li>
+          </ul>
+          <div class="btn-row">
+            <button class="button" type="button" data-close>Back</button>
+          </div>
+        </div>
+
+        <div class="template-box hidden" id="svc-email" style="margin-top:12px;">
+          <h3 style="margin-top:0;">Email help</h3>
+          <div class="panel">
+            <p class="mini"><strong>Subject:</strong> Claim follow-up — request for next step</p>
+            <p class="mini"><strong>Body:</strong> Hello, I’m following up on my claim. Please confirm what you need from me next and the deadline to provide it. If you already requested documents, please list them again in one place. Thank you.</p>
+          </div>
+          <div class="btn-row">
+            <button class="button" type="button" data-close>Back</button>
+          </div>
+        </div>
+
+        <div class="template-box hidden" id="svc-call" style="margin-top:12px;">
+          <h3 style="margin-top:0;">Call plan</h3>
+          <ul class="list-tight">
+            <li>“What is the next step on your side?”</li>
+            <li>“What is the next step on my side?”</li>
+            <li>“What documents are missing, exactly?”</li>
+            <li>“What is the deadline?”</li>
+            <li>“When should I expect an update if I send this today?”</li>
+            <li>Write down: date, time, name, and what they promised.</li>
+          </ul>
+          <div class="btn-row">
+            <button class="button" type="button" data-close>Back</button>
+          </div>
+        </div>
+
+        <div class="template-box hidden" id="svc-inspect" style="margin-top:12px;">
+          <h3 style="margin-top:0;">Inspection prep</h3>
+          <ul class="list-tight">
+            <li>Take wide shots (context), then close shots (detail).</li>
+            <li>Include one photo with a common object for scale (coin, tape measure).</li>
+            <li>Do not repair or throw away damaged items until you know it’s okay.</li>
+            <li>If water is involved, take photos daily as it changes.</li>
+          </ul>
+          <div class="btn-row">
+            <button class="button" type="button" data-close>Back</button>
+          </div>
+        </div>
+
+        <div class="template-box hidden" id="svc-summary" style="margin-top:12px;">
+          <h3 style="margin-top:0;">Advocate summary</h3>
+          <ul class="list-tight">
+            <li>Claim type: auto / property / medical / life</li>
+            <li>Claim number: (if known)</li>
+            <li>What happened: (2–4 sentences)</li>
+            <li>What insurer said: (quote or attach)</li>
+            <li>What’s due next: (documents / deadline)</li>
+            <li>What you need: (approval / payment / reconsideration / explanation)</li>
+          </ul>
+          <div class="btn-row">
+            <button class="button" type="button" data-close>Back</button>
+          </div>
+        </div>
+
+        <div class="template-box hidden" id="svc-follow" style="margin-top:12px;">
+          <h3 style="margin-top:0;">Follow-up schedule</h3>
+          <ul class="list-tight">
+            <li>Day 0: send documents (keep proof)</li>
+            <li>Day 3: polite follow-up if no confirmation</li>
+            <li>Day 7: request status + next step</li>
+            <li>Every 7 days after: one clean check-in</li>
+          </ul>
+          <div class="btn-row">
+            <button class="button" type="button" data-close>Back</button>
+          </div>
+        </div>
+
+        <div class="footer-links">
+          <a href="/">Home</a> <span class="sep">·</span>
+          <a href="/status.html">Status</a> <span class="sep">·</span>
+          <a href="/legal.html">Sharpe Legal</a>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+
+    const wizard = {
+      i: 0,
+      answers: [],
+      steps: [
+        { q: "Did this start with a car, truck, or motorcycle issue?",
+          opts: [["yes","Yes"],["no","No"],["ns","Not sure"]] },
+        { q: "Is the main issue damage to a home, apartment, or personal property?",
+          opts: [["yes","Yes"],["no","No"],["ns","Not sure"]] },
+        { q: "Is the main issue a medical bill, a denial, or a health claim?",
+          opts: [["yes","Yes"],["no","No"],["ns","Not sure"]] },
+        { q: "Is this about a death benefit or life insurance payout?",
+          opts: [["yes","Yes"],["no","No"],["ns","Not sure"]] }
+      ],
+      render(){
+        $("wizQ").textContent = this.steps[this.i].q;
+        const sel = $("wizA");
+        sel.innerHTML = "";
+        this.steps[this.i].opts.forEach(([v,t]) => {
+          const op = document.createElement("option");
+          op.value = v; op.textContent = t;
+          sel.appendChild(op);
+        });
+        sel.value = "ns";
+        $("wizBack").disabled = (this.i === 0);
+      },
+      decide(){
+        const a = this.answers;
+        if (a[0] === "yes") return "auto";
+        if (a[1] === "yes") return "property";
+        if (a[2] === "yes") return "medical";
+        if (a[3] === "yes") return "life";
+        return "other";
+      }
+    };
+
+    const templates = {
+      auto: {
+        chip: "Auto claim",
+        lead: "This looks like a vehicle claim. The goal is to document damage, confirm coverage, and keep the timeline clean.",
+        matters: "Photos, claim number, and a clear record of every call and email. Short facts beat long explanations.",
+        meaning: "Delays are common. Most delays are waiting on documents, an inspection, or review. You don’t have to argue. You do need a clean paper trail.",
+        today: [
+          "Get the claim number (or request it).",
+          "Take clear photos: wide shots and close shots.",
+          "Write down: date of loss, location, and what happened (plain and short).",
+          "Ask: “What documents are missing, exactly, and what is the deadline?”"
+        ],
+        stop: [
+          "Do not guess at fault details in writing if you are unsure.",
+          "Do not accept the first low offer just to end the stress.",
+          "Do not repair damage until the insurer says it’s okay (unless safety requires it)."
+        ]
+      },
+      property: {
+        chip: "Property claim",
+        lead: "This looks like a property claim. Insurers usually need photos, dates, and item details.",
+        matters: "Photos over time, receipts if you have them, and a simple list of damaged items.",
+        meaning: "“We need more information” usually means they can’t approve payment until damage matches the policy. Keep it factual and organized.",
+        today: [
+          "Take photos (wide + close). Repeat daily if damage changes.",
+          "List damaged items in plain terms (brand/model if known).",
+          "Keep receipts, estimates, and emergency repair invoices.",
+          "Ask for the exact checklist of what they need."
+        ],
+        stop: [
+          "Do not throw away damaged items until you’re told it’s okay.",
+          "Do not stop documenting once you send the first batch.",
+          "Do not rely on phone calls alone—follow up in writing."
+        ]
+      },
+      medical: {
+        chip: "Medical claim",
+        lead: "This looks like a medical denial or billing claim. The right move is to get the exact reason in writing.",
+        matters: "Denial reason, dates of service, provider name, and the appeal window.",
+        meaning: "Many denials are not final. You need the reason and the deadline to fix or appeal it.",
+        today: [
+          "Get the denial reason in writing (letter or portal screenshot).",
+          "Ask: “Is this final, or can it be fixed by sending information?”",
+          "Ask for the appeal deadline and exact steps.",
+          "Collect: bill, EOB, and any provider notes you can get."
+        ],
+        stop: [
+          "Do not ignore it and hope it disappears.",
+          "Do not pay a large bill before you understand the denial reason.",
+          "Do not send long emotional explanations—send documents and facts."
+        ]
+      },
+      life: {
+        chip: "Life claim",
+        lead: "This looks like a life insurance claim. The process is formal. Keep copies of everything.",
+        matters: "Policy number, claimant identity, death certificate, and the insurer’s checklist.",
+        meaning: "Delays usually come from verification. Your job is to meet the checklist and get confirmation the file is complete.",
+        today: [
+          "Confirm the policy number and claims department contact.",
+          "Ask for the checklist of required documents.",
+          "Send documents in one organized batch (with proof).",
+          "Ask: “Is my file complete now? If not, what is missing?”"
+        ],
+        stop: [
+          "Do not send original documents unless they require it.",
+          "Do not assume silence means progress—request confirmation.",
+          "Do not let deadlines drift; ask for timeframes in writing."
+        ]
+      },
+      other: {
+        chip: "General claim",
+        lead: "This looks like a general insurance problem. That’s fine. Many issues don’t fit neatly at first.",
+        matters: "The exact message you received, the date you received it, and what they say is missing.",
+        meaning: "Most of the time, they want something specific. Your goal is to get that list in one place and meet it on time.",
+        today: [
+          "Copy the insurer’s request into your notes (exact words).",
+          "Ask: “What do you need from me next, and by what date?”",
+          "Gather what you already have. Don’t wait for perfect.",
+          "Send one organized email with attachments and a clear subject line."
+        ],
+        stop: [
+          "Do not guess if you don’t know—ask for clarity.",
+          "Do not send partial documents without labeling them.",
+          "Do not let the deadline pass without confirming an extension."
+        ]
+      }
+    };
+
+    function showWizard(on){
+      $("wizard").classList.toggle("hidden", !on);
+      $("wizHr").classList.toggle("hidden", !on);
+      if (on) {
+        wizard.i = 0; wizard.answers = [];
+        wizard.render();
+        $("wizard").scrollIntoView({behavior:"smooth", block:"start"});
+      }
+    }
+
+    function showResult(type){
+      const t = templates[type] || templates.other;
+      $("result").classList.remove("hidden");
+      $("resHr").classList.remove("hidden");
+
+      $("resChip").textContent = t.chip;
+      $("resLead").textContent = t.lead;
+      $("matters").textContent = t.matters;
+      $("meaning").textContent = t.meaning;
+
+      const dl = ($("deadline").value || "").trim();
+      $("deadlineEcho").textContent = dl ? ("Deadline you entered: " + dl) : "No deadline provided. If you have a letter, check the top of the page for dates.";
+
+      const today = $("todayList"); today.innerHTML = "";
+      t.today.forEach(x => { const li = document.createElement("li"); li.textContent = x; today.appendChild(li); });
+
+      const stop = $("stopList"); stop.innerHTML = "";
+      t.stop.forEach(x => { const li = document.createElement("li"); li.textContent = x; stop.appendChild(li); });
+
+      $("result").scrollIntoView({behavior:"smooth", block:"start"});
+    }
+
+    $("btnGo").addEventListener("click", () => {
+      const event = $("event").value;
+      if (event === "not_sure") {
+        showWizard(true);
+        return;
+      }
+      showWizard(false);
+      showResult(event);
+    });
+
+    $("btnWizard").addEventListener("click", () => showWizard(true));
+
+    $("wizNext").addEventListener("click", () => {
+      wizard.answers[wizard.i] = $("wizA").value;
+      if (wizard.i < wizard.steps.length - 1) {
+        wizard.i += 1;
+        wizard.render();
+      } else {
+        const type = wizard.decide();
+        showWizard(false);
+        showResult(type);
+      }
+    });
+
+    $("wizBack").addEventListener("click", () => {
+      if (wizard.i > 0) { wizard.i -= 1; wizard.render(); }
+    });
+
+    $("wizExit").addEventListener("click", () => showWizard(false));
+
+    $("btnReset").addEventListener("click", () => {
+      showWizard(false);
+      $("result").classList.add("hidden");
+      $("resHr").classList.add("hidden");
+      window.location.hash = "#start";
+    });
+
+    // Services open/close
+    document.querySelectorAll("[data-open]").forEach(a => {
+      a.addEventListener("click", (e) => {
+        e.preventDefault();
+        const id = a.getAttribute("data-open");
+        if (!id) return;
+        ["svc-docs","svc-email","svc-call","svc-inspect","svc-summary","svc-follow"].forEach(x => $(x).classList.add("hidden"));
+        $(id).classList.remove("hidden");
+        $(id).scrollIntoView({behavior:"smooth", block:"start"});
+      });
+    });
+
+    document.querySelectorAll("[data-close]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const box = btn.closest(".template-box");
+        if (box) box.classList.add("hidden");
+      });
+    });
+  </script>
+</body>
+</html>
