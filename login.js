@@ -4,4 +4,4 @@ import { getAuth } from "firebase/auth";
 const auth = getAuth(app);
 
 // Temporary test
-console.log("Firebase initialized:", auth);
+console.log("LOGIN JS LOADED");
