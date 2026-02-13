@@ -1,4 +1,4 @@
-// firebase-config.js
+// firebase-config.js (CDN version for static sites)
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
 const firebaseConfig = {
@@ -12,5 +12,4 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-
 export default app;
