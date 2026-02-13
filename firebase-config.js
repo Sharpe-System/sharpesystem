@@ -2,7 +2,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
 const firebaseConfig = {
-  apiKey: "PUT_YOUR_NEW_API_KEY_HERE",
+  apiKey: "AIzaSyA1NzDz4eBT_zI3P2mDboOb4Hpwvyadlmo",
   authDomain: "sharpe-legal.firebaseapp.com",
   projectId: "sharpe-legal",
   storageBucket: "sharpe-legal.firebasestorage.app",
