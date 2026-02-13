@@ -1,64 +1,71 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Sharpe Legal — Login</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SharpeSystem Login</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: system-ui, sans-serif;
+      background: #0b0f14;
+      color: #e8eef6;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .box {
+      background: #101826;
+      padding: 40px;
+      border-radius: 12px;
+      width: 320px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 12px;
+      border-radius: 6px;
+      border: 1px solid #1b2a3f;
+      background: #0f1622;
+      color: #e8eef6;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background: #6ee7ff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    #message {
+      margin-top: 12px;
+      font-size: 14px;
+    }
+  </style>
 </head>
 <body>
-  <h1>Login</h1>
 
-  <input id="email" type="email" placeholder="Email" />
-  <input id="password" type="password" placeholder="Password (6+ chars)" />
+  <div class="box">
+    <h2>Login</h2>
 
-  <div style="margin-top:12px;">
-    <button id="btnCreate">Create Account</button>
-    <button id="btnLogin">Login</button>
+    <form id="loginForm">
+      <input id="email" type="email" placeholder="Email" required />
+      <input id="password" type="password" placeholder="Password" required />
+      <button type="submit">Log In</button>
+    </form>
+
+    <div id="message"></div>
   </div>
 
-  <p id="status" style="margin-top:12px;"></p>
-
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-
-    const firebaseConfig = {
-      apiKey: "",
-      authDomain: "sharpe-legal.firebaseapp.com",
-      projectId: "sharpe-legal",
-      storageBucket: "sharpe-legal.firebasestorage.app",
-      messagingSenderId: "770027799385",
-      appId: "1:770027799385:web:64c3f7bd4b7a140f5c0248",
-      measurementId: "G-168BBWG526"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-
-    const $ = (id) => document.getElementById(id);
-    const setStatus = (msg) => $("status").textContent = msg;
-
-    $("btnCreate").addEventListener("click", async () => {
-      setStatus("Creating account...");
-      try {
-        await createUserWithEmailAndPassword(auth, $("email").value.trim(), $("password").value);
-        setStatus("Account created. Redirecting...");
-        window.location.href = "/dashboard.html";
-      } catch (e) {
-        setStatus(`Error: ${e.code || ""} ${e.message || e}`);
-      }
-    });
-
-    $("btnLogin").addEventListener("click", async () => {
-      setStatus("Logging in...");
-      try {
-        await signInWithEmailAndPassword(auth, $("email").value.trim(), $("password").value);
-        setStatus("Logged in. Redirecting...");
-        window.location.href = "/dashboard.html";
-      } catch (e) {
-        setStatus(`Error: ${e.code || ""} ${e.message || e}`);
-      }
-    });
   <script type="module" src="./login.js"></script>
+
 </body>
 </html>
