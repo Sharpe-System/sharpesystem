@@ -1,0 +1,64 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Subscribe</title>
+  <script src="https://sandbox.web.squarecdn.com/v1/square.js"></script>
+</head>
+<body>
+
+<h1>Subscribe to Sharpe Legal Premium</h1>
+
+<div id="payment-form">
+  <div id="card-container"></div>
+  <button id="card-button">Subscribe $10/month</button>
+  <div id="payment-status"></div>
+</div>
+
+<script type="module">
+
+const payments = Square.payments(
+  "sandbox-sq0idb-RT3u-HhCpNdbMiGg5aXuVg",  // your sandbox application id
+  "TC4Z3ZEBKRXRH"                          // your sandbox location id
+);
+
+const card = await payments.card();
+await card.attach('#card-container');
+
+document.getElementById('card-button').addEventListener('click', async () => {
+
+  const status = document.getElementById("payment-status");
+
+  const result = await card.tokenize();
+
+  if (result.status === 'OK') {
+
+    const response = await fetch("https://sharpe-pay.nd-sharpe.workers.dev", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        token: result.token,
+        email: "test@example.com"
+      })
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      status.innerText = "Subscription Created Successfully";
+    } else {
+      status.innerText = "Subscription Failed";
+      console.log(data);
+    }
+
+  } else {
+    status.innerText = "Card Error";
+    console.log(result);
+  }
+
+});
+
+</script>
+
+</body>
+</html>
