@@ -19,17 +19,19 @@
 
   <p id="status" style="margin-top:12px;"></p>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-    // TODO: paste your Firebase web config here
-    const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_PROJECT.firebaseapp.com",
-      projectId: "YOUR_PROJECT_ID",
-      appId: "YOUR_APP_ID"
-    };
+<script type="module">
+  const firebaseConfig = {
+  apiKey: "AIzaSyByy77o73S_jEaYLCoXYFn9fAYteyUDxTo",
+  authDomain: "sharpe-legal.firebaseapp.com",
+  projectId: "sharpe-legal",
+  storageBucket: "sharpe-legal.firebasestorage.app",
+  messagingSenderId: "770027799385",
+  appId: "1:770027799385:web:64c3f7bd4b7a140f5c0248",
+  measurementId: "G-168BBWG526"
+};
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
