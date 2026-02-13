@@ -10,114 +10,146 @@
 
   <style>
     body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; padding: 24px; }
-    h1 { margin: 0 0 12px; }
-    #payment-form { max-width: 760px; }
-    #card-container { border: 1px solid #ddd; border-radius: 8px; padding: 12px; }
-    #card-button { margin-top: 12px; padding: 10px 14px; border-radius: 8px; border: 1px solid #111; background: #111; color: #fff; cursor: pointer; }
-    #card-button[disabled] { opacity: 0.6; cursor: not-allowed; }
-    #payment-status { margin-top: 12px; white-space: pre-wrap; }
-    .hint { color: #555; margin: 12px 0 0; }
+    #payment-form { max-width: 820px; }
+    #card-container { border: 1px solid #ddd; border-radius: 10px; padding: 16px; }
+    button { margin-top: 14px; padding: 12px 18px; border: 0; border-radius: 10px; cursor: pointer; }
+    pre { background: #f6f6f6; padding: 12px; border-radius: 10px; overflow: auto; }
   </style>
 </head>
 
 <body>
+
   <h1>Subscribe to Sharpe Legal Premium</h1>
+  <p id="authStatus"></p>
 
   <div id="payment-form">
     <div id="card-container"></div>
     <button id="card-button" type="button">Subscribe $10/month</button>
     <p id="payment-status"></p>
-    <p class="hint">
-      Sandbox testing: use 4111 1111 1111 1111, any future exp, any CVV, any ZIP.
-    </p>
+    <pre id="debug" style="display:none"></pre>
   </div>
 
-  <script type="module">
-    const $ = (id) => document.getElementById(id);
+  <p style="color:#666;margin-top:18px;">
+    Sandbox testing: use 4111 1111 1111 1111, any future exp, any CVV, any ZIP.
+  </p>
 
-    const btn = $("card-button");
-    const setStatus = (msg) => { $("payment-status").innerText = msg; };
+<script type="module">
+  /* ---------------- Firebase ---------------- */
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+  import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    // ✅ SANDBOX App ID + SANDBOX Location ID
-    const SQUARE_APP_ID = "sandbox-sq0idb-QvuJM4BGOnJc4SFAQ_QyGg";
-    const SQUARE_LOCATION_ID = "L06NC7MH9QAZR";
+  const firebaseConfig = {
+    apiKey: "AIzaSyByy77o73S_jEaYLCoXYFn9fAYteyUDxTo",
+    authDomain: "sharpe-legal.firebaseapp.com",
+    projectId: "sharpe-legal",
+    storageBucket: "sharpe-legal.firebasestorage.app",
+    messagingSenderId: "770027799385",
+    appId: "1:770027799385:web:64c3f7bd4b7a140f5c0248",
+    measurementId: "G-168BBWG526"
+  };
 
-    // ✅ Your Cloudflare Worker endpoint
-    const WORKER_URL = "https://sharpe-pay.nd-sharpe.workers.dev";
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
 
-    // Use a fixed email for now (no Firebase/auth yet)
-    const EMAIL = "test@example.com";
+  /* ---------------- Helpers ---------------- */
+  const $ = (id) => document.getElementById(id);
+  const setStatus = (msg) => { $("payment-status").innerText = msg || ""; };
+  const setDebug = (obj) => {
+    if (obj === undefined || obj === null || obj === "") {
+      $("debug").style.display = "none";
+      $("debug").textContent = "";
+      return;
+    }
+    $("debug").style.display = "block";
+    $("debug").textContent = (typeof obj === "string") ? obj : JSON.stringify(obj, null, 2);
+  };
 
-    // Init Square Payments + Card
-    let card;
-    try {
-      const payments = Square.payments(SQUARE_APP_ID, SQUARE_LOCATION_ID);
-      card = await payments.card();
-      await card.attach("#card-container");
-      setStatus("");
-    } catch (e) {
-      console.error(e);
-      setStatus("Square init failed. Check console.");
-      btn.disabled = true;
+  let currentUser = null;
+
+  /* ---------------- Require Login ---------------- */
+  onAuthStateChanged(auth, (user) => {
+    if (!user) {
+      $("authStatus").innerText = "Not logged in. Redirecting...";
+      setTimeout(() => (window.location.href = "/login.html"), 500);
+      return;
+    }
+    currentUser = user;
+    $("authStatus").innerText = "Signed in as: " + user.email;
+  });
+
+  /* ---------------- Square Setup ---------------- */
+  const APPLICATION_ID = "sandbox-sq0idb-RT3u-HhCpNdbMiGg5aXuVg";
+  const LOCATION_ID    = "L06NC7MH9QAZR";
+
+  const payments = Square.payments(APPLICATION_ID, LOCATION_ID);
+  const card = await payments.card();
+  await card.attach("#card-container");
+
+  /* ---------------- Subscribe Click ---------------- */
+  $("card-button").addEventListener("click", async () => {
+    setDebug("");
+
+    if (!currentUser) {
+      setStatus("Not logged in.");
+      return;
     }
 
-    btn.addEventListener("click", async () => {
-      if (!card) return;
+    $("card-button").disabled = true;
 
-      btn.disabled = true;
+    try {
+      setStatus("Tokenizing card...");
+      const result = await card.tokenize();
 
-      try {
-        setStatus("Tokenizing card...");
-        const result = await card.tokenize();
-        console.log("tokenize result:", result);
-
-        if (result.status !== "OK") {
-          setStatus("Card error. Check console.");
-          return;
-        }
-
-        const token = String(result.token || "").trim();
-        console.log("token prefix:", token.slice(0, 10), "len:", token.length);
-
-        if (!token) {
-          setStatus("No token returned. Check console.");
-          return;
-        }
-
-        setStatus("Creating subscription...");
-
-        const resp = await fetch(WORKER_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ token, email: EMAIL }),
-        });
-
-        const data = await resp.json().catch(() => ({}));
-        console.log("worker response:", resp.status, data);
-
-        if (!resp.ok || !data.success) {
-          setStatus(
-            "Subscription failed.\n" +
-            "HTTP " + resp.status + "\n\n" +
-            JSON.stringify(data, null, 2)
-          );
-          return;
-        }
-
-        setStatus(
-          "✅ Subscription created.\n\n" +
-          JSON.stringify(data, null, 2)
-        );
-
-        // Optional redirect later:
-        // window.location.href = "/dashboard.html";
-      } catch (e) {
-        console.error(e);
-        setStatus("Unexpected error. Check console.");
-      } finally {
-        btn.disabled = false;
+      if (result.status !== "OK" || !result.token) {
+        setStatus("Card error.");
+        setDebug(result);
+        return;
       }
-    });
-  </script>
+
+      setStatus("Creating subscription...");
+
+      const res = await fetch("https://sharpe-pay.nd-sharpe.workers.dev", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          token: result.token,          // should be cnon:...
+          email: currentUser.email
+        })
+      });
+
+      let data = null;
+      try { data = await res.json(); } catch { data = { raw: await res.text().catch(() => "") }; }
+
+      if (!res.ok || !data?.success) {
+        setStatus(`Subscription failed. HTTP ${res.status}`);
+        setDebug(data);
+        return;
+      }
+
+      // Save subscription marker
+      await setDoc(
+        doc(db, "users", currentUser.uid),
+        {
+          subscription: "premium",
+          squareSubscriptionId: data.subscriptionId,
+          updatedAt: Date.now()
+        },
+        { merge: true }
+      );
+
+      setStatus("Subscription created. Redirecting...");
+      setTimeout(() => (window.location.href = "/dashboard.html"), 800);
+
+    } catch (err) {
+      setStatus("Subscription failed.");
+      setDebug(String(err?.message || err));
+    } finally {
+      $("card-button").disabled = false;
+    }
+  });
+</script>
+
 </body>
 </html>
