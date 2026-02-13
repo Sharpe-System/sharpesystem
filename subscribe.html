@@ -9,147 +9,159 @@
   <script src="https://sandbox.web.squarecdn.com/v1/square.js"></script>
 
   <style>
-    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; padding: 24px; }
-    #payment-form { max-width: 820px; }
-    #card-container { border: 1px solid #ddd; border-radius: 10px; padding: 16px; }
-    button { margin-top: 14px; padding: 12px 18px; border: 0; border-radius: 10px; cursor: pointer; }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 24px; }
+    #payment-form { max-width: 760px; }
+    #card-container { border: 1px solid #ddd; border-radius: 10px; padding: 16px; margin: 12px 0; }
+    button { padding: 12px 16px; border: 0; border-radius: 10px; cursor: pointer; }
     pre { background: #f6f6f6; padding: 12px; border-radius: 10px; overflow: auto; }
+    .muted { color: #666; }
   </style>
 </head>
 
 <body>
-
   <h1>Subscribe to Sharpe Legal Premium</h1>
-  <p id="authStatus"></p>
+
+  <p id="authStatus" class="muted">Checking login…</p>
 
   <div id="payment-form">
     <div id="card-container"></div>
     <button id="card-button" type="button">Subscribe $10/month</button>
-    <p id="payment-status"></p>
+
+    <p id="payment-status" class="muted"></p>
     <pre id="debug" style="display:none"></pre>
+
+    <p class="muted">Sandbox testing: use 4111 1111 1111 1111, any future exp, any CVV, any ZIP.</p>
   </div>
 
-  <p style="color:#666;margin-top:18px;">
-    Sandbox testing: use 4111 1111 1111 1111, any future exp, any CVV, any ZIP.
-  </p>
+  <script type="module">
+    /* ---------------- Firebase ---------------- */
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-<script type="module">
-  /* ---------------- Firebase ---------------- */
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-  import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    const firebaseConfig = {
+      apiKey: "AIzaSyByy77o73S_jEaYLCoXYFn9fAYteyUDxTo",
+      authDomain: "sharpe-legal.firebaseapp.com",
+      projectId: "sharpe-legal",
+      storageBucket: "sharpe-legal.firebasestorage.app",
+      messagingSenderId: "770027799385",
+      appId: "1:770027799385:web:64c3f7bd4b7a140f5c0248",
+      measurementId: "G-168BBWG526"
+    };
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyByy77o73S_jEaYLCoXYFn9fAYteyUDxTo",
-    authDomain: "sharpe-legal.firebaseapp.com",
-    projectId: "sharpe-legal",
-    storageBucket: "sharpe-legal.firebasestorage.app",
-    messagingSenderId: "770027799385",
-    appId: "1:770027799385:web:64c3f7bd4b7a140f5c0248",
-    measurementId: "G-168BBWG526"
-  };
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
+    /* ---------------- Config ---------------- */
+    const SQUARE_APP_ID = "sandbox-sq0idb-RT3u-HhCpNdbMiGg5aXuVg";
+    const SQUARE_LOCATION_ID = "L06NC7MH9QAZR";
+    const WORKER_URL = "https://sharpe-pay.nd-sharpe.workers.dev";
 
-  /* ---------------- Helpers ---------------- */
-  const $ = (id) => document.getElementById(id);
-  const setStatus = (msg) => { $("payment-status").innerText = msg || ""; };
-  const setDebug = (obj) => {
-    if (obj === undefined || obj === null || obj === "") {
+    /* ---------------- Helpers ---------------- */
+    const $ = (id) => document.getElementById(id);
+
+    function setStatus(msg) {
+      $("payment-status").innerText = msg || "";
+    }
+
+    function showDebug(obj, httpStatus = null) {
+      const pre = $("debug");
+      pre.style.display = "block";
+
+      const header = httpStatus ? `HTTP ${httpStatus}\n\n` : "";
+      pre.textContent = header + JSON.stringify(obj, null, 2);
+    }
+
+    let currentUser = null;
+
+    /* ---------------- Require Login ---------------- */
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        $("authStatus").innerText = "Not logged in. Redirecting…";
+        setTimeout(() => (window.location.href = "/login.html"), 500);
+        return;
+      }
+      currentUser = user;
+      $("authStatus").innerText = "Signed in as: " + user.email;
+    });
+
+    /* ---------------- Square Setup ---------------- */
+    if (!window.Square) {
+      setStatus("Square SDK failed to load.");
+      throw new Error("Square SDK not available");
+    }
+
+    const payments = window.Square.payments(SQUARE_APP_ID, SQUARE_LOCATION_ID);
+    const card = await payments.card();
+    await card.attach("#card-container");
+
+    /* ---------------- Subscribe Click ---------------- */
+    $("card-button").addEventListener("click", async () => {
       $("debug").style.display = "none";
       $("debug").textContent = "";
-      return;
-    }
-    $("debug").style.display = "block";
-    $("debug").textContent = (typeof obj === "string") ? obj : JSON.stringify(obj, null, 2);
-  };
 
-  let currentUser = null;
-
-  /* ---------------- Require Login ---------------- */
-  onAuthStateChanged(auth, (user) => {
-    if (!user) {
-      $("authStatus").innerText = "Not logged in. Redirecting...";
-      setTimeout(() => (window.location.href = "/login.html"), 500);
-      return;
-    }
-    currentUser = user;
-    $("authStatus").innerText = "Signed in as: " + user.email;
-  });
-
-  /* ---------------- Square Setup ---------------- */
-  const APPLICATION_ID = "sandbox-sq0idb-RT3u-HhCpNdbMiGg5aXuVg";
-  const LOCATION_ID    = "L06NC7MH9QAZR";
-
-  const payments = Square.payments(APPLICATION_ID, LOCATION_ID);
-  const card = await payments.card();
-  await card.attach("#card-container");
-
-  /* ---------------- Subscribe Click ---------------- */
-  $("card-button").addEventListener("click", async () => {
-    setDebug("");
-
-    if (!currentUser) {
-      setStatus("Not logged in.");
-      return;
-    }
-
-    $("card-button").disabled = true;
-
-    try {
-      setStatus("Tokenizing card...");
-      const result = await card.tokenize();
-
-      if (result.status !== "OK" || !result.token) {
-        setStatus("Card error.");
-        setDebug(result);
+      if (!currentUser) {
+        setStatus("Not logged in.");
         return;
       }
 
-      setStatus("Creating subscription...");
+      try {
+        setStatus("Tokenizing card…");
+        const result = await card.tokenize();
 
-      const res = await fetch("https://sharpe-pay.nd-sharpe.workers.dev", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          token: result.token,          // should be cnon:...
-          email: currentUser.email
-        })
-      });
+        if (result.status !== "OK") {
+          setStatus("Card tokenize failed.");
+          showDebug(result);
+          return;
+        }
 
-      let data = null;
-      try { data = await res.json(); } catch { data = { raw: await res.text().catch(() => "") }; }
+        // IMPORTANT: This is the token you POST to your Worker as source_id for /v2/cards
+        const token = result.token;
 
-      if (!res.ok || !data?.success) {
-        setStatus(`Subscription failed. HTTP ${res.status}`);
-        setDebug(data);
-        return;
+        setStatus("Creating subscription…");
+        const res = await fetch(WORKER_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            token,
+            email: currentUser.email
+          })
+        });
+
+        let data = null;
+        try {
+          data = await res.json();
+        } catch (e) {
+          setStatus("Worker returned non-JSON.");
+          showDebug({ error: "Non-JSON response from Worker" }, res.status);
+          return;
+        }
+
+        if (!res.ok || !data.success) {
+          setStatus("Subscription failed.");
+          showDebug(data, res.status);
+          return;
+        }
+
+        // Save subscription state in Firestore
+        await setDoc(
+          doc(db, "users", currentUser.uid),
+          {
+            subscription: "premium",
+            squareSubscriptionId: data.subscriptionId,
+            updatedAt: Date.now()
+          },
+          { merge: true }
+        );
+
+        setStatus("Subscription created. Redirecting…");
+        setTimeout(() => (window.location.href = "/dashboard.html"), 800);
+      } catch (err) {
+        setStatus("Unexpected error.");
+        showDebug({ error: String(err) });
       }
-
-      // Save subscription marker
-      await setDoc(
-        doc(db, "users", currentUser.uid),
-        {
-          subscription: "premium",
-          squareSubscriptionId: data.subscriptionId,
-          updatedAt: Date.now()
-        },
-        { merge: true }
-      );
-
-      setStatus("Subscription created. Redirecting...");
-      setTimeout(() => (window.location.href = "/dashboard.html"), 800);
-
-    } catch (err) {
-      setStatus("Subscription failed.");
-      setDebug(String(err?.message || err));
-    } finally {
-      $("card-button").disabled = false;
-    }
-  });
-</script>
-
+    });
+  </script>
 </body>
 </html>
