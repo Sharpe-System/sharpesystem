@@ -3,58 +3,127 @@
 <head>
   <meta charset="utf-8">
   <title>Subscribe</title>
+
+  <!-- Square SANDBOX SDK -->
   <script src="https://sandbox.web.squarecdn.com/v1/square.js"></script>
 </head>
+
 <body>
 
 <h1>Subscribe to Sharpe Legal Premium</h1>
 
+<p id="authStatus"></p>
+
 <div id="payment-form">
   <div id="card-container"></div>
-  <button id="card-button">Subscribe $10/month</button>
-  <div id="payment-status"></div>
+  <button id="card-button" type="button">Subscribe $10/month</button>
+  <p id="payment-status"></p>
 </div>
 
 <script type="module">
 
+/* ---------------- Firebase ---------------- */
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyByy77o73S_jEaYLCoXYFn9fAYteyUDxTo",
+  authDomain: "sharpe-legal.firebaseapp.com",
+  projectId: "sharpe-legal",
+  storageBucket: "sharpe-legal.firebasestorage.app",
+  messagingSenderId: "770027799385",
+  appId: "1:770027799385:web:64c3f7bd4b7a140f5c0248",
+  measurementId: "G-168BBWG526"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+/* ---------------- Helpers ---------------- */
+
+const $ = (id) => document.getElementById(id);
+const setStatus = (msg) => $("payment-status").innerText = msg;
+
+let currentUser = null;
+
+/* ---------------- Require Login ---------------- */
+
+onAuthStateChanged(auth, (user) => {
+  if (!user) {
+    $("authStatus").innerText = "Not logged in. Redirecting...";
+    setTimeout(() => window.location.href = "/login.html", 500);
+    return;
+  }
+  currentUser = user;
+  $("authStatus").innerText = "Signed in as: " + user.email;
+});
+
+/* ---------------- Square Setup ---------------- */
+
 const payments = Square.payments(
-  "sandbox-sq0idb-RT3u-HhCpNdbMiGg5aXuVg",  // your sandbox application id
-  "TC4Z3ZEBKRXRH"                          // your sandbox location id
+  "sandbox-sq0idb-RT3u-HhCpNdbMiGg5aXuVg",
+  "TC4Z3ZEBKRXRH"
 );
 
 const card = await payments.card();
-await card.attach('#card-container');
+await card.attach("#card-container");
 
-document.getElementById('card-button').addEventListener('click', async () => {
+/* ---------------- Subscribe Click ---------------- */
 
-  const status = document.getElementById("payment-status");
+$("card-button").addEventListener("click", async () => {
+
+  if (!currentUser) {
+    setStatus("Not logged in.");
+    return;
+  }
+
+  setStatus("Tokenizing card...");
 
   const result = await card.tokenize();
 
-  if (result.status === 'OK') {
-
-    const response = await fetch("https://sharpe-pay.nd-sharpe.workers.dev", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        token: result.token,
-        email: "test@example.com"
-      })
-    });
-
-    const data = await response.json();
-
-    if (data.success) {
-      status.innerText = "Subscription Created Successfully";
-    } else {
-      status.innerText = "Subscription Failed";
-      console.log(data);
-    }
-
-  } else {
-    status.innerText = "Card Error";
+  if (result.status !== "OK") {
+    setStatus("Card error.");
     console.log(result);
+    return;
   }
+
+  setStatus("Creating subscription...");
+
+  const response = await fetch("https://sharpe-pay.nd-sharpe.workers.dev", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      token: result.token,
+      email: currentUser.email
+    })
+  });
+
+  const data = await response.json();
+
+  if (!response.ok || !data.success) {
+    setStatus("Subscription failed.");
+    console.log(data);
+    return;
+  }
+
+  /* -------- Save Subscription in Firestore -------- */
+
+  await setDoc(
+    doc(db, "users", currentUser.uid),
+    {
+      subscription: "premium",
+      squareSubscriptionId: data.subscriptionId,
+      updatedAt: Date.now()
+    },
+    { merge: true }
+  );
+
+  setStatus("Subscription created. Redirecting...");
+
+  setTimeout(() => window.location.href = "/dashboard.html", 800);
 
 });
 
