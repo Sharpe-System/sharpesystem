@@ -4,150 +4,67 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Subscribe</title>
-
-  <style>
-    body{
-      margin:0;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-      background:#0b0f14;
-      color:#e8eef6;
-      display:flex;
-      min-height:100vh;
-      align-items:center;
-      justify-content:center;
-      padding:24px;
-    }
-    .card{
-      width:100%;
-      max-width:520px;
-      background:#101826;
-      border:1px solid #1b2a3f;
-      border-radius:18px;
-      padding:22px;
-      box-shadow: 0 18px 40px rgba(0,0,0,.35);
-    }
-    h1{ margin:0 0 8px; font-size:28px; }
-    p{ margin:0 0 16px; color:#b6c2d2; line-height:1.35; }
-    label{ display:block; font-size:13px; color:#b6c2d2; margin:14px 0 6px; }
-    input{
-      width:100%;
-      box-sizing:border-box;
-      padding:12px 12px;
-      border-radius:12px;
-      border:1px solid #1b2a3f;
-      background:#0f1622;
-      color:#e8eef6;
-      outline:none;
-    }
-    input:focus{ border-color:#6ee7ff; }
-    .row{ display:flex; gap:10px; margin-top:14px; }
-    button{
-      flex:1;
-      padding:12px 14px;
-      border-radius:12px;
-      border:1px solid #1b2a3f;
-      background:#6ee7ff;
-      color:#081018;
-      font-weight:700;
-      cursor:pointer;
-    }
-    button:disabled{
-      opacity:.65;
-      cursor:not-allowed;
-    }
-    .ghost{
-      background:#0f1622;
-      color:#e8eef6;
-    }
-    .status{
-      margin-top:14px;
-      font-size:13px;
-      color:#b6c2d2;
-      min-height:18px;
-      word-break:break-word;
-    }
-    .ok{ color:#34d399; }
-    .bad{ color:#fb7185; }
-  </style>
+  <link rel="stylesheet" href="/styles.css" />
 </head>
-
 <body>
-  <div class="card">
-    <h1>Subscribe</h1>
-    <p>Enter your email. We’ll save your request and follow up when this is ready.</p>
-
-    <label for="email">Email</label>
-    <input id="email" type="email" autocomplete="email" placeholder="you@example.com" />
-
-    <div class="row">
-      <button id="subscribeBtn" type="button">Subscribe</button>
-      <button id="backBtn" class="ghost" type="button">Back</button>
+  <main class="page">
+    <div class="box">
+      <h1>Subscribe</h1>
+      <p id="status">Ready.</p>
+      <button id="subscribeBtn">Continue to Checkout</button>
     </div>
-
-    <div id="status" class="status"></div>
-  </div>
+  </main>
 
   <script type="module">
-    // IMPORTANT: This removes any embedded firebaseConfig/apiKey from subscribe.html.
-    // We import the single source of truth from firebase-config.js.
-    import app from "/firebase-config.js";
+    // Adjust this to your actual Worker URL
+    const WORKER_URL = "https://sharpe-pay.nd-sharpe.workers.dev";
 
-    import {
-      getFirestore,
-      collection,
-      addDoc,
-      serverTimestamp
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    // Optional: if you want to pass the currently signed-in email to the Worker
+    let currentEmail = null;
 
-    const db = getFirestore(app);
+    try {
+      const [{ getAuth, onAuthStateChanged }] = await Promise.all([
+        import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js"),
+      ]);
 
-    const emailEl = document.getElementById("email");
-    const statusEl = document.getElementById("status");
-    const subscribeBtn = document.getElementById("subscribeBtn");
-    const backBtn = document.getElementById("backBtn");
+      const { default: app } = await import("./firebase-config.js");
+      const auth = getAuth(app);
 
-    function setStatus(msg, kind="") {
-      statusEl.textContent = msg;
-      statusEl.className = "status " + kind;
-      console.log(msg);
+      onAuthStateChanged(auth, (user) => {
+        currentEmail = user?.email || null;
+      });
+    } catch (e) {
+      // If firebase-config.js isn't present on this page, we still allow checkout
+      console.warn("Firebase auth not available on this page:", e);
     }
 
-    backBtn.addEventListener("click", () => {
-      // Adjust if you want a different destination
-      window.location.href = "/index.html";
-    });
+    const statusEl = document.getElementById("status");
+    const btn = document.getElementById("subscribeBtn");
 
-    subscribeBtn.addEventListener("click", async () => {
-      const email = (emailEl.value || "").trim().toLowerCase();
-
-      if (!email || !email.includes("@")) {
-        setStatus("Please enter a valid email.", "bad");
-        return;
-      }
-
-      subscribeBtn.disabled = true;
-      setStatus("Saving…");
+    btn.addEventListener("click", async () => {
+      statusEl.textContent = "Redirecting to checkout…";
+      btn.disabled = true;
 
       try {
-        // Collection name is up to you. This one is simple and obvious.
-        await addDoc(collection(db, "subscriptions"), {
-          email,
-          createdAt: serverTimestamp(),
-          source: "subscribe.html",
-          userAgent: navigator.userAgent
+        const res = await fetch(`${WORKER_URL}/create-checkout`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: currentEmail }),
         });
 
-        setStatus("Saved. You’re on the list.", "ok");
-        emailEl.value = "";
+        const data = await res.json();
+
+        if (!res.ok || !data.checkout_url) {
+          throw new Error(data?.error || "Checkout URL not returned");
+        }
+
+        window.location.href = data.checkout_url;
       } catch (err) {
         console.error(err);
-        setStatus("Failed to save: " + (err?.message || err), "bad");
-      } finally {
-        subscribeBtn.disabled = false;
+        statusEl.textContent = "Error: " + (err?.message || String(err));
+        btn.disabled = false;
       }
     });
-
-    setStatus("Ready.");
   </script>
 </body>
 </html>
