@@ -1,76 +1,64 @@
-// login.js (static-site safe)
 import app from "/firebase-config.js";
-import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-console.log("LOGIN JS LOADED");
+import {
+  getAuth,
+  setPersistence,
+  browserLocalPersistence,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
 const auth = getAuth(app);
 
-// Grab inputs by type (works even if you have no IDs)
-const emailEl = document.querySelector('input[type="email"]');
-const passEl  = document.querySelector('input[type="password"]');
+console.log("LOGIN JS LOADED");
 
-// Grab the button by text, fallback to submit button
-const loginBtn =
-  [...document.querySelectorAll("button")].find(b => /log\s*in/i.test(b.textContent || "")) ||
-  document.querySelector('button[type="submit"]');
+const emailInput = document.getElementById("email");
+const passwordInput = document.getElementById("password");
+const loginBtn = document.getElementById("loginBtn");
+const createBtn = document.getElementById("createBtn");
+const statusEl = document.getElementById("status");
 
-// Make / reuse a message box
-let msgEl = document.getElementById("message");
-if (!msgEl) {
-  msgEl = document.createElement("div");
-  msgEl.id = "message";
-  msgEl.style.marginTop = "12px";
-  msgEl.style.fontSize = "14px";
-  msgEl.style.color = "#e8eef6";
-  // place it after the button if possible
-  if (loginBtn?.parentElement) loginBtn.parentElement.appendChild(msgEl);
-  else document.body.appendChild(msgEl);
+function setStatus(text) {
+  if (statusEl) statusEl.textContent = text;
+  console.log(text);
 }
 
-function setMsg(t) {
-  msgEl.textContent = t;
-  console.log(t);
-}
-
-async function doLogin() {
-  const email = (emailEl?.value || "").trim();
-  const password = passEl?.value || "";
-
-  if (!email || !password) {
-    setMsg("Enter email + password.");
-    return;
-  }
-
-  setMsg("Signing in...");
-
+async function login(email, password) {
   try {
+    setStatus("Signing in...");
+    await setPersistence(auth, browserLocalPersistence);
     await signInWithEmailAndPassword(auth, email, password);
-    setMsg("Login successful. Redirecting...");
+    setStatus("Success. Redirecting...");
     window.location.href = "/dashboard.html";
-  } catch (e) {
-    console.error(e);
-    setMsg("Login failed: " + (e.code || e.message));
+  } catch (err) {
+    console.error(err);
+    setStatus("Login failed: " + err.message);
   }
 }
 
-// 1) Block ALL form submits (prevents page reload)
-document.querySelectorAll("form").forEach((f) => {
-  f.addEventListener("submit", (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    doLogin();
-  });
+async function createAccount(email, password) {
+  try {
+    setStatus("Creating account...");
+    await setPersistence(auth, browserLocalPersistence);
+    await createUserWithEmailAndPassword(auth, email, password);
+    setStatus("Account created. Redirecting...");
+    window.location.href = "/dashboard.html";
+  } catch (err) {
+    console.error(err);
+    setStatus("Create failed: " + err.message);
+  }
+}
+
+loginBtn?.addEventListener("click", () => {
+  const email = emailInput.value.trim();
+  const password = passwordInput.value.trim();
+  login(email, password);
 });
 
-// 2) Also bind the button click (in case there’s no form)
-if (loginBtn) {
-  loginBtn.addEventListener("click", (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    doLogin();
-  });
-} else {
-  setMsg("Wiring error: couldn't find Log In button.");
-}
+createBtn?.addEventListener("click", () => {
+  const email = emailInput.value.trim();
+  const password = passwordInput.value.trim();
+  createAccount(email, password);
+});
 
-setMsg("Ready.");
+setStatus("Ready.");
