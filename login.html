@@ -1,1 +1,63 @@
 
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Sharpe Legal — Login</title>
+</head>
+<body>
+  <h1>Login</h1>
+
+  <input id="email" type="email" placeholder="Email" />
+  <input id="password" type="password" placeholder="Password (6+ chars)" />
+
+  <div style="margin-top:12px;">
+    <button id="btnCreate">Create Account</button>
+    <button id="btnLogin">Login</button>
+  </div>
+
+  <p id="status" style="margin-top:12px;"></p>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+    // TODO: paste your Firebase web config here
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT.firebaseapp.com",
+      projectId: "YOUR_PROJECT_ID",
+      appId: "YOUR_APP_ID"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    const $ = (id) => document.getElementById(id);
+    const setStatus = (msg) => $("status").textContent = msg;
+
+    $("btnCreate").addEventListener("click", async () => {
+      setStatus("Creating account...");
+      try {
+        await createUserWithEmailAndPassword(auth, $("email").value.trim(), $("password").value);
+        setStatus("Account created. Redirecting...");
+        window.location.href = "/dashboard.html";
+      } catch (e) {
+        setStatus(`Error: ${e.code || ""} ${e.message || e}`);
+      }
+    });
+
+    $("btnLogin").addEventListener("click", async () => {
+      setStatus("Logging in...");
+      try {
+        await signInWithEmailAndPassword(auth, $("email").value.trim(), $("password").value);
+        setStatus("Logged in. Redirecting...");
+        window.location.href = "/dashboard.html";
+      } catch (e) {
+        setStatus(`Error: ${e.code || ""} ${e.message || e}`);
+      }
+    });
+  </script>
+</body>
+</html>
