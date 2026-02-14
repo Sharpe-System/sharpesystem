@@ -7,11 +7,11 @@
   <link rel="stylesheet" href="/styles.css" />
   <style>
     .page{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:40px 16px;}
-    .box{max-width:720px;width:100%;background:var(--panel);border:1px solid var(--border);border-radius:18px;
-         padding:22px;box-shadow:var(--shadow);}
-    h1{margin:0 0 10px;}
+    .box{max-width:860px;width:100%;background:var(--panel);border:1px solid var(--border);border-radius:18px;
+      padding:26px;box-shadow:var(--shadow);}
+    h1{margin:0 0 10px;font-size:28px;}
     .muted{color:var(--muted);}
-    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:12px;}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:14px;}
     button{appearance:none;border:1px solid var(--border);border-radius:12px;padding:10px 12px;cursor:pointer;}
     #logoutBtn{background:transparent;color:var(--text);}
   </style>
@@ -24,6 +24,7 @@
 
       <div class="row">
         <button id="logoutBtn" type="button">Log out</button>
+        <button type="button" onclick="location.href='/tier1.html'">Tier 1</button>
       </div>
 
       <script type="module" src="/dashboard.js"></script>
