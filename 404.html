@@ -1,0 +1,9 @@
+// safeNext.js snippet (drop into any page that reads ?next=)
+function safeNext(raw, fallback = "/dashboard.html") {
+  if (!raw) return fallback;
+  if (raw === "undefined" || raw === "null") return fallback;
+  if (!raw.startsWith("/")) return fallback;
+  // Optional: block external redirects
+  if (raw.startsWith("//")) return fallback;
+  return raw;
+}
