@@ -3,86 +3,67 @@ import app from "/firebase-config.js";
 import {
   getAuth,
   signInWithEmailAndPassword,
-  GoogleAuthProvider,
   signInWithPopup,
-  setPersistence,
-  browserLocalPersistence
+  GoogleAuthProvider,
+  onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const auth = getAuth(app);
+const provider = new GoogleAuthProvider();
 
-// Persist session across refreshes
-await setPersistence(auth, browserLocalPersistence);
-
-const emailEl = document.getElementById("email");
-const passEl = document.getElementById("password");
+// Elements
+const emailInput = document.getElementById("email");
+const passwordInput = document.getElementById("password");
 const loginBtn = document.getElementById("loginBtn");
 const googleBtn = document.getElementById("googleBtn");
-const msgEl = document.getElementById("msg");
+const statusEl = document.getElementById("status");
 
-function setMsg(t) {
-  if (msgEl) msgEl.textContent = t || "";
-  console.log(t);
+// Always compute next safely
+function getNext() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get("next") || "/dashboard.html";
 }
 
-function getNext() {
- function getNext() {
-  const params = new URLSearchParams(window.location.search);
-  const rawNext = params.get("next");
-  const next = rawNext ? decodeURIComponent(rawNext) : "/dashboard.html";
+function goNext() {
+  const next = getNext();
   window.location.href = next;
 }
+
+function setStatus(t) {
+  if (statusEl) statusEl.textContent = t || "";
 }
 
-async function doEmailLogin() {
-  const email = (emailEl?.value || "").trim();
-  const password = passEl?.value || "";
-
-  if (!email || !password) {
-    setMsg("Enter email + password.");
-    return;
+// If already logged in, go immediately
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    goNext();
   }
+});
 
-  setMsg("Signing in…");
-  loginBtn && (loginBtn.disabled = true);
-
+// Email login
+loginBtn?.addEventListener("click", async () => {
   try {
-    await signInWithEmailAndPassword(auth, email, password);
-    window.location.href = getNext();
+    setStatus("Signing in...");
+    await signInWithEmailAndPassword(
+      auth,
+      emailInput.value.trim(),
+      passwordInput.value
+    );
+    goNext();
   } catch (err) {
     console.error(err);
-    setMsg(err?.message || "Login failed.");
-    loginBtn && (loginBtn.disabled = false);
+    setStatus("Login failed. Check credentials.");
   }
-}
+});
 
-async function doGoogleLogin() {
-  setMsg("Opening Google sign-in…");
-  googleBtn && (googleBtn.disabled = true);
-
+// Google login
+googleBtn?.addEventListener("click", async () => {
   try {
-    const provider = new GoogleAuthProvider();
+    setStatus("Signing in with Google...");
     await signInWithPopup(auth, provider);
-    window.location.href = getNext();
+    goNext();
   } catch (err) {
     console.error(err);
-    setMsg(err?.message || "Google sign-in failed.");
-    googleBtn && (googleBtn.disabled = false);
+    setStatus("Google login failed.");
   }
-}
-
-// Button wiring
-loginBtn?.addEventListener("click", doEmailLogin);
-googleBtn?.addEventListener("click", doGoogleLogin);
-
-// Enter key triggers login
-passEl?.addEventListener("keydown", (e) => {
-  if (e.key === "Enter") doEmailLogin();
 });
-emailEl?.addEventListener("keydown", (e) => {
-  if (e.key === "Enter") doEmailLogin();
-});
-
-// Basic sanity log
-setMsg("");
-console.log("login.js loaded");
