@@ -3,90 +3,66 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Tier 1 — Sharpe Legal</title>
+  <title>Tier 1 — $10/month</title>
   <link rel="stylesheet" href="/styles.css" />
   <style>
     .wrap{max-width:860px;margin:0 auto;padding:28px 16px;}
-    .hero{padding:18px 0 10px;}
-    .kicker{color:var(--muted);margin:0 0 8px;}
     h1{margin:0 0 10px;font-size:34px;}
     .sub{color:var(--muted);margin:0 0 18px;line-height:1.4;}
     .grid{display:grid;grid-template-columns:1fr;gap:14px;margin-top:14px;}
     @media(min-width:860px){.grid{grid-template-columns:1fr 1fr;}}
     .card{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:16px;}
-    .price{font-size:28px;font-weight:800;margin:6px 0 10px;}
-    .pill{display:inline-block;padding:6px 10px;border-radius:999px;border:1px solid var(--border);color:var(--muted);font-size:12px;}
+    .price{font-size:28px;font-weight:900;margin:6px 0 10px;}
     ul{margin:10px 0 0;padding-left:18px;color:var(--muted);line-height:1.45;}
-    .ctaRow{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;}
-    .btn{appearance:none;border:1px solid var(--border);background:var(--accent);color:#071018;font-weight:800;
+    .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;}
+    .btn{appearance:none;border:1px solid var(--border);background:var(--accent);color:#071018;font-weight:900;
       padding:12px 14px;border-radius:12px;cursor:pointer;}
     .btn.secondary{background:transparent;color:var(--text);}
     .note{margin-top:10px;color:var(--muted);font-size:13px;}
-    .divider{height:1px;background:var(--border);margin:16px 0;}
-    .small{color:var(--muted);font-size:13px;line-height:1.35;}
-    code{background:rgba(255,255,255,0.06);padding:2px 6px;border-radius:8px;}
   </style>
 </head>
 <body>
   <div class="wrap">
-    <div class="hero">
-      <div class="kicker">Sharpe Legal</div>
-      <h1>Tier 1: $10/month</h1>
-      <p class="sub">
-        Built for people drowning in legal paperwork. Tier 1 gives you a structured workflow, clean checklists, and a guided intake so you can stop guessing and start producing.
-      </p>
-      <span class="pill">No contact. No drama. Just execution.</span>
-    </div>
+    <h1>Tier 1: $10/month</h1>
+    <p class="sub">
+      For people drowning in legal garbage. Tier 1 gives you a structured intake and a task engine so you stop guessing and start producing.
+    </p>
 
     <div class="grid">
       <div class="card">
-        <div class="price">$10<span style="font-size:14px;color:var(--muted);font-weight:600;"> / month</span></div>
-        <div class="small">
-          What you get immediately:
-          <ul>
-            <li><b>Case intake</b> that organizes your facts into usable structure.</li>
-            <li><b>Task engine</b>: “What do I do next?” becomes a checklist.</li>
-            <li><b>Template launcher</b>: pleadings / declarations start from known-good scaffolds.</li>
-            <li><b>Binder builder</b> roadmap: what to include and how to label it.</li>
-          </ul>
+        <div class="price">$10<span style="font-size:14px;color:var(--muted);font-weight:700;"> / month</span></div>
+        <ul>
+          <li><b>Guided intake</b> that organizes facts into usable structure</li>
+          <li><b>Checklists</b> for what to do next</li>
+          <li><b>Template launcher</b> for core filings</li>
+          <li><b>Binder roadmap</b> so a judge can verify fast</li>
+        </ul>
+
+        <div class="row">
+          <button class="btn" id="goDash">Go to dashboard</button>
+          <button class="btn secondary" id="loginBtn">Sign in</button>
         </div>
-        <div class="divider"></div>
-        <div class="ctaRow">
-          <button class="btn" id="startBtn">Create account / Sign in</button>
-          <button class="btn secondary" id="dashboardBtn">Go to dashboard</button>
-        </div>
+
         <div class="note">
-          Payments will be handled through Square. Tonight we’re making the onboarding path clean and reliable.
+          Payment activation is through Square. Tonight we’re finishing the onboarding spine and the locked/unlocked states.
         </div>
       </div>
 
       <div class="card">
-        <div style="font-weight:800;margin-bottom:6px;">How Tier 1 works</div>
-        <div class="small">
-          <ol style="margin:8px 0 0;padding-left:18px;">
-            <li>Create your account</li>
-            <li>Land in your dashboard</li>
-            <li>Complete intake (5–10 minutes)</li>
-            <li>Unlock Tier 1 when payment is active</li>
-          </ol>
-          <div class="divider"></div>
-          <div>
-            Tonight’s goal: the platform has a spine:
-            <ul>
-              <li>A clear Tier 1 offer page</li>
-              <li>A clear logged-in dashboard</li>
-              <li>A clear “locked vs unlocked” state</li>
-            </ul>
-            Payment automation comes next, through Square.
-          </div>
-        </div>
+        <div style="font-weight:900;margin-bottom:8px;">What happens next</div>
+        <ul>
+          <li>Create account / sign in</li>
+          <li>Land on your dashboard</li>
+          <li>Start intake</li>
+          <li>Activate Tier 1 to unlock the tools</li>
+        </ul>
       </div>
     </div>
   </div>
 
   <script>
-    document.getElementById("startBtn").onclick = () => location.href = "/login.html?next=/dashboard.html";
-    document.getElementById("dashboardBtn").onclick = () => location.href = "/dashboard.html";
+    document.getElementById("goDash").onclick = () => location.href = "/dashboard.html";
+    document.getElementById("loginBtn").onclick = () => location.href = "/login.html?next=/dashboard.html";
   </script>
 </body>
 </html>
