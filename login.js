@@ -1,42 +1,74 @@
-// login.js (durable, Enter works, respects ?next=)
-
+// login.js
 import app from "/firebase-config.js";
 import {
   getAuth,
-  signInWithEmailAndPassword
+  signInWithEmailAndPassword,
+  GoogleAuthProvider,
+  signInWithPopup,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const auth = getAuth(app);
 
-const formEl = document.getElementById("loginForm");
 const emailEl = document.getElementById("email");
 const passEl = document.getElementById("password");
-const msgEl = document.getElementById("msg");
+const loginBtn = document.getElementById("loginBtn");
+const googleBtn = document.getElementById("googleBtn");
+const statusEl = document.getElementById("status");
 
-function setMsg(t){
-  if (msgEl) msgEl.textContent = t || "";
+function setStatus(t) {
+  if (statusEl) statusEl.textContent = t || "";
+  console.log(t);
 }
 
-function getNextPath(){
+function getNextPath() {
   const params = new URLSearchParams(window.location.search);
-  return params.get("next") || "/dashboard.html";
+  const next = params.get("next");
+  // Default after login
+  return next && next.startsWith("/") ? next : "/dashboard.html";
 }
 
-formEl?.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  setMsg("Signing in...");
+async function doEmailLogin() {
+  const email = (emailEl?.value || "").trim();
+  const password = passEl?.value || "";
 
-  try {
-    await signInWithEmailAndPassword(
-      auth,
-      emailEl.value.trim(),
-      passEl.value
-    );
-
-    window.location.replace(getNextPath());
-
-  } catch (err) {
-    console.log(err);
-    setMsg("Login failed. Check credentials.");
+  if (!email || !password) {
+    setStatus("Enter email + password.");
+    return;
   }
+
+  setStatus("Signing in...");
+  await signInWithEmailAndPassword(auth, email, password);
+
+  const next = getNextPath();
+  window.location.replace(next);
+}
+
+async function doGoogleLogin() {
+  setStatus("Opening Google...");
+  const provider = new GoogleAuthProvider();
+  await signInWithPopup(auth, provider);
+
+  const next = getNextPath();
+  window.location.replace(next);
+}
+
+// Click handlers
+loginBtn?.addEventListener("click", (e) => {
+  e.preventDefault();
+  doEmailLogin().catch((err) => setStatus(err?.message || "Login failed."));
 });
+
+googleBtn?.addEventListener("click", (e) => {
+  e.preventDefault();
+  doGoogleLogin().catch((err) => setStatus(err?.message || "Google login failed."));
+});
+
+// ENTER submits from either field
+function onEnterSubmit(e) {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    doEmailLogin().catch((err) => setStatus(err?.message || "Login failed."));
+  }
+}
+emailEl?.addEventListener("keydown", onEnterSubmit);
+passEl?.addEventListener("keydown", onEnterSubmit);
