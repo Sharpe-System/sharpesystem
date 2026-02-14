@@ -1,3 +1,4 @@
+<!-- app.html -->
 <!doctype html>
 <html lang="en">
 <head>
@@ -28,6 +29,7 @@
     .link span{color:var(--muted);font-weight:800;font-size:12px;}
     .pill{display:inline-block;padding:6px 10px;border-radius:999px;border:1px solid var(--border);color:var(--muted);font-size:12px;}
     .warn{border-color:rgba(251,191,36,.35);background:rgba(251,191,36,.08);}
+    .status{margin-top:8px;color:var(--muted);font-size:13px;line-height:1.4;}
   </style>
 </head>
 <body>
@@ -36,92 +38,61 @@
       <div class="top">
         <div>
           <h1>Sharpe Legal — App</h1>
-          <p class="sub">This is your Tier 1 hub. Everything you already built lives here as “next actions.”</p>
-          <span class="pill">If you see this page, your routing is working.</span>
+          <p class="sub">Tier 1 hub. Intake → next steps → outputs.</p>
+          <div id="acctStatus" class="status">Checking account…</div>
+          <span class="pill">Paid users land here</span>
         </div>
         <div class="row">
           <a class="btn ghost" href="/tier1.html">Tier 1 details</a>
           <a class="btn secondary" href="/dashboard.html">Account</a>
-          <a class="btn secondary" href="/subscribe.html">Subscribe</a>
+          <a class="btn secondary" href="/subscribe">Subscribe</a>
+          <button id="logoutBtn" class="btn secondary" type="button">Log out</button>
         </div>
       </div>
 
       <div class="grid">
         <div class="card">
           <h2>Start Here</h2>
-          <p>Give them the “stop drowning” ramp: intake → facts → next steps → outputs.</p>
+          <p>Fast ramp: intake → facts → next steps → draft scaffolds.</p>
           <div class="list">
-            <a class="link" href="/start.html">
-              <div>Start / Orientation <span>fast ramp</span></div>
-              <div>→</div>
-            </a>
-            <a class="link" href="/intake.html">
-              <div>Guided Intake <span>turn chaos into structure</span></div>
-              <div>→</div>
-            </a>
-            <a class="link" href="/notes.html">
-              <div>Case Notes <span>capture facts now</span></div>
-              <div>→</div>
-            </a>
+            <a class="link" href="/start.html"><div>Start / Orientation <span>fast ramp</span></div><div>→</div></a>
+            <a class="link" href="/intake.html"><div>Guided Intake <span>turn chaos into structure</span></div><div>→</div></a>
+            <a class="link" href="/notes.html"><div>Case Notes <span>capture facts now</span></div><div>→</div></a>
           </div>
         </div>
 
         <div class="card">
           <h2>Risk & Scenarios</h2>
-          <p>Where users self-sort so they don’t take the wrong path.</p>
+          <p>Users self-sort so they don’t take the wrong path.</p>
           <div class="list">
-            <a class="link warn" href="/high-conflict-risk-awareness.html">
-              <div>High-Conflict Risk Awareness <span>do not improvise</span></div>
-              <div>→</div>
-            </a>
-            <a class="link" href="/amicable.html">
-              <div>Amicable / Low-Conflict <span>clean protocol</span></div>
-              <div>→</div>
-            </a>
-            <a class="link" href="/insurance-claims.html">
-              <div>Insurance / Claims <span>alternate workflow</span></div>
-              <div>→</div>
-            </a>
+            <a class="link warn" href="/high-conflict-risk-awareness.html"><div>High-Conflict Risk Awareness <span>do not improvise</span></div><div>→</div></a>
+            <a class="link" href="/amicable.html"><div>Amicable / Low-Conflict <span>clean protocol</span></div><div>→</div></a>
+            <a class="link" href="/insurance-claims.html"><div>Insurance / Claims <span>alternate workflow</span></div><div>→</div></a>
           </div>
         </div>
 
         <div class="card">
           <h2>Admin</h2>
-          <p>Utility pages you already have.</p>
+          <p>Utility pages.</p>
           <div class="list">
-            <a class="link" href="/status.html">
-              <div>Status <span>system checks</span></div>
-              <div>→</div>
-            </a>
-            <a class="link" href="/success.html">
-              <div>Success <span>post-action confirmation</span></div>
-              <div>→</div>
-            </a>
-            <a class="link" href="/home.html">
-              <div>Home <span>public home page</span></div>
-              <div>→</div>
-            </a>
+            <a class="link" href="/status.html"><div>Status <span>system checks</span></div><div>→</div></a>
+            <a class="link" href="/success.html"><div>Success <span>post-action confirmation</span></div><div>→</div></a>
+            <a class="link" href="/"><div>Home <span>public landing</span></div><div>→</div></a>
           </div>
         </div>
 
         <div class="card">
           <h2>Coming Next</h2>
-          <p>These can stay “dumb” for now. We’ll wire them later.</p>
+          <p>Leave these dumb for now. Wire later.</p>
           <div class="list">
-            <a class="link" href="/attorney-portal.html">
-              <div>Attorney Portal <span>later</span></div>
-              <div>→</div>
-            </a>
-            <a class="link" href="/subscribe.html">
-              <div>Billing / Subscription <span>Square automation later</span></div>
-              <div>→</div>
-            </a>
+            <a class="link" href="/attorney-portal.html"><div>Attorney Portal <span>later</span></div><div>→</div></a>
+            <a class="link" href="/subscribe"><div>Billing / Subscription <span>Square automation later</span></div><div>→</div></a>
           </div>
         </div>
       </div>
     </section>
   </main>
 
-  <!-- If you want app.html gated too, change links to /dashboard.html?next=/app.html and make login respect ?next -->
+  <script type="module" src="/app.js"></script>
 </body>
 </html>
