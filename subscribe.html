@@ -2,69 +2,42 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Subscribe</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Subscribe — Tier 1</title>
   <link rel="stylesheet" href="/styles.css" />
+  <style>
+    .page{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:40px 16px;}
+    .box{max-width:720px;width:100%;background:var(--panel);border:1px solid var(--border);border-radius:18px;padding:26px;box-shadow:var(--shadow);}
+    h1{margin:0 0 8px;font-size:34px;}
+    .sub{color:var(--muted);margin:0 0 16px;line-height:1.45;}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:14px;}
+    .btn{appearance:none;border:1px solid var(--border);border-radius:12px;padding:12px 14px;cursor:pointer;font-weight:900;}
+    .btn.primary{background:var(--accent);color:#071018;}
+    .btn.secondary{background:transparent;color:var(--text);}
+    .msg{margin-top:12px;color:var(--muted);}
+    #card-container{margin-top:14px;padding:14px;border:1px solid var(--border);border-radius:14px;background:var(--bg2);}
+  </style>
 </head>
 <body>
   <main class="page">
-    <div class="box">
-      <h1>Subscribe</h1>
-      <p id="status">Ready.</p>
-      <button id="subscribeBtn">Continue to Checkout</button>
-    </div>
+    <section class="box">
+      <h1>Tier 1 — $10 / month</h1>
+      <p class="sub">Pay here. Instant unlock. You stay on SharpeSystem the whole time.</p>
+
+      <div id="card-container"></div>
+
+      <div class="row">
+        <button id="payBtn" class="btn primary" type="button">Pay $10</button>
+        <button class="btn secondary" type="button" onclick="location.href='/tier1.html'">Back</button>
+      </div>
+
+      <div id="msg" class="msg"></div>
+    </section>
   </main>
 
-  <script type="module">
-    // Adjust this to your actual Worker URL
-    const WORKER_URL = "https://sharpe-pay.nd-sharpe.workers.dev";
+  <!-- Square Web Payments SDK (Production) -->
+  <script src="https://web.squarecdn.com/v1/square.js"></script>
 
-    // Optional: if you want to pass the currently signed-in email to the Worker
-    let currentEmail = null;
-
-    try {
-      const [{ getAuth, onAuthStateChanged }] = await Promise.all([
-        import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js"),
-      ]);
-
-      const { default: app } = await import("./firebase-config.js");
-      const auth = getAuth(app);
-
-      onAuthStateChanged(auth, (user) => {
-        currentEmail = user?.email || null;
-      });
-    } catch (e) {
-      // If firebase-config.js isn't present on this page, we still allow checkout
-      console.warn("Firebase auth not available on this page:", e);
-    }
-
-    const statusEl = document.getElementById("status");
-    const btn = document.getElementById("subscribeBtn");
-
-    btn.addEventListener("click", async () => {
-      statusEl.textContent = "Redirecting to checkout…";
-      btn.disabled = true;
-
-      try {
-        const res = await fetch(`${WORKER_URL}/create-checkout`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: currentEmail }),
-        });
-
-        const data = await res.json();
-
-        if (!res.ok || !data.checkout_url) {
-          throw new Error(data?.error || "Checkout URL not returned");
-        }
-
-        window.location.href = data.checkout_url;
-      } catch (err) {
-        console.error(err);
-        statusEl.textContent = "Error: " + (err?.message || String(err));
-        btn.disabled = false;
-      }
-    });
-  </script>
+  <script type="module" src="/subscribe.js"></script>
 </body>
 </html>
