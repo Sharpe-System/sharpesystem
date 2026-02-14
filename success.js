@@ -1,4 +1,7 @@
-// success.js
+// success.js (UID comes from Firebase Auth, not URL params)
+import app from "/firebase-config.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
 const WORKER_BASE = "https://sharpe-pay.nd-sharpe.workers.dev";
 
 function setMsg(t){
@@ -17,24 +20,23 @@ async function activate(uid){
   return data;
 }
 
-(async () => {
-  try {
-    // If Square adds query params, they’ll be here; we only care about uid if we pass it.
-    const params = new URLSearchParams(window.location.search);
-    const uid = params.get("uid") || "";
+const auth = getAuth(app);
 
-    if (!uid) {
-      setMsg("Payment received. Log in to unlock (activation needs your user id).");
+onAuthStateChanged(auth, async (user) => {
+  try {
+    if (!user) {
+      setMsg("Payment received. Please log in to finalize access.");
       return;
     }
 
     setMsg("Finalizing access…");
-    await activate(uid);
+    await activate(user.uid);
+
     setMsg("Activated. Sending you to dashboard…");
     setTimeout(() => (window.location.href = "/dashboard.html"), 900);
 
   } catch (e) {
     console.log(e);
-    setMsg("Activation error. Log in and contact support if it persists.");
+    setMsg("Activation error. Try refreshing this page after logging in.");
   }
-})();
+});
