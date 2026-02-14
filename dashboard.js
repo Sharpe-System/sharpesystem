@@ -23,68 +23,33 @@ function setStatus(t) {
   console.log(t);
 }
 
-function ensureTierArea() {
-  let el = document.getElementById("tierArea");
-  if (!el) {
-    el = document.createElement("div");
-    el.id = "tierArea";
-    el.style.marginTop = "16px";
-    document.body.appendChild(el);
-  }
-  return el;
-}
-
-async function loadUserTier(uid) {
-  const ref = doc(db, "users", uid);
-  const snap = await getDoc(ref);
-  if (!snap.exists()) return null;
-  return snap.data() || {};
-}
-
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
     window.location.href = "/login";
     return;
   }
 
-  setStatus(`Signed in as: ${user.email} (checking access...)`);
-
-  const tierArea = ensureTierArea();
-  tierArea.innerHTML = `<div>Loading plan…</div>`;
+  setStatus("Loading account...");
 
   try {
-    const data = await loadUserTier(user.uid);
+    const userRef = doc(db, "users", user.uid);
+    const snap = await getDoc(userRef);
 
-    if (!data) {
-      tierArea.innerHTML = `
-        <h3>Account setup incomplete</h3>
-        <p>No Firestore user record found for your UID.</p>
-        <p>Create: <code>users/${user.uid}</code> with <code>tier1: true</code></p>
-      `;
-      setStatus(`Signed in as: ${user.email}`);
+    if (!snap.exists()) {
+      setStatus("No account record found.");
       return;
     }
 
-    const tier1 = !!data.tier1;
+    const data = snap.data();
 
-    setStatus(`Signed in as: ${user.email}`);
-    tierArea.innerHTML = `
-      <h3>Plan status</h3>
-      <p><strong>Tier 1:</strong> ${tier1 ? "ACTIVE ✅" : "NOT ACTIVE ❌"}</p>
-      ${tier1 ? `
-        <p><a href="/intake.html">Go to Tier 1 Intake →</a></p>
-      ` : `
-        <p>You don’t have Tier 1 access yet.</p>
-        <p>(Later: this is where we’ll send you to subscribe/pay.)</p>
-      `}
-    `;
-
+    setStatus(`
+Email: ${user.email}
+Tier: ${data.tier}
+Active: ${data.active}
+    `);
   } catch (err) {
     console.error(err);
-    tierArea.innerHTML = `
-      <h3>Error reading Firestore</h3>
-      <pre style="white-space:pre-wrap;">${String(err?.message || err)}</pre>
-    `;
+    setStatus("Error loading account data.");
   }
 });
 
