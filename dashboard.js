@@ -1,9 +1,16 @@
-// dashboard.js
+// dashboard.js (durable gate)
 import app from "/firebase-config.js";
-import { getAuth, onAuthStateChanged, signOut } from
-  "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getFirestore, doc, getDoc } from
-  "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {
+  getAuth,
+  onAuthStateChanged,
+  signOut
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+import {
+  getFirestore,
+  doc,
+  getDoc
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -12,8 +19,8 @@ const statusEl = document.getElementById("status");
 const logoutBtn = document.getElementById("logoutBtn");
 
 function setStatus(t) {
-  if (statusEl) statusEl.textContent = t;
-  console.log(t);
+  if (statusEl) statusEl.textContent = t || "";
+  console.log(t || "");
 }
 
 function goHomeWithNext() {
@@ -36,23 +43,16 @@ onAuthStateChanged(auth, async (user) => {
       return;
     }
 
-    setStatus("Checking access…");
+    setStatus(`Signed in as: ${user.email || user.uid}`);
 
+    // Optional: show access status on dashboard (no redirect here)
     const access = await getUserAccess(user.uid);
-
-    if (access.active === true) {
-      setStatus(`Signed in as: ${user.email} — Active (${access.tier || "tier"})`);
-      // Paid users go to the app home
-      window.location.replace("/app.html");
-      return;
+    if (!access.active) {
+      setStatus(`Signed in as: ${user.email || user.uid} — NOT ACTIVE (Tier required)`);
     }
-
-    // Logged in but not active → send to Tier 1 page
-    window.location.replace("/tier1.html");
   } catch (e) {
     console.log(e);
-    setStatus("Error checking access. Redirecting home…");
-    setTimeout(goHomeWithNext, 600);
+    setStatus("Error loading account status.");
   }
 });
 
