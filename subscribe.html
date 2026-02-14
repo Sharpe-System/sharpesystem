@@ -1,182 +1,37 @@
-export default {
-  async fetch(request, env) {
-    const corsHeaders = {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type",
-    };
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Subscribe — Tier 1</title>
+  <link rel="stylesheet" href="/styles.css" />
+  <style>
+    .page{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:40px 16px;}
+    .box{max-width:720px;width:100%;background:var(--panel);border:1px solid var(--border);border-radius:18px;padding:26px;box-shadow:var(--shadow);}
+    h1{margin:0 0 8px;font-size:34px;}
+    .sub{color:var(--muted);margin:0 0 16px;line-height:1.45;}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:14px;}
+    .btn{appearance:none;border:1px solid var(--border);border-radius:12px;padding:12px 14px;cursor:pointer;font-weight:900;}
+    .btn.primary{background:var(--accent);color:#071018;}
+    .btn.secondary{background:transparent;color:var(--text);}
+    .msg{margin-top:12px;color:var(--muted);}
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="box">
+      <h1>Tier 1 — $10 / month</h1>
+      <p class="sub">Checkout takes ~30 seconds. You’ll return here automatically.</p>
 
-    // CORS preflight
-    if (request.method === "OPTIONS") {
-      return new Response(null, { status: 204, headers: corsHeaders });
-    }
+      <div class="row">
+        <button id="payBtn" class="btn primary" type="button">Continue to Checkout</button>
+        <button class="btn secondary" type="button" onclick="location.href='/tier1.html'">Back</button>
+      </div>
 
-    const url = new URL(request.url);
+      <div id="msg" class="msg"></div>
+    </section>
+  </main>
 
-    // Always JSON helper
-    const json = (obj, status = 200) =>
-      new Response(JSON.stringify(obj), {
-        status,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      });
-
-    // ---------- Health check ----------
-    if (url.pathname === "/health") {
-      // Verify env presence here too (quick sanity check)
-      const hasToken = !!env.SQUARE_ACCESS_TOKEN;
-      const hasLoc = !!env.SQUARE_LOCATION_ID;
-
-      return json({
-        ok: true,
-        env: {
-          SQUARE_ACCESS_TOKEN: hasToken ? "present" : "missing",
-          SQUARE_LOCATION_ID: hasLoc ? "present" : "missing",
-        },
-      });
-    }
-
-    // ---------- Create checkout ----------
-    if (request.method === "POST" && url.pathname === "/create-checkout") {
-      // 1) Verify required env vars (your point #1)
-      if (!env.SQUARE_ACCESS_TOKEN || !env.SQUARE_LOCATION_ID) {
-        return json(
-          {
-            ok: false,
-            error: "Missing Square env vars",
-            missing: {
-              SQUARE_ACCESS_TOKEN: !env.SQUARE_ACCESS_TOKEN,
-              SQUARE_LOCATION_ID: !env.SQUARE_LOCATION_ID,
-            },
-          },
-          400
-        );
-      }
-
-      // 2) Robust JSON parsing (your point #2: stop JSON parse errors)
-      let body = {};
-      try {
-        body = await request.json();
-      } catch (e) {
-        return json(
-          {
-            ok: false,
-            error: "Invalid JSON body",
-            hint: "Send JSON like: {\"tier\":\"tier1\"}",
-          },
-          400
-        );
-      }
-
-      const tier = typeof body.tier === "string" ? body.tier.trim() : "";
-
-      // 3) Validate tier explicitly (your point #3)
-      if (!tier) {
-        return json(
-          {
-            ok: false,
-            error: "Missing tier",
-            hint: "Send JSON like: {\"tier\":\"tier1\"}",
-          },
-          400
-        );
-      }
-
-      // 4) Map tier -> product details (verifiable + extendable)
-      // Right now only tier1 is supported.
-      const catalog = {
-        tier1: {
-          name: "SharpeSystem Tier 1",
-          amountCents: 1000,
-          currency: "USD",
-        },
-      };
-
-      const item = catalog[tier];
-      if (!item) {
-        return json(
-          {
-            ok: false,
-            error: "Unknown tier",
-            allowed: Object.keys(catalog),
-            received: tier,
-          },
-          400
-        );
-      }
-
-      // 5) Create Square Payment Link checkout session
-      const squareResp = await fetch(
-        "https://connect.squareup.com/v2/online-checkout/payment-links",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${env.SQUARE_ACCESS_TOKEN}`,
-            "Content-Type": "application/json",
-            // Keep this stable unless you intentionally bump it
-            "Square-Version": "2026-01-22",
-          },
-          body: JSON.stringify({
-            checkout_options: {
-              // Your current “works tonight” flow: return to your site
-              redirect_url: "https://sharpesystem.pages.dev/success.html",
-            },
-            quick_pay: {
-              name: item.name,
-              price_money: {
-                amount: item.amountCents,
-                currency: item.currency,
-              },
-              location_id: env.SQUARE_LOCATION_ID,
-            },
-          }),
-        }
-      );
-
-      const data = await squareResp.json().catch(() => ({}));
-
-      // 6) If Square errors, return the payload cleanly (debuggable)
-      if (!squareResp.ok) {
-        return json(
-          {
-            ok: false,
-            error: "Square API error",
-            status: squareResp.status,
-            square: data,
-          },
-          400
-        );
-      }
-
-      // 7) Normalize checkout URL (some responses use url vs long_url)
-      const checkoutUrl =
-        data?.payment_link?.url || data?.payment_link?.long_url || null;
-
-      if (!checkoutUrl) {
-        return json(
-          {
-            ok: false,
-            error: "Square response missing payment_link url",
-            square: data,
-          },
-          500
-        );
-      }
-
-      // 8) Return a stable JSON shape your subscribe.js can rely on
-      // (your point: “consistent response”)
-      return json({
-        ok: true,
-        tier,
-        checkoutUrl,
-        // Helps you confirm you’re hitting production + correct location
-        locationId: env.SQUARE_LOCATION_ID,
-      });
-    }
-
-    // Default
-    return new Response(JSON.stringify({ ok: false, error: "Not found" }), {
-      status: 404,
-      headers: { "Content-Type": "application/json", ...corsHeaders },
-    });
-  },
-};
+  <script type="module" src="/subscribe.js"></script>
+</body>
+</html>
