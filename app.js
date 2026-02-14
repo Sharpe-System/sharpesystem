@@ -1,20 +1,18 @@
-// app.js
+// app.js (durable gate for /app.html)
+// Behavior:
+// - Not logged in -> send to HOME with next back to /app.html
+// - Logged in but not active -> send to /tier1.html (or /subscribe)
+// - Logged in + active -> stay
+
 import app from "/firebase-config.js";
-import { getAuth, onAuthStateChanged, signOut } from
+import { getAuth, onAuthStateChanged } from
   "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
 import { getFirestore, doc, getDoc } from
   "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const auth = getAuth(app);
 const db = getFirestore(app);
-
-const acctStatus = document.getElementById("acctStatus");
-const logoutBtn = document.getElementById("logoutBtn");
-
-function setStatus(t) {
-  if (acctStatus) acctStatus.textContent = t || "";
-  console.log(t);
-}
 
 function goHomeWithNext() {
   const next = encodeURIComponent(window.location.pathname + window.location.search);
@@ -36,24 +34,18 @@ onAuthStateChanged(auth, async (user) => {
       return;
     }
 
-    setStatus("Checking access…");
     const access = await getUserAccess(user.uid);
 
-    if (access.active !== true) {
-      // Logged in but not paid/active → send to Tier 1 page
+    // If not active, go to Tier page (NOT back to app, preventing loops)
+    if (!access.active) {
       window.location.replace("/tier1.html");
       return;
     }
 
-    setStatus(`Signed in: ${user.email} — Active (${access.tier || "tier"})`);
+    // If active, do nothing (user stays in app)
   } catch (e) {
     console.log(e);
-    setStatus("Error checking access. Redirecting home…");
-    setTimeout(goHomeWithNext, 600);
+    // If Firestore read fails, route to Tier page so user isn't stuck
+    window.location.replace("/tier1.html");
   }
-});
-
-logoutBtn?.addEventListener("click", async () => {
-  await signOut(auth);
-  goHomeWithNext();
 });
