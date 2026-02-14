@@ -28,7 +28,7 @@
 
       <div class="row">
         <button class="btn primary" onclick="location.href='/tier1.html'">Sharpe Legal</button>
-        <button id="loginBtn" class="btn secondary" type="button">Log in</button>
+        <button id="loginBtn" class="btn secondary">Log in</button>
       </div>
 
       <span class="pill">First-time user flow: Landing → Legal → Login → Dashboard</span>
@@ -36,14 +36,19 @@
   </main>
 
   <script>
-    // Respect ?next=... if present (used when a protected page redirects here)
     (function () {
-      const params = new URLSearchParams(window.location.search);
-      const next = params.get("next") || "/dashboard.html";
       const loginBtn = document.getElementById("loginBtn");
+
+      const params = new URLSearchParams(window.location.search);
+      const nextParam = params.get("next");
+
       if (loginBtn) {
         loginBtn.addEventListener("click", () => {
-          window.location.href = `/login.html?next=${encodeURIComponent(next)}`;
+          const safeNext = nextParam && nextParam !== "undefined"
+            ? encodeURIComponent(nextParam)
+            : encodeURIComponent("/dashboard.html");
+
+          window.location.href = `/login.html?next=${safeNext}`;
         });
       }
     })();
