@@ -1,50 +1,41 @@
-// subscribe.js
 const WORKER_BASE = "https://sharpe-pay.nd-sharpe.workers.dev";
 
 function $(id){ return document.getElementById(id); }
+const msg = $("msg");
 
-async function startCheckout() {
-  const btn = $("checkoutBtn");
-  const msg = $("msg");
+function setMsg(t){ if (msg) msg.textContent = t || ""; }
 
-  const setMsg = (t) => { if (msg) msg.textContent = t || ""; };
+document.addEventListener("DOMContentLoaded", () => {
+  const btn = $("payBtn");
+  if (!btn) return;
 
-  try {
-    btn && (btn.disabled = true);
-    setMsg("Creating checkout...");
+  btn.addEventListener("click", async () => {
+    try {
+      btn.disabled = true;
+      setMsg("Creating checkout…");
 
-    const r = await fetch(`${WORKER_BASE}/create-checkout`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ tier: "tier1" })
-    });
+      // If you already have Firebase auth available on this page later,
+      // you can pass uid. For now, we’ll do no uid and activate manually on success.
+      const r = await fetch(`${WORKER_BASE}/create-checkout`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tier: "tier1" })
+      });
 
-    const data = await r.json().catch(() => ({}));
+      const data = await r.json().catch(() => ({}));
+      if (!r.ok || !data.checkoutUrl) {
+        console.log("Checkout error:", data);
+        setMsg("Checkout failed. See console.");
+        btn.disabled = false;
+        return;
+      }
 
-    if (!r.ok) {
-      console.log("Worker error:", data);
-      setMsg("Checkout failed. Open Console for details.");
-      btn && (btn.disabled = false);
-      return;
+      window.location.href = data.checkoutUrl;
+
+    } catch (e) {
+      console.log(e);
+      setMsg("Network error. Try again.");
+      btn.disabled = false;
     }
-
-    if (!data.checkoutUrl) {
-      console.log("Unexpected response:", data);
-      setMsg("Checkout URL missing. Open Console.");
-      btn && (btn.disabled = false);
-      return;
-    }
-
-    // Send user to Square-hosted checkout (for now)
-    window.location.href = data.checkoutUrl;
-
-  } catch (e) {
-    console.log(e);
-    setMsg("Network error. Try again.");
-    btn && (btn.disabled = false);
-  }
-}
-
-window.addEventListener("DOMContentLoaded", () => {
-  $("checkoutBtn")?.addEventListener("click", startCheckout);
+  });
 });
