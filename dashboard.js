@@ -6,7 +6,14 @@ import {
   signOut
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
+import {
+  getFirestore,
+  doc,
+  getDoc
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
 const auth = getAuth(app);
+const db = getFirestore(app);
 
 const statusEl = document.getElementById("status");
 const logoutBtn = document.getElementById("logoutBtn");
@@ -16,70 +23,72 @@ function setStatus(t) {
   console.log(t);
 }
 
-function injectTier1Card() {
-  if (!statusEl) return;
-
-  // Prevent duplicate injection if script reruns for any reason
-  if (document.getElementById("tier1Card")) return;
-
-  const card = document.createElement("div");
-  card.id = "tier1Card";
-  card.style.marginTop = "16px";
-  card.style.padding = "14px";
-  card.style.border = "1px solid #1b2a3f";
-  card.style.borderRadius = "14px";
-  card.style.maxWidth = "520px";
-
-  card.innerHTML = `
-    <div style="display:flex;justify-content:space-between;align-items:center;">
-      <div style="font-weight:800;">Tier 1</div>
-      <div style="font-size:12px;border:1px solid #fb7185;padding:4px 10px;border-radius:999px;color:#fb7185;">
-        Locked
-      </div>
-    </div>
-
-    <div style="margin-top:6px;font-size:18px;font-weight:900;">$10/month</div>
-
-    <div style="margin-top:6px;color:#b6c2d2;font-size:13px;line-height:1.35;">
-      Unlock guided intake + checklists + template launchers.
-    </div>
-
-    <div style="margin-top:10px;display:flex;gap:10px;flex-wrap:wrap;">
-      <button id="tier1ActivateBtn" type="button">Activate Tier 1</button>
-      <button id="tier1ViewBtn" type="button">View Tier 1</button>
-    </div>
-
-    <div style="margin-top:8px;color:#b6c2d2;font-size:12px;">
-      Payments will run through Square. This dashboard is the “locked vs active” gate.
-    </div>
-  `;
-
-  statusEl.insertAdjacentElement("afterend", card);
-
-  const activateBtn = document.getElementById("tier1ActivateBtn");
-  const viewBtn = document.getElementById("tier1ViewBtn");
-
-  activateBtn?.addEventListener("click", () => {
-    window.location.href = "/tier1.html";
-  });
-
-  viewBtn?.addEventListener("click", () => {
-    window.location.href = "/tier1.html";
-  });
+function ensureTierArea() {
+  let el = document.getElementById("tierArea");
+  if (!el) {
+    el = document.createElement("div");
+    el.id = "tierArea";
+    el.style.marginTop = "16px";
+    document.body.appendChild(el);
+  }
+  return el;
 }
 
-// Wait for Firebase to tell us if user is signed in
-onAuthStateChanged(auth, (user) => {
-  if (user) {
-    setStatus(`Signed in as: ${user.email || user.uid}`);
-    injectTier1Card();
-  } else {
-    // Not signed in -> go back to login
-    window.location.href = "/login.html?next=/dashboard.html";
+async function loadUserTier(uid) {
+  const ref = doc(db, "users", uid);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) return null;
+  return snap.data() || {};
+}
+
+onAuthStateChanged(auth, async (user) => {
+  if (!user) {
+    window.location.href = "/login";
+    return;
+  }
+
+  setStatus(`Signed in as: ${user.email} (checking access...)`);
+
+  const tierArea = ensureTierArea();
+  tierArea.innerHTML = `<div>Loading plan…</div>`;
+
+  try {
+    const data = await loadUserTier(user.uid);
+
+    if (!data) {
+      tierArea.innerHTML = `
+        <h3>Account setup incomplete</h3>
+        <p>No Firestore user record found for your UID.</p>
+        <p>Create: <code>users/${user.uid}</code> with <code>tier1: true</code></p>
+      `;
+      setStatus(`Signed in as: ${user.email}`);
+      return;
+    }
+
+    const tier1 = !!data.tier1;
+
+    setStatus(`Signed in as: ${user.email}`);
+    tierArea.innerHTML = `
+      <h3>Plan status</h3>
+      <p><strong>Tier 1:</strong> ${tier1 ? "ACTIVE ✅" : "NOT ACTIVE ❌"}</p>
+      ${tier1 ? `
+        <p><a href="/intake.html">Go to Tier 1 Intake →</a></p>
+      ` : `
+        <p>You don’t have Tier 1 access yet.</p>
+        <p>(Later: this is where we’ll send you to subscribe/pay.)</p>
+      `}
+    `;
+
+  } catch (err) {
+    console.error(err);
+    tierArea.innerHTML = `
+      <h3>Error reading Firestore</h3>
+      <pre style="white-space:pre-wrap;">${String(err?.message || err)}</pre>
+    `;
   }
 });
 
 logoutBtn?.addEventListener("click", async () => {
   await signOut(auth);
-  window.location.href = "/login.html";
+  window.location.href = "/login";
 });
