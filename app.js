@@ -1,7 +1,6 @@
 // app.js (durable gate for /app.html)
-// Behavior:
-// - Not logged in -> send to HOME with next back to /app.html
-// - Logged in but not active -> send to /tier1.html (or /subscribe)
+// - Not logged in -> HOME with next back to /app.html
+// - Logged in but NOT active -> /subscribe.html
 // - Logged in + active -> stay
 
 import app from "/firebase-config.js";
@@ -36,16 +35,15 @@ onAuthStateChanged(auth, async (user) => {
 
     const access = await getUserAccess(user.uid);
 
-    // If not active, go to Tier page (NOT back to app, preventing loops)
     if (!access.active) {
-      window.location.replace("/tier1.html");
+      window.location.replace("/subscribe.html");
       return;
     }
 
-    // If active, do nothing (user stays in app)
+    // active -> stay on app
   } catch (e) {
     console.log(e);
-    // If Firestore read fails, route to Tier page so user isn't stuck
-    window.location.replace("/tier1.html");
+    // If Firestore read fails, send to subscribe (single place to resolve)
+    window.location.replace("/subscribe.html");
   }
 });
