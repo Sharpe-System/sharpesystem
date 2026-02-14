@@ -26,9 +26,12 @@ function setMsg(t) {
 }
 
 function getNext() {
-  const url = new URL(window.location.href);
-  const next = url.searchParams.get("next");
-  return next && next.startsWith("/") ? next : "/dashboard.html";
+ function getNext() {
+  const params = new URLSearchParams(window.location.search);
+  const rawNext = params.get("next");
+  const next = rawNext ? decodeURIComponent(rawNext) : "/dashboard.html";
+  window.location.href = next;
+}
 }
 
 async function doEmailLogin() {
