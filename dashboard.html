@@ -4,12 +4,30 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Dashboard</title>
+  <link rel="stylesheet" href="/styles.css" />
+  <style>
+    .page{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:40px 16px;}
+    .box{max-width:720px;width:100%;background:var(--panel);border:1px solid var(--border);border-radius:18px;
+         padding:22px;box-shadow:var(--shadow);}
+    h1{margin:0 0 10px;}
+    .muted{color:var(--muted);}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:12px;}
+    button{appearance:none;border:1px solid var(--border);border-radius:12px;padding:10px 12px;cursor:pointer;}
+    #logoutBtn{background:transparent;color:var(--text);}
+  </style>
 </head>
 <body>
-  <h1>Dashboard</h1>
-  <div id="status">Loading session...</div>
-  <button id="logoutBtn" type="button">Log out</button>
+  <main class="page">
+    <section class="box">
+      <h1>Dashboard</h1>
+      <div id="status" class="muted">Loading session...</div>
 
-  <script type="module" src="/dashboard.js"></script>
+      <div class="row">
+        <button id="logoutBtn" type="button">Log out</button>
+      </div>
+
+      <script type="module" src="/dashboard.js"></script>
+    </section>
+  </main>
 </body>
 </html>
