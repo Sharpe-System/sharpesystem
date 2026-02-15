@@ -1,0 +1,14 @@
+/login        /login.html        302
+/dashboard    /dashboard.html    302
+/home         /home.html         302
+/trees        /trees.html        302
+/status       /status.html       302
+/tier1        /tier1.html        302
+/subscribe    /subscribe.html    302
+/success      /success.html      302
+
+/intake       /intake.html       302
+/snapshot     /snapshot.html     302
+/timeline     /timeline.html     302
+/checklist    /checklist.html    302
+/start        /start.html        302
