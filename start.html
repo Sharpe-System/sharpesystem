@@ -1,49 +1,36 @@
-<!-- /start.html -->
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Start — Sharpe Legal</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <meta name="description" content="Start router for Sharpe Legal (Tier 1)." />
-
+  <title>Start — Sharpe Legal</title>
   <link rel="stylesheet" href="/styles.css" />
-  <style>
-    .page{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:40px 16px;}
-    .box{max-width:920px;width:100%;background:var(--panel);border:1px solid var(--border);
-      border-radius:18px;padding:26px;box-shadow:var(--shadow);}
-    h1{margin:0 0 8px;font-size:32px;}
-    .sub{color:var(--muted);margin:0 0 16px;line-height:1.45;}
-    .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;align-items:center;}
-    .btn{appearance:none;border:1px solid var(--border);border-radius:12px;padding:12px 14px;cursor:pointer;font-weight:900;text-decoration:none;display:inline-flex;align-items:center;}
-    .btn.primary{background:var(--accent);color:#071018;border-color:transparent;}
-    .btn.secondary{background:transparent;color:var(--text);}
-    .status{margin-top:10px;color:var(--muted);font-size:13px;line-height:1.4;}
-    .status strong{color:var(--text);}
-  </style>
 </head>
-<body>
-  <!-- Shared header/nav -->
+
+<body data-require-auth="1" data-require-tier="tier1">
   <div id="site-header"></div>
   <script src="/header-loader.js" defer></script>
   <script src="/header.js" defer></script>
+  <script type="module" src="/header-auth.js"></script>
   <script src="/i18n.js" defer></script>
 
   <main class="page">
-    <section class="box">
+    <div class="container content">
       <h1>Start</h1>
-      <p class="sub">Routing you to the next correct step…</p>
+      <p class="sub">Routing based on what’s already saved.</p>
 
-      <div id="status" class="status">Checking session…</div>
-
-      <div class="row" style="margin-top:16px;">
-        <a class="btn secondary" href="/app.html">Back to App</a>
-        <a class="btn secondary" href="/intake.html">Go to Intake</a>
-        <a class="btn secondary" href="/snapshot.html">Go to Snapshot</a>
+      <div class="template-box">
+        <p class="muted">
+          Start should send you to Intake if none exists yet, otherwise Snapshot.
+        </p>
+        <div class="cta-row">
+          <a class="button" href="/dashboard">Back to Dashboard</a>
+        </div>
       </div>
-    </section>
+    </div>
   </main>
 
+  <script type="module" src="/gate.js"></script>
   <script type="module" src="/start.js"></script>
 </body>
 </html>
