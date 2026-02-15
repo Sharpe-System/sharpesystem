@@ -347,3 +347,25 @@ input, textarea{ font-family: inherit; }
   .nav-links{ gap: 6px; }
   .nav-links a{ padding: 7px 9px; }
 }
+
+/* Header utility buttons (theme + language) */
+.theme-toggle, .lang-toggle{
+  font-size: 13px;
+  font-weight: 750;
+  color: var(--soft);
+  padding: 7px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.08);
+  background: rgba(255,255,255,.03);
+  cursor: pointer;
+}
+.theme-toggle:hover, .lang-toggle:hover{
+  color: var(--text);
+  border-color: rgba(255,255,255,.14);
+  background: rgba(255,255,255,.05);
+}
+html[data-theme="light"] .theme-toggle,
+html[data-theme="light"] .lang-toggle{
+  border-color: rgba(0,0,0,.10);
+  background: rgba(0,0,0,.03);
+}
