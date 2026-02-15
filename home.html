@@ -1,84 +1,89 @@
+<!-- /home.html -->
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>SharpeSystem</title>
+  <title>Home — SharpeSystem</title>
   <link rel="stylesheet" href="/styles.css" />
-  <style>
-    .page{min-height:100vh;padding:22px 16px;}
-    .wrap{max-width:980px;margin:0 auto;}
-    .hdr{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
-      padding:12px 14px;border:1px solid var(--border);border-radius:16px;background:var(--panel);box-shadow:var(--shadow);}
-    .brand{display:flex;flex-direction:column;gap:2px;}
-    .brand b{font-size:16px;}
-    .brand span{color:var(--muted);font-size:12px;}
-    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
-    .btn{appearance:none;border:1px solid var(--border);border-radius:12px;padding:10px 12px;cursor:pointer;font-weight:900;
-      text-decoration:none;display:inline-flex;align-items:center;gap:10px;}
-    .btn.primary{background:var(--accent);color:#071018;}
-    .btn.secondary{background:transparent;color:var(--text);}
-    .hero{margin-top:18px;background:var(--panel);border:1px solid var(--border);border-radius:18px;padding:26px;box-shadow:var(--shadow);}
-    h1{margin:0 0 10px;font-size:34px;}
-    .sub{margin:0;color:var(--muted);line-height:1.45;max-width:70ch;}
-    .grid{display:grid;grid-template-columns:1fr;gap:14px;margin-top:14px;}
-    @media(min-width:900px){.grid{grid-template-columns:1fr 1fr;}}
-    .card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:16px;}
-    .card h2{margin:0 0 8px;font-size:18px;}
-    .card p{margin:0;color:var(--muted);line-height:1.45;}
-    .pill{display:inline-block;margin-top:10px;padding:6px 10px;border-radius:999px;border:1px solid var(--border);color:var(--muted);font-size:12px;}
-  </style>
 </head>
+
 <body>
+  <!-- Shared header/nav -->
+  <div id="site-header"></div>
+  <script>
+    // Absolute path so it works from subfolders too
+    fetch('/partials/header.html')
+      .then(r => r.text())
+      .then(html => { document.getElementById('site-header').innerHTML = html; })
+      .catch(() => {});
+  </script>
+
   <main class="page">
-    <div class="wrap">
+    <div class="container content">
 
-      <header class="hdr">
-        <div class="brand">
-          <b>SharpeSystem</b>
-          <span>Procedural orientation + decision support (informational only)</span>
-        </div>
-        <nav class="row">
-          <a class="btn secondary" href="/tier1.html">Sharpe Legal</a>
-          <a id="loginLink" class="btn primary" href="/login.html?next=/dashboard.html">Log in</a>
-        </nav>
-      </header>
-
-      <section class="hero">
-        <h1>Calm structure for high-stakes situations.</h1>
-        <p class="sub">
-          Start with Sharpe Legal. The goal is fast orientation, correct next steps, and templates that reduce error under stress.
+      <section class="page-hero" aria-label="Home hero">
+        <h1 data-i18n="home.h1">SharpeSystem</h1>
+        <p class="lede" data-i18n="home.sub">
+          Procedural orientation and decision support for high-stakes situations.
+          Calm, structured, and non-directive — <strong>informational only</strong>.
         </p>
 
-        <div class="grid">
-          <div class="card">
-            <h2>First-time flow</h2>
-            <p>Home → Tier 1 → Login → App</p>
-            <span class="pill">If you were redirected here, the system will preserve your next page.</span>
-          </div>
-          <div class="card">
-            <h2>Tier 1</h2>
-            <p>“Stop drowning” tier: intake → next steps → draft scaffolds.</p>
-            <div class="row" style="margin-top:12px;">
-              <a class="btn primary" href="/tier1.html">Open Tier 1</a>
-              <a class="btn secondary" href="/dashboard.html">Dashboard</a>
-            </div>
-          </div>
+        <div class="cta-row">
+          <!-- These get rewritten by script below to preserve ?next= -->
+          <a id="ctaLegal" class="button primary" href="/tier1">Sharpe Legal</a>
+          <a id="ctaLogin" class="button" href="/login?next=/dashboard">Log in</a>
+        </div>
+
+        <div class="link-row">
+          <span class="muted" id="nextHint"></span>
+        </div>
+      </section>
+
+      <div class="hr"></div>
+
+      <section aria-label="Quick links">
+        <h2>Quick links</h2>
+        <div class="cta-row">
+          <a class="button" href="/status">Status</a>
+          <a class="button" href="/high-conflict-risk-awareness">Risk Awareness</a>
+          <a class="button" href="/binder/attorney-invite">For Attorneys</a>
         </div>
       </section>
 
     </div>
   </main>
 
-  <script>
-    // If we arrived with ?next=..., aim the login button at that destination.
-    const params = new URLSearchParams(location.search);
-    const next = params.get("next");
-    const loginLink = document.getElementById("loginLink");
-    if (loginLink && next) {
-      loginLink.href = "/login.html?next=" + encodeURIComponent(next);
+  <!-- If you have i18n, keep it -->
+  <script src="/i18n.js"></script>
+
+  <script type="module">
+    import { safeNext, getNextParam } from "/safeNext.js";
+
+    // If user was redirected here by app gate, preserve their intended destination.
+    // Example: /home?next=/app
+    const next = getNextParam("/dashboard");
+
+    // Wire CTAs with next preserved
+    const legal = document.getElementById("ctaLegal");
+    const login = document.getElementById("ctaLogin");
+    const hint  = document.getElementById("nextHint");
+
+    if (legal) {
+      // Tier page routes through login anyway, but preserve next for continuity
+      // If you prefer: next=/app always, change to "/login?next=/app"
+      legal.href = "/tier1?next=" + encodeURIComponent(next);
+    }
+
+    if (login) {
+      login.href = "/login?next=" + encodeURIComponent(next);
+    }
+
+    if (hint && next) {
+      hint.textContent = (next && next !== "/dashboard")
+        ? `Next preserved: ${safeNext(next, "/dashboard")}`
+        : "";
     }
   </script>
-  <script src="i18n.js"></script>
 </body>
 </html>
