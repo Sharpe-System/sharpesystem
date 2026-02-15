@@ -58,5 +58,6 @@ onAuthStateChanged(auth, async (user) => {
 
 logoutBtn?.addEventListener("click", async () => {
   await signOut(auth);
-  goHomeWithNext();
+  // Explicit logout should go to public home (no next= loop)
+  window.location.replace("/home.html");
 });
