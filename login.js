@@ -1,7 +1,8 @@
 // /login.js
-import { auth, initAuthPersistence } from "/auth.js";
+import { auth } from "/auth.js";
 import {
-  signInWithEmailAndPassword
+  signInWithEmailAndPassword,
+  onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const form = document.getElementById("loginForm");
@@ -11,24 +12,27 @@ const msgEl = document.getElementById("msg");
 
 function setMsg(t) {
   if (msgEl) msgEl.textContent = t || "";
-  console.log(t);
 }
 
 function safeNext() {
   const params = new URLSearchParams(window.location.search);
-  const raw = (params.get("next") || "").trim();
+  const next = (params.get("next") || "").trim();
 
-  // Default
-  if (!raw) return "/dashboard.html";
+  if (!next) return "/dashboard.html";
+  if (!next.startsWith("/")) return "/dashboard.html";
+  if (next.startsWith("//")) return "/dashboard.html";
+  if (next.includes("://")) return "/dashboard.html";
+  if (next.includes("..")) return "/dashboard.html";
 
-  // Must be internal absolute
-  if (!raw.startsWith("/")) return "/dashboard.html";
-  if (raw.startsWith("//")) return "/dashboard.html";
-  if (raw.includes("://")) return "/dashboard.html";
-  if (raw.includes("..")) return "/dashboard.html";
-
-  return raw;
+  return next;
 }
+
+// If already logged in, DO NOT show login page. Send them where they intended.
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    window.location.replace(safeNext());
+  }
+});
 
 async function doLogin() {
   const email = (emailEl?.value || "").trim();
@@ -38,10 +42,6 @@ async function doLogin() {
     setMsg("Enter email and password.");
     return;
   }
-
-  setMsg("Preparing session…");
-  const mode = await initAuthPersistence();
-  console.log("Auth persistence:", mode);
 
   setMsg("Signing in…");
   await signInWithEmailAndPassword(auth, email, password);
