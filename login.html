@@ -8,8 +8,11 @@
 </head>
 <body>
 
+  <!-- Shared header -->
   <div id="site-header"></div>
-  <script src="header-loader.js" defer></script>
+  <script src="/header-loader.js" defer></script>
+  <script src="/header.js" defer></script>
+  <script src="/i18n.js" defer></script>
 
   <main class="page">
     <div class="container content">
@@ -18,26 +21,46 @@
 
       <form id="loginForm" autocomplete="on">
         <label class="label" for="email">Email</label>
-        <input class="input" id="email" type="email" required autocomplete="email" />
+        <input
+          class="input"
+          id="email"
+          type="email"
+          required
+          autocomplete="email"
+        />
 
         <label class="label" for="password">Password</label>
-        <input class="input" id="password" type="password" required autocomplete="current-password" />
+        <input
+          class="input"
+          id="password"
+          type="password"
+          required
+          autocomplete="current-password"
+        />
 
         <div class="cta-row">
-          <button class="button primary" type="submit" id="loginBtn">Log In</button>
+          <button
+            class="button primary"
+            type="submit"
+            id="loginBtn"
+          >
+            Log In
+          </button>
         </div>
 
         <div id="msg" class="template-box" style="margin-top:12px;"></div>
 
         <div class="footer-links" style="margin-top:16px;">
-          <a href="home.html">Back to Home</a> <span class="sep">·</span>
-          <a href="tier1.html">Sharpe Legal</a> <span class="sep">·</span>
-          <a href="attorney-invite.html">For Attorneys</a>
+          <a href="/home.html">Back to Home</a>
+          <span class="sep">·</span>
+          <a href="/tier1.html">Sharpe Legal</a>
+          <span class="sep">·</span>
+          <a href="/attorney-invite.html">For Attorneys</a>
         </div>
       </form>
     </div>
   </main>
 
-  <script type="module" src="login.js"></script>
+  <script type="module" src="/login.js"></script>
 </body>
 </html>
