@@ -1,55 +1,60 @@
-<!-- /dashboard.html -->
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Dashboard — SharpeSystem</title>
-
-  <!-- Global Styles -->
   <link rel="stylesheet" href="/styles.css" />
-
   <style>
-    .page{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:40px 16px;}
-    .box{max-width:920px;width:100%;background:var(--panel);border:1px solid var(--border);
-      border-radius:18px;padding:26px;box-shadow:var(--shadow);}
-    h1{margin:0 0 10px;font-size:32px;}
-    .sub{color:var(--muted);margin:0 0 16px;line-height:1.45;}
-    .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;align-items:center;}
-    .btn{appearance:none;border:1px solid var(--border);border-radius:12px;padding:12px 14px;cursor:pointer;font-weight:900;text-decoration:none;display:inline-flex;align-items:center;}
-    .btn.primary{background:var(--accent);color:#071018;border-color:transparent;}
-    .btn.secondary{background:transparent;color:var(--text);}
-    .pill{display:inline-block;margin-top:10px;padding:6px 10px;border-radius:999px;border:1px solid var(--border);color:var(--muted);font-size:12px;}
-    .status{margin-top:10px;color:var(--muted);font-size:13px;line-height:1.4;}
-    .status strong{color:var(--text);}
+    .page{min-height:100vh;padding:26px 18px 60px;}
+    .card{margin-top:12px;padding:14px;border-radius:var(--radius);border:1px solid var(--border);background:rgba(255,255,255,.03);}
+    .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;}
+    .pill{display:inline-block;padding:6px 10px;border-radius:999px;border:1px solid var(--border);color:var(--muted);font-size:12px;}
+    .muted{color:var(--muted);}
   </style>
 </head>
-
 <body>
-  <!-- Shared header/nav -->
   <div id="site-header"></div>
-
-  <!-- IMPORTANT: absolute paths so navigation doesn't break -->
   <script src="/header-loader.js" defer></script>
   <script src="/header.js" defer></script>
   <script src="/i18n.js" defer></script>
 
   <main class="page">
-    <section class="box">
+    <div class="container content">
       <h1>Dashboard</h1>
       <p class="sub">Account + routing hub.</p>
 
-      <div id="status" class="status">Checking session…</div>
-      <span class="pill" id="who"></span>
-
-      <div class="row">
-        <!-- Use .html explicitly to avoid routing stalls -->
-        <a class="btn primary" id="goApp" href="/app.html">Go to App</a>
-        <a class="btn secondary" id="goTier" href="/tier1.html">Tier 1</a>
-        <a class="btn secondary" id="goSubscribe" href="/subscribe.html">Billing</a>
-        <button class="btn secondary" id="logoutBtn" type="button">Log out</button>
+      <div class="card">
+        <div id="who" class="muted">Checking session…</div>
+        <div class="row" style="margin-top:10px;">
+          <span class="pill" id="tierPill">Tier: —</span>
+          <span class="pill" id="activePill">Active: —</span>
+        </div>
       </div>
-    </section>
+
+      <div class="card">
+        <h2 style="margin-top:0;">Tier 1 app</h2>
+        <p class="muted">Use Start to route correctly based on tier + intake.</p>
+        <div class="row">
+          <a class="button primary" href="/start.html">Start</a>
+          <a class="button" href="/intake.html">Intake</a>
+          <a class="button" href="/snapshot.html">Snapshot</a>
+          <a class="button" href="/timeline.html">Timeline</a>
+          <a class="button" href="/checklist.html">Checklist</a>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2 style="margin-top:0;">Billing</h2>
+        <div class="row">
+          <a class="button" href="/tier1.html">Tier 1 page</a>
+          <a class="button" href="/subscribe.html">Subscribe</a>
+        </div>
+        <p class="muted" style="margin-top:10px;">
+          If you already paid, success activation should set Tier 1 on your user doc.
+        </p>
+      </div>
+    </div>
   </main>
 
   <script type="module" src="/dashboard.js"></script>
