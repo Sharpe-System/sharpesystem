@@ -1,13 +1,18 @@
 <header class="site-header">
   <nav class="main-nav" aria-label="Primary">
-    <a href="home.html" class="brand">SharpeSystem</a>
+    <a href="home.html" class="brand" data-i18n="brand">SharpeSystem</a>
 
     <div class="nav-links">
-      <a href="home.html">Home</a>
-      <a href="trees.html">Decision Trees</a>
-      <a href="status.html">Status</a>
-      <a href="binder/attorney-invite.html">For Attorneys</a>
-      <a href="high-conflict-risk-awareness.html" class="nav-emphasis">Risk Awareness</a>
+      <a href="home.html" data-i18n="nav.home">Home</a>
+      <a href="trees.html" data-i18n="nav.trees">Decision Trees</a>
+      <a href="status.html" data-i18n="nav.status">Status</a>
+      <a href="binder/attorney-invite.html" data-i18n="nav.attorneys">For Attorneys</a>
+      <a href="high-conflict-risk-awareness.html" class="nav-emphasis" data-i18n="nav.risk">Risk Awareness</a>
+
+      <!-- Language toggle -->
+      <button class="lang-toggle" id="langToggle" type="button" aria-label="Toggle language">
+        ES
+      </button>
 
       <!-- Theme toggle -->
       <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle theme">
@@ -16,6 +21,6 @@
     </div>
   </nav>
 
-  <!-- Load theme script after markup so the button exists -->
+  <script src="i18n.js"></script>
   <script src="theme.js"></script>
 </header>
