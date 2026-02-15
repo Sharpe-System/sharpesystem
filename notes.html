@@ -8,9 +8,9 @@
 </head>
 
 <body>
-  <!-- Shared header/nav -->
+  <!-- Shared header -->
   <div id="site-header"></div>
-<script src="header-loader.js" defer></script>
+  <script src="/header-loader.js" defer></script>
 
   <main class="page">
     <div class="container content">
@@ -18,14 +18,13 @@
       <section class="page-hero" aria-label="Internal notes header">
         <h1>Internal Notes</h1>
         <p class="sub">
-          Product principles and build constraints. This page is for development alignment.
+          Product principles and build constraints. Development alignment only.
         </p>
       </section>
 
       <section class="card" aria-label="Internal notes content">
         <div class="note" role="note">
-          <strong>Private:</strong> Not intended for end users. If this is deployed publicly, consider removing it
-          or placing it behind an unlisted route.
+          <strong>Private:</strong> Authenticated access only.
         </div>
 
         <h2>Core principles</h2>
@@ -37,25 +36,36 @@
           <li><strong>Tree integrity:</strong> decision trees must show dead ends explicitly</li>
         </ul>
 
-        <div class="bottom-nav" aria-label="Navigation">
+        <div class="bottom-nav">
           <div class="left">
             <a class="button" href="/home.html">Home</a>
             <a class="button" href="/trees.html">Decision Trees</a>
             <a class="button" href="/status.html">Status</a>
           </div>
           <div class="right">
-            <span class="hint">Anchor:</span>
             <a class="button primary" href="/high-conflict-risk-awareness.html">Risk Awareness</a>
           </div>
         </div>
 
-        <div class="footer">
-          <div><strong>Reminder:</strong> Keep this page unlinked from public navigation if you don’t want users seeing it.</div>
-        </div>
       </section>
 
     </div>
   </main>
-  <script src="i18n.js"></script>
+
+  <!-- Auth gate -->
+  <script type="module">
+    import app from "/firebase-config.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+    const auth = getAuth(app);
+
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        window.location.replace("/login.html?next=/internal-notes.html");
+      }
+    });
+  </script>
+
+  <script src="/i18n.js"></script>
 </body>
 </html>
