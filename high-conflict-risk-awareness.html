@@ -346,16 +346,7 @@
 
   <!-- Attempt to swap in shared partial if available -->
   <div id="site-header" style="display:none;"></div>
-  <script>
-    fetch('/partials/header.html')
-      .then(r => r.ok ? r.text() : Promise.reject())
-      .then(html => {
-        document.getElementById('site-header').innerHTML = html;
-        const fallback = document.querySelector('.site-header');
-        if (fallback) fallback.outerHTML = html;
-      })
-      .catch(() => {});
-  </script>
+  <script src="header-loader.js" defer></script>
 
   <div class="scopebar" role="region" aria-label="Scope and neutrality notice">
     <div class="wrap">
