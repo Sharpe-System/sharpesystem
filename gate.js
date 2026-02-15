@@ -1,13 +1,10 @@
 // /gate.js
-// Single source of truth for:
-// - login gate
-// - tier1 gate
-// - read/update the user doc
-//
-// Assumes user docs are stored at: users/{uid}
+// Centralized login + tier gating.
+// Assumes Firestore user docs at: users/{uid}
 
 import app from "/firebase-config.js";
 import { defaultUserDoc } from "/schema.js";
+
 import {
   getAuth,
   onAuthStateChanged,
@@ -26,12 +23,12 @@ export const db = getFirestore(app);
 
 const USERS_COL = "users";
 
-export function requireLogin(nextPath) {
+export function requireLogin(nextPath){
   const next = encodeURIComponent(nextPath || window.location.pathname);
   window.location.replace(`/login.html?next=${next}`);
 }
 
-export async function ensureUserDoc(uid) {
+export async function ensureUserDoc(uid){
   const ref = doc(db, USERS_COL, uid);
   const snap = await getDoc(ref);
 
@@ -42,7 +39,6 @@ export async function ensureUserDoc(uid) {
   }
 
   const data = snap.data() || {};
-  // If schemaVersion missing, merge defaults (non-destructive).
   if (typeof data.schemaVersion !== "number") {
     const merged = { ...defaultUserDoc(), ...data };
     await setDoc(ref, merged, { merge: true });
@@ -52,18 +48,18 @@ export async function ensureUserDoc(uid) {
   return data;
 }
 
-export async function readUserDoc(uid) {
+export async function readUserDoc(uid){
   const ref = doc(db, USERS_COL, uid);
   const snap = await getDoc(ref);
   return snap.exists() ? (snap.data() || null) : null;
 }
 
-export async function updateUserDoc(uid, patch) {
+export async function updateUserDoc(uid, patch){
   const ref = doc(db, USERS_COL, uid);
   await updateDoc(ref, patch);
 }
 
-export function requireTier1() {
+export function requireTier1(){
   return new Promise((resolve) => {
     onAuthStateChanged(auth, async (user) => {
       if (!user) return requireLogin(window.location.pathname);
