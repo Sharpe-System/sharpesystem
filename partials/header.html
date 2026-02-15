@@ -1,16 +1,21 @@
 <header class="site-header">
   <nav class="main-nav" aria-label="Primary">
-    <a href="/home.html" class="brand">SharpeSystem</a>
+    <a href="home.html" class="brand">SharpeSystem</a>
 
     <div class="nav-links">
-      <a href="/home.html">Home</a>
-      <a href="/trees.html">Decision Trees</a>
-      <a href="/status.html">Status</a>
-
-      <!-- NEW: attorney portal link (same format as others) -->
+      <a href="home.html">Home</a>
+      <a href="trees.html">Decision Trees</a>
+      <a href="status.html">Status</a>
       <a href="binder/attorney-invite.html">For Attorneys</a>
-      <!-- keep Risk emphasized -->
-      <a href="/high-conflict-risk-awareness.html" class="nav-emphasis">Risk Awareness</a>
+      <a href="high-conflict-risk-awareness.html" class="nav-emphasis">Risk Awareness</a>
+
+      <!-- Theme toggle -->
+      <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle theme">
+        Light
+      </button>
     </div>
   </nav>
+
+  <!-- Load theme script after markup so the button exists -->
+  <script src="theme.js"></script>
 </header>
