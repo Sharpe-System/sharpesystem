@@ -1,0 +1,88 @@
+<header class="site-header">
+  <nav class="main-nav" aria-label="Primary">
+    <!-- Absolute path so it works from /binder/* pages too -->
+    <a href="/home.html" class="brand" data-i18n="brand">SharpeSystem</a>
+
+    <div class="nav-links">
+      <a href="/home.html" data-i18n="nav.home">Home</a>
+      <a href="/trees.html" data-i18n="nav.trees">Decision Trees</a>
+      <a href="/status.html" data-i18n="nav.status">Status</a>
+      <a href="/binder/attorney-invite.html" data-i18n="nav.attorneys">For Attorneys</a>
+      <a href="/high-conflict-risk-awareness.html" class="nav-emphasis" data-i18n="nav.risk">Risk Awareness</a>
+
+      <!-- Theme toggle -->
+      <button id="themeToggle" class="theme-toggle" type="button" aria-label="Toggle theme">
+        <span data-i18n="toggle.theme">Theme</span>
+      </button>
+
+      <!-- Language toggle (EN/ES) -->
+      <button id="langToggle" class="lang-toggle" type="button" aria-label="Toggle language">
+        <span id="langLabel">ES</span>
+      </button>
+
+      <!-- Optional: Login shortcut -->
+      <a id="loginLink" href="/login.html?next=/dashboard.html" data-i18n="nav.login">Log in</a>
+    </div>
+  </nav>
+</header>
+
+<script>
+  // Prevent double-binding if header is fetched multiple times
+  if (!window.__SHARPE_HEADER_BOUND__) {
+    window.__SHARPE_HEADER_BOUND__ = true;
+
+    // ---- Theme (dark default, light via html[data-theme="light"]) ----
+    const THEME_KEY = "ss_theme"; // "dark" | "light"
+    const html = document.documentElement;
+    const themeBtn = () => document.getElementById("themeToggle");
+
+    function applyTheme(t) {
+      if (t === "light") html.setAttribute("data-theme", "light");
+      else html.removeAttribute("data-theme");
+      localStorage.setItem(THEME_KEY, t === "light" ? "light" : "dark");
+    }
+
+    // Init theme
+    const savedTheme = localStorage.getItem(THEME_KEY);
+    if (savedTheme) applyTheme(savedTheme);
+
+    document.addEventListener("click", (e) => {
+      if (e.target && (e.target.id === "themeToggle" || e.target.closest("#themeToggle"))) {
+        const current = html.getAttribute("data-theme") === "light" ? "light" : "dark";
+        applyTheme(current === "light" ? "dark" : "light");
+      }
+    });
+
+    // ---- Language (works with your i18n.js) ----
+    // We store preference; your i18n.js should read this key OR you can adapt i18n.js later.
+    const LANG_KEY = "ss_lang"; // "en" | "es"
+    const langLabel = () => document.getElementById("langLabel");
+
+    function setLangLabel(lang) {
+      const el = langLabel();
+      if (el) el.textContent = (lang === "es") ? "EN" : "ES";
+    }
+
+    const savedLang = (localStorage.getItem(LANG_KEY) || "en").toLowerCase();
+    setLangLabel(savedLang);
+
+    document.addEventListener("click", (e) => {
+      if (e.target && (e.target.id === "langToggle" || e.target.closest("#langToggle"))) {
+        const current = (localStorage.getItem(LANG_KEY) || "en").toLowerCase();
+        const next = current === "es" ? "en" : "es";
+        localStorage.setItem(LANG_KEY, next);
+        setLangLabel(next);
+
+        // If your i18n.js exposes a function, call it; otherwise reload to re-render strings.
+        if (window.setLanguage && typeof window.setLanguage === "function") {
+          window.setLanguage(next);
+        } else {
+          location.reload();
+        }
+      }
+    });
+
+    // ---- Make nav links absolute-safe for active styling (optional) ----
+    // If you want active highlighting later, we can add it here.
+  }
+</script>
