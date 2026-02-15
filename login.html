@@ -4,55 +4,45 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Log In — SharpeSystem</title>
-  <link rel="stylesheet" href="/styles.css" />
-  <style>
-    .page{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:40px 16px;}
-    .box{max-width:480px;width:100%;background:var(--panel);border:1px solid var(--border);
-      border-radius:18px;padding:26px;box-shadow:var(--shadow);}
-    h1{margin:0 0 10px;font-size:30px;}
-    .sub{color:var(--muted);margin:0 0 18px;}
-    .stack{display:flex;flex-direction:column;gap:12px;}
-    input{
-      padding:12px;border-radius:10px;border:1px solid var(--border);
-      background:var(--bg2);color:var(--text);
-    }
-    .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;}
-    .btn{appearance:none;border:1px solid var(--border);border-radius:12px;padding:12px 14px;cursor:pointer;font-weight:900;}
-    .btn.primary{background:var(--accent);color:#071018;}
-    .btn.secondary{background:transparent;color:var(--text);}
-    .msg{margin-top:12px;color:var(--muted);min-height:20px;}
-    .divider{margin:14px 0;border-top:1px solid var(--border);opacity:.7;}
-  </style>
+  <link rel="stylesheet" href="styles.css" />
 </head>
-  <script src="i18n.js"></script>
 <body>
-<main class="page">
-  <section class="box">
-    <h1>Log In</h1>
-    <p class="sub">Access your SharpeSystem dashboard.</p>
 
-    <form id="loginForm" autocomplete="on">
-      <div class="stack">
-        <input id="email" type="email" placeholder="Email" required autocomplete="email" />
-        <input id="password" type="password" placeholder="Password" required autocomplete="current-password" />
-      </div>
+  <div id="site-header"></div>
+  <script>
+    fetch("partials/header.html")
+      .then(r => r.text())
+      .then(html => { document.getElementById("site-header").innerHTML = html; })
+      .catch(() => {});
+  </script>
 
-      <div class="row">
-        <button id="loginBtn" class="btn primary" type="submit">Log In</button>
-      </div>
+  <main class="page">
+    <div class="container content">
+      <h1>Log In</h1>
+      <p class="sub">Access your dashboard or gated app pages.</p>
 
-      <div class="divider"></div>
+      <form id="loginForm" autocomplete="on">
+        <label class="label" for="email">Email</label>
+        <input class="input" id="email" type="email" required autocomplete="email" />
 
-      <div class="row">
-        <button id="googleBtn" class="btn secondary" type="button">Continue with Google</button>
-      </div>
+        <label class="label" for="password">Password</label>
+        <input class="input" id="password" type="password" required autocomplete="current-password" />
 
-      <div id="status" class="msg"></div>
-    </form>
-  </section>
-</main>
+        <div class="cta-row">
+          <button class="button primary" type="submit" id="loginBtn">Log In</button>
+        </div>
 
-<script type="module" src="/login.js"></script>
-  <script src="i18n.js"></script>
+        <div id="msg" class="template-box" style="margin-top:12px;"></div>
+
+        <div class="footer-links" style="margin-top:16px;">
+          <a href="home.html">Back to Home</a> <span class="sep">·</span>
+          <a href="tier1.html">Sharpe Legal</a> <span class="sep">·</span>
+          <a href="attorney-invite.html">For Attorneys</a>
+        </div>
+      </form>
+    </div>
+  </main>
+
+  <script type="module" src="login.js"></script>
 </body>
 </html>
