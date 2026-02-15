@@ -32,22 +32,53 @@
 
   --container: 980px;
 
-  /* Used by Risk Awareness scopebar offsets, etc. */
+  /* Used by sticky offsets */
   --header-h: 56px;
+
+  /* Background glow layers (so light mode can override cleanly) */
+  --glow1: radial-gradient(1100px 700px at 15% 5%, rgba(110,231,255,.10), transparent 60%);
+  --glow2: radial-gradient(900px 600px at 80% 10%, rgba(167,139,250,.10), transparent 55%);
+}
+
+/* =========================================================
+   Theme Toggle Support
+   Default = Dark (current)
+   Light theme activated via: html[data-theme="light"]
+   ========================================================= */
+
+html[data-theme="light"]{
+  --bg: #f4f7fb;
+  --bg2: #ffffff;
+  --panel: #ffffff;
+  --panel2: #f4f7fb;
+
+  --text: #111827;
+  --muted: #4b5563;
+  --soft: #6b7280;
+
+  --border: #e5e7eb;
+
+  --accent: #2563eb;
+  --accent2: #7c3aed;
+
+  --shadow: 0 18px 40px rgba(0,0,0,.08);
+
+  /* Softer, lighter glows */
+  --glow1: radial-gradient(1100px 700px at 15% 5%, rgba(37,99,235,.10), transparent 60%);
+  --glow2: radial-gradient(900px 600px at 80% 10%, rgba(124,58,237,.10), transparent 55%);
 }
 
 /* ---------- Base / Reset ---------- */
 *{ box-sizing: border-box; }
 html, body{ height: 100%; }
+
 body{
   margin:0;
   color: var(--text);
   font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
   line-height: 1.55;
-  background:
-    radial-gradient(1100px 700px at 15% 5%, rgba(110,231,255,.10), transparent 60%),
-    radial-gradient(900px 600px at 80% 10%, rgba(167,139,250,.10), transparent 55%),
-    var(--bg);
+  background: var(--glow1), var(--glow2), var(--bg);
+  transition: background .25s ease, color .25s ease;
 }
 
 img{ max-width:100%; height:auto; }
@@ -97,7 +128,6 @@ li{ margin: 8px 0; }
   margin: 0 auto;
 }
 .content{
-  /* Make the main content feel like “panel” everywhere */
   background: linear-gradient(180deg, rgba(16,24,38,.86), rgba(15,22,34,.86));
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -105,15 +135,19 @@ li{ margin: 8px 0; }
   box-shadow: var(--shadow);
 }
 
-/* Small “kicker” feel for intro paragraphs if you want later:
-   <p class="lede">...</p> */
+/* Make content panel look correct in light theme */
+html[data-theme="light"] .content{
+  background: linear-gradient(180deg, rgba(255,255,255,.90), rgba(244,247,251,.92));
+}
+
+/* Intro paragraph helper */
 .lede{
   font-size: 16px;
   color: var(--muted);
   max-width: 75ch;
 }
 
-/* Muted helper (you already use .muted) */
+/* Muted helper */
 .muted{ color: var(--soft); opacity: .9; }
 
 /* Notes / callouts */
@@ -159,6 +193,12 @@ li{ margin: 8px 0; }
   box-shadow: 0 14px 30px rgba(110,231,255,.14);
 }
 
+/* Light mode: primary button text stays readable */
+html[data-theme="light"] .button.primary{
+  color: #ffffff;
+  box-shadow: 0 14px 30px rgba(37,99,235,.18);
+}
+
 .cta-row{ margin-top: 18px; display:flex; gap:12px; flex-wrap:wrap; }
 .cta-center{ margin-top: 22px; text-align: center; }
 
@@ -173,7 +213,7 @@ li{ margin: 8px 0; }
 .link-row a:hover{ color: var(--text); text-decoration: none; border-bottom-color: rgba(110,231,255,.25); }
 .sep{ opacity: .6; padding: 0 8px; }
 
-/* Footer links block used by triage page */
+/* Footer links */
 .footer-links{
   margin-top: 16px;
   font-size: 13px;
@@ -182,7 +222,7 @@ li{ margin: 8px 0; }
 .footer-links a{ color: var(--soft); }
 .footer-links a:hover{ color: var(--text); text-decoration: none; }
 
-/* ---------- Header / Navigation (your partial uses these classes) ---------- */
+/* ---------- Header / Navigation ---------- */
 .site-header{
   position: sticky;
   top: 0;
@@ -194,6 +234,11 @@ li{ margin: 8px 0; }
   border-bottom: 1px solid var(--border);
   background: linear-gradient(180deg, rgba(16,24,38,.96), rgba(11,15,20,.92));
   backdrop-filter: blur(10px);
+}
+
+/* Light mode header background */
+html[data-theme="light"] .site-header{
+  background: linear-gradient(180deg, rgba(255,255,255,.92), rgba(244,247,251,.90));
 }
 
 .main-nav{
@@ -242,17 +287,21 @@ li{ margin: 8px 0; }
   text-decoration: none;
 }
 
-/* active/emphasis link (you already use .nav-emphasis on Risk Awareness) */
+/* active/emphasis link */
 .nav-emphasis{
   color: var(--text) !important;
   border-color: rgba(110,231,255,.18) !important;
   background: rgba(110,231,255,.08) !important;
 }
 
-/* ---------- Forms (used in Amicable + optional) ---------- */
-input, textarea{
-  font-family: inherit;
+/* Light mode emphasis styling */
+html[data-theme="light"] .nav-emphasis{
+  border-color: rgba(37,99,235,.22) !important;
+  background: rgba(37,99,235,.10) !important;
 }
+
+/* ---------- Forms ---------- */
+input, textarea{ font-family: inherit; }
 
 .input{
   width: 100%;
@@ -271,16 +320,25 @@ input, textarea{
   margin: 10px 0 6px;
 }
 
+/* ---------- Theme Toggle Button (optional) ---------- */
+/* If you add a button with class="theme-toggle" in header.html, it will look right. */
+.theme-toggle{
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,.04);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 7px 10px;
+  font-size: 13px;
+  font-weight: 760;
+  cursor: pointer;
+}
+.theme-toggle:hover{ filter: brightness(1.08); }
+
 /* ---------- Small helpers ---------- */
 .hr{
   height:1px;
   background: var(--border);
   margin: 16px 0;
-}
-
-/* Make “old plain pages” still look good even if they omit .content panel */
-.page > .container:not(.content){
-  /* no-op: safe */
 }
 
 /* Mobile spacing */
