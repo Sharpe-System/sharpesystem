@@ -1,21 +1,21 @@
-<!-- /home.html -->
 <!doctype html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Home — SharpeSystem</title>
-  <link rel="stylesheet" href="/styles.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Global theme (relative for GitHub Pages) -->
+  <link rel="stylesheet" href="styles.css" />
 </head>
 
 <body>
   <!-- Shared header/nav -->
   <div id="site-header"></div>
   <script>
-    // Absolute path so it works from subfolders too
-    fetch('/partials/header.html')
+    fetch("partials/header.html")
       .then(r => r.text())
-      .then(html => { document.getElementById('site-header').innerHTML = html; })
+      .then(html => { document.getElementById("site-header").innerHTML = html; })
       .catch(() => {});
   </script>
 
@@ -23,67 +23,74 @@
     <div class="container content">
 
       <section class="page-hero" aria-label="Home hero">
-        <h1 data-i18n="home.h1">SharpeSystem</h1>
-        <p class="lede" data-i18n="home.sub">
+        <h1>SharpeSystem</h1>
+        <p class="lede">
           Procedural orientation and decision support for high-stakes situations.
           Calm, structured, and non-directive — <strong>informational only</strong>.
         </p>
-
-        <div class="cta-row">
-          <!-- These get rewritten by script below to preserve ?next= -->
-          <a id="ctaLegal" class="button primary" href="/tier1">Sharpe Legal</a>
-          <a id="ctaLogin" class="button" href="/login?next=/dashboard">Log in</a>
-        </div>
-
-        <div class="link-row">
-          <span class="muted" id="nextHint"></span>
+        <div class="note" role="note" aria-label="Scope note">
+          <strong>Scope:</strong> This site is educational. It does not provide legal advice, legal strategy, or jurisdiction-specific rules.
+          If you have immediate safety concerns, contact local emergency services.
         </div>
       </section>
 
-      <div class="hr"></div>
+      <section class="template-box" aria-label="Central hub actions">
+        <h2>Start here</h2>
+        <p>
+          Pick the closest entry point. The goal is to help you get oriented, identify deadlines, and reduce avoidable mistakes —
+          without turning this into advice or strategy.
+        </p>
 
-      <section aria-label="Quick links">
-        <h2>Quick links</h2>
-        <div class="cta-row">
-          <a class="button" href="/status">Status</a>
-          <a class="button" href="/high-conflict-risk-awareness">Risk Awareness</a>
-          <a class="button" href="/binder/attorney-invite">For Attorneys</a>
+        <div class="cta-row" style="justify-content:center;">
+          <a class="button primary" href="triage.html">Start with Triage</a>
+          <a class="button" href="trees.html">Decision Trees</a>
+          <a class="button" href="tier1.html">Sharpe Legal</a>
+          <a class="button" href="attorney-invite.html">For Attorneys</a>
+        </div>
+
+        <div class="link-row" aria-label="Secondary links">
+          <a href="login.html">Log in</a>
+          <span class="sep">·</span>
+          <a href="status.html">Status</a>
+          <span class="sep">·</span>
+          <a href="high-conflict-risk-awareness.html">Risk Awareness</a>
+        </div>
+      </section>
+
+      <section class="template-box" aria-label="Primary paths">
+        <h2>Primary paths</h2>
+        <ul>
+          <li><a href="trees.html"><strong>Decision Trees</strong></a> — choose the branch that matches your situation</li>
+          <li><a href="triage.html"><strong>Triage</strong></a> — “I don’t know what I’m dealing with; help me classify it”</li>
+          <li><a href="amicable.html"><strong>Resolve This Amicably</strong></a> — structured communication to reduce friction early</li>
+          <li><a href="high-conflict-risk-awareness.html"><strong>Risk Awareness</strong></a> — neutral education on escalation patterns and ambiguity risk</li>
+          <li><a href="status.html"><strong>Status</strong></a> — what this is / what it is not</li>
+        </ul>
+      </section>
+
+      <section class="template-box" aria-label="How to use this">
+        <h2>How to use this (without getting lost)</h2>
+        <ul>
+          <li><strong>Anchor on time:</strong> if you have a hearing or deadline, start there.</li>
+          <li><strong>Keep it narrow:</strong> focus on one issue at a time.</li>
+          <li><strong>Prefer clarity over narrative:</strong> systems respond to clean records and simple timelines.</li>
+        </ul>
+
+        <div class="hr"></div>
+
+        <div class="footer-links">
+          <a href="triage.html">Start with Triage</a> <span class="sep">·</span>
+          <a href="trees.html">Decision Trees</a> <span class="sep">·</span>
+          <a href="tier1.html">Sharpe Legal</a> <span class="sep">·</span>
+          <a href="attorney-invite.html">For Attorneys</a>
+        </div>
+
+        <div class="template-box" style="margin-top:12px;">
+          <strong>Reminder:</strong> Informational only. Not legal advice. Not strategy.
         </div>
       </section>
 
     </div>
   </main>
-
-  <!-- If you have i18n, keep it -->
-  <script src="/i18n.js"></script>
-
-  <script type="module">
-    import { safeNext, getNextParam } from "/safeNext.js";
-
-    // If user was redirected here by app gate, preserve their intended destination.
-    // Example: /home?next=/app
-    const next = getNextParam("/dashboard");
-
-    // Wire CTAs with next preserved
-    const legal = document.getElementById("ctaLegal");
-    const login = document.getElementById("ctaLogin");
-    const hint  = document.getElementById("nextHint");
-
-    if (legal) {
-      // Tier page routes through login anyway, but preserve next for continuity
-      // If you prefer: next=/app always, change to "/login?next=/app"
-      legal.href = "/tier1?next=" + encodeURIComponent(next);
-    }
-
-    if (login) {
-      login.href = "/login?next=" + encodeURIComponent(next);
-    }
-
-    if (hint && next) {
-      hint.textContent = (next && next !== "/dashboard")
-        ? `Next preserved: ${safeNext(next, "/dashboard")}`
-        : "";
-    }
-  </script>
 </body>
 </html>
