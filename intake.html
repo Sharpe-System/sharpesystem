@@ -1,173 +1,31 @@
 <!doctype html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Intake — Sharpe Legal</title>
-
   <link rel="stylesheet" href="/styles.css" />
-
-  <style>
-    .page{
-      min-height:100vh;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      padding:40px 16px;
-    }
-
-    .box{
-      max-width:860px;
-      width:100%;
-      background:var(--panel);
-      border:1px solid var(--border);
-      border-radius:18px;
-      padding:26px;
-      box-shadow:var(--shadow);
-    }
-
-    .grid{
-      display:grid;
-      grid-template-columns:1fr;
-      gap:12px;
-      margin-top:14px;
-    }
-
-    @media(min-width:900px){
-      .grid{ grid-template-columns:1fr 1fr; }
-    }
-
-    .label{
-      display:block;
-      font-size:12px;
-      color:var(--soft);
-      margin:10px 0 6px;
-    }
-
-    .input, textarea, select{
-      width:100%;
-      padding:10px 12px;
-      border-radius:12px;
-      border:1px solid var(--border);
-      background:rgba(255,255,255,.03);
-      color:var(--text);
-      outline:none;
-      font-size:14px;
-    }
-
-    textarea{
-      min-height:120px;
-      resize:vertical;
-    }
-
-    .row{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      margin-top:14px;
-    }
-
-    .btn{
-      appearance:none;
-      border:1px solid var(--border);
-      border-radius:12px;
-      padding:12px 14px;
-      cursor:pointer;
-      font-weight:900;
-    }
-
-    .btn.primary{
-      background:var(--accent);
-      color:#071018;
-    }
-
-    .btn.secondary{
-      background:transparent;
-      color:var(--text);
-    }
-
-    .msg{
-      margin-top:10px;
-      color:var(--muted);
-      font-size:13px;
-    }
-  </style>
 </head>
 
-<body>
-
-  <!-- Shared header -->
+<body data-require-auth="1" data-require-tier="tier1">
   <div id="site-header"></div>
   <script src="/header-loader.js" defer></script>
   <script src="/header.js" defer></script>
+  <script type="module" src="/header-auth.js"></script>
   <script src="/i18n.js" defer></script>
 
   <main class="page">
-    <section class="box">
+    <div class="container content">
       <h1>Guided Intake</h1>
       <p class="sub">Short, structured inputs. No narrative sprawl.</p>
 
-      <form id="intakeForm" autocomplete="off">
-
-        <div class="grid">
-          <div>
-            <label class="label" for="caseType">Case type</label>
-            <select id="caseType" class="input" required>
-              <option value="">Select…</option>
-              <option value="family_custody">Family — Custody/Visitation</option>
-              <option value="dv_restraining">Domestic Violence / Restraining</option>
-              <option value="divorce_support">Divorce / Support</option>
-              <option value="other">Other</option>
-            </select>
-
-            <label class="label" for="stage">Stage</label>
-            <select id="stage" class="input" required>
-              <option value="">Select…</option>
-              <option value="new">New / not filed</option>
-              <option value="active_case">Active case</option>
-              <option value="post_order">After an order</option>
-              <option value="appeal_enforcement">Enforcement / appeal</option>
-            </select>
-
-            <label class="label" for="nextDate">Next hearing / deadline date</label>
-            <input id="nextDate" class="input" type="date" />
-          </div>
-
-          <div>
-            <label class="label" for="goal">Primary goal (1–2 sentences)</label>
-            <textarea id="goal" class="input"
-              placeholder="Example: Restore parenting time and end ongoing procedural games."></textarea>
-
-            <label class="label" for="risks">Immediate risks (short)</label>
-            <textarea id="risks" class="input"
-              placeholder="Example: approaching hearing date; accusations; missed service; incomplete records."></textarea>
-          </div>
-        </div>
-
-        <label class="label" for="facts">Facts (bullets; no adjectives)</label>
-        <textarea id="facts" class="input"
-          placeholder="- YYYY-MM-DD: event
-- YYYY-MM-DD: filing
-- YYYY-MM-DD: exchange / communication"></textarea>
-
-        <div class="row">
-          <button id="saveBtn" class="btn primary" type="submit">
-            Save Intake
-          </button>
-
-          <button class="btn secondary" type="button"
-            onclick="location.href='/app.html'">
-            Back to App
-          </button>
-        </div>
-
-        <div id="msg" class="msg"></div>
-
-      </form>
-    </section>
+      <div class="cta-row">
+        <a class="button" href="/dashboard">Back to Dashboard</a>
+      </div>
+    </div>
   </main>
 
+  <script type="module" src="/gate.js"></script>
   <script type="module" src="/intake.js"></script>
-
 </body>
 </html>
