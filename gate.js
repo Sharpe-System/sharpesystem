@@ -1,5 +1,8 @@
 // /gate.js
-// Page guard that waits for auth resolution before redirecting.
+// Waits for Firebase auth resolution BEFORE redirecting.
+// Body attributes control behavior:
+//   data-require-auth="1"
+//   data-require-tier="tier1"
 
 import app from "/firebase-config.js";
 import {
@@ -16,23 +19,43 @@ import {
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-function getNext() {
-  const url = new URL(window.location.href);
-  return url.pathname + url.search;
+function currentPathWithQuery() {
+  return window.location.pathname + window.location.search;
 }
 
 function goLogin() {
-  const next = encodeURIComponent(getNext());
+  const next = encodeURIComponent(currentPathWithQuery());
   window.location.replace(`/login?next=${next}`);
 }
 
-async function getUserDoc(uid) {
+async function loadUserDoc(uid) {
   const ref = doc(db, "users", uid);
   const snap = await getDoc(ref);
   return snap.exists() ? snap.data() : null;
 }
 
-// Usage: <body data-require-auth="1" data-require-tier="tier1">
+function normalizeTier(v) {
+  return (v || "").toString().trim().toLowerCase();
+}
+
+async function handleAuthed(user, requireTier) {
+  if (!requireTier) return;
+
+  try {
+    const data = await loadUserDoc(user.uid);
+    const tier = normalizeTier(data?.tier);
+    const active = data?.active === true;
+
+    if (tier !== normalizeTier(requireTier) || !active) {
+      window.location.replace("/tier1");
+    }
+  } catch (e) {
+    console.error("Gate doc read failed:", e);
+    // fail open to dashboard instead of looping
+    window.location.replace("/dashboard");
+  }
+}
+
 export function runGate() {
   const requireAuth = document.body?.dataset?.requireAuth === "1";
   const requireTier = document.body?.dataset?.requireTier || "";
@@ -44,25 +67,8 @@ export function runGate() {
       if (requireAuth) goLogin();
       return;
     }
-
-    if (!requireTier) return;
-
-    try {
-      const data = await getUserDoc(user.uid);
-      const tier = data?.tier || "none";
-      const active = data?.active === true;
-
-      // Tier rules: must match tier AND active
-      if (tier !== requireTier || !active) {
-        window.location.replace("/tier1");
-      }
-    } catch (e) {
-      console.error(e);
-      // If firestore fails, don't brick the user with loops—send to dashboard
-      window.location.replace("/dashboard");
-    }
+    await handleAuthed(user, requireTier);
   });
 }
 
-// Auto-run if included as a module on the page
 runGate();
