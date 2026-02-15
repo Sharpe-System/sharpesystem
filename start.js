@@ -1,55 +1,29 @@
 // /start.js
-import { auth, ensureUserDoc, readUserDoc } from "/db.js";
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { requireTier1, readUserDoc } from "/gate.js";
 
-const statusEl = document.getElementById("status");
-
+function $(id){ return document.getElementById(id); }
 function setStatus(html) {
-  if (statusEl) statusEl.innerHTML = html || "";
+  const el = $("status");
+  if (el) el.innerHTML = html || "";
 }
 
-function goLoginNext() {
-  window.location.replace("/login.html?next=/start.html");
-}
-
-function goTier() {
-  window.location.replace("/tier1.html");
-}
-
-function goIntake() {
-  window.location.replace("/intake.html");
-}
-
-function goSnapshot() {
-  window.location.replace("/snapshot.html");
-}
-
-onAuthStateChanged(auth, async (user) => {
-  if (!user) return goLoginNext();
+(async function main(){
+  const { user, userDoc } = await requireTier1();
 
   try {
-    setStatus(`Signed in as <strong>${user.email || "(no email)"}</strong> • Checking access…`);
-
-    const u = await ensureUserDoc(user.uid);
-    const active = u?.active === true;
-    const tier = String(u?.tier || "");
-
-    if (!active || tier !== "tier1") return goTier();
-
-    setStatus(`Signed in as <strong>${user.email || "(no email)"}</strong> • Tier: <strong>${tier}</strong> • Routing…`);
+    setStatus(`Signed in as <strong>${user.email || "(no email)"}</strong> • Tier: <strong>${userDoc.tier || "?"}</strong> • Routing…`);
 
     const data = await readUserDoc(user.uid);
     const intake = data?.intake || null;
 
-    // If intake isn't present / doesn't have minimum structure, send them to intake.
-    if (!intake || !intake.caseType || !intake.stage) return goIntake();
+    if (!intake || !intake.caseType || !intake.stage) {
+      window.location.replace("/intake.html");
+      return;
+    }
 
-    // Otherwise go snapshot.
-    return goSnapshot();
-
+    window.location.replace("/snapshot.html");
   } catch (e) {
     console.log(e);
-    // Fail closed and keep user moving.
-    return goTier();
+    window.location.replace("/tier1.html");
   }
-});
+})();
