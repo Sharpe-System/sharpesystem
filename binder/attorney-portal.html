@@ -10,7 +10,7 @@
 <body>
   <div id="site-header"></div>
   <script>
-    fetch("partials/header.html")
+    fetch("/partials/header.html")
       .then(r => r.text())
       .then(html => { document.getElementById("site-header").innerHTML = html; })
       .catch(() => {});
