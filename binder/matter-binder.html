@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Start a Matter Binder — SharpeSystem</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+
+  <div id="site-header"></div>
+  <script>
+    fetch('partials/header.html')
+      .then(r => r.text())
+      .then(html => { document.getElementById('site-header').innerHTML = html; })
+      .catch(() => {});
+  </script>
+
+  <main class="page">
+    <div class="container content">
+
+      <section class="page-hero">
+        <h1>Start a Matter Binder</h1>
+        <p class="sub">
+          A structured container for timelines, documents, and decisions — without advice.
+        </p>
+      </section>
+
+      <section class="card">
+        <h2>What this does</h2>
+        <ul>
+          <li>Centralizes facts</li>
+          <li>Preserves timelines</li>
+          <li>Creates a clean shareable record</li>
+          <li>Reduces emotional drift</li>
+        </ul>
+
+        <div class="hr"></div>
+
+        <h2>What this does not do</h2>
+        <ul>
+          <li>Does not provide legal advice</li>
+          <li>Does not replace an attorney</li>
+          <li>Does not recommend strategy</li>
+        </ul>
+
+        <div class="note">
+          Design principle: clarity over urgency.
+        </div>
+
+        <div class="cta-row">
+          <a class="button primary" href="#">Start a new Matter Binder</a>
+          <a class="button" href="attorney-invite.html">View Attorney Invite Page</a>
+        </div>
+
+      </section>
+
+    </div>
+  </main>
+
+</body>
+</html>
