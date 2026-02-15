@@ -2,17 +2,16 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta http-equiv="refresh" content="0; url=home.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>SharpeSystem</title>
-  <meta http-equiv="refresh" content="0; url=/home.html">
+  <link rel="canonical" href="home.html" />
+  <script>
+    // JS fallback redirect
+    window.location.replace("home.html");
+  </script>
 </head>
 <body>
-  <script>
-    // preserve ?next= if present
-    const q = window.location.search || "";
-    window.location.replace("/home.html" + q);
-  </script>
-  <script src="i18n.js"></script>
+  <p>Redirecting… <a href="home.html">Go to Home</a></p>
 </body>
 </html>
-
