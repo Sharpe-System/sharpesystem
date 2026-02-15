@@ -2,16 +2,18 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Start a Matter Binder — SharpeSystem</title>
+  <title>Matter Binder — Concept</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="stylesheet" href="styles.css" />
+  <meta name="description" content="Concept walkthrough: a neutral matter binder for timelines, documents, and decisions." />
+
+  <link rel="stylesheet" href="../styles.css" />
 </head>
 
 <body>
-
+  <!-- Shared header/nav -->
   <div id="site-header"></div>
   <script>
-    fetch('partials/header.html')
+    fetch('../partials/header.html')
       .then(r => r.text())
       .then(html => { document.getElementById('site-header').innerHTML = html; })
       .catch(() => {});
@@ -20,20 +22,21 @@
   <main class="page">
     <div class="container content">
 
-      <section class="page-hero">
-        <h1>Start a Matter Binder</h1>
+      <section class="page-hero" aria-label="Matter binder hero">
+        <h1>Matter Binder</h1>
         <p class="sub">
-          A structured container for timelines, documents, and decisions — without advice.
+          A neutral container for timelines, documents, and decisions — without advice.
+          This is a conceptual walkthrough (no account, no storage, no portal access yet).
         </p>
       </section>
 
-      <section class="card">
+      <section class="card" aria-label="What this does">
         <h2>What this does</h2>
         <ul>
-          <li>Centralizes facts</li>
-          <li>Preserves timelines</li>
-          <li>Creates a clean shareable record</li>
-          <li>Reduces emotional drift</li>
+          <li>Centralizes facts, dates, and documents in one place</li>
+          <li>Preserves timelines before details are lost</li>
+          <li>Creates a clean record you can share later</li>
+          <li>Reduces emotional drift by forcing structure</li>
         </ul>
 
         <div class="hr"></div>
@@ -41,23 +44,25 @@
         <h2>What this does not do</h2>
         <ul>
           <li>Does not provide legal advice</li>
-          <li>Does not replace an attorney</li>
           <li>Does not recommend strategy</li>
+          <li>Does not replace counsel</li>
         </ul>
 
-        <div class="note">
-          Design principle: clarity over urgency.
+        <div class="note" role="note">
+          <strong>Design principle:</strong> clarity over urgency. records over memory.
         </div>
 
         <div class="cta-row">
-          <a class="button primary" href="#">Start a new Matter Binder</a>
-          <a class="button" href="attorney-invite.html">View Attorney Invite Page</a>
+          <a class="button primary" href="attorney-invite.html">Attorney invite</a>
+          <a class="button" href="attorney-portal.html">Attorney portal preview</a>
         </div>
 
+        <div class="footer" style="margin-top:16px;">
+          <div><strong>Reminder:</strong> Informational only. Not legal advice. Not strategy.</div>
+        </div>
       </section>
 
     </div>
   </main>
-
 </body>
 </html>
