@@ -13,7 +13,7 @@
       "nav.attorneys": "For Attorneys",
       "nav.attorneyPortal": "Attorney Portal",
       "nav.risk": "Risk Awareness",
-      "toggle.lang": "ES" // button shows what you can switch to
+      "toggle.lang": "ES"
     },
     es: {
       brand: "SharpeSystem",
@@ -60,19 +60,23 @@
     applyLang(next);
   }
 
-  // Works even if header is injected later
+  // Delegated click listener
   document.addEventListener("click", (e) => {
-    const t = e.target;
-    if (t && t.id === "langToggle") {
+    if (e.target && e.target.id === "langToggle") {
       e.preventDefault();
       toggleLang();
     }
   });
 
-  // Apply now
+  // Initial apply
   applyLang(getLang());
 
-  // Re-apply when header.html is injected
-  const obs = new MutationObserver(() => applyLang(getLang()));
-  obs.observe(document.documentElement, { childList: true, subtree: true });
+  // Re-apply only when header is injected
+  const headerEl = document.getElementById("site-header");
+  if (headerEl) {
+    const obs = new MutationObserver(() => {
+      applyLang(getLang());
+    });
+    obs.observe(headerEl, { childList: true });
+  }
 })();
