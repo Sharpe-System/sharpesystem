@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Attorney Portal — Preview</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Preview-only attorney portal concept for SharpeSystem." />
+
+  <link rel="stylesheet" href="../styles.css" />
+  <style>
+    .grid{
+      display:grid;
+      grid-template-columns: 1.15fr .85fr;
+      gap: 14px;
+      margin-top: 12px;
+    }
+    @media (max-width: 920px){ .grid{ grid-template-columns: 1fr; } }
+    .tile{
+      padding: 14px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.03);
+      margin-top: 12px;
+    }
+    .tile h3{ margin: 0 0 6px; }
+    .mini{ font-size: 13px; color: var(--soft); }
+    .kbd{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 12px;
+      padding: 2px 6px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: rgba(0,0,0,.25);
+      color: var(--text);
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Shared header/nav -->
+  <div id="site-header"></div>
+  <script>
+    fetch('../partials/header.html')
+      .then(r => r.text())
+      .then(html => { document.getElementById('site-header').innerHTML = html; })
+      .catch(() => {});
+  </script>
+
+  <main class="page">
+    <div class="container content">
+
+      <section class="page-hero" aria-label="Attorney portal hero">
+        <h1>Attorney Portal (Preview)</h1>
+        <p class="sub">
+          This is a workflow preview. No authentication. No client data. No messaging.
+          The intent is to show how an attorney-facing view would stay clean, bounded, and non-advisory.
+        </p>
+      </section>
+
+      <div class="grid">
+        <section class="card" aria-label="Portal preview">
+          <h2>What this page represents</h2>
+          <ul>
+            <li><strong>Read-only by default</strong> (concept)</li>
+            <li><strong>Structured intake summary</strong> instead of narrative sprawl</li>
+            <li><strong>Document checklist</strong> + timeline slots</li>
+            <li><strong>Scope clarity</strong> to reduce confusion and liability ambiguity</li>
+          </ul>
+
+          <div class="hr"></div>
+
+          <h2>Mock “matter view” tiles</h2>
+
+          <div class="tile">
+            <h3>1) Snapshot</h3>
+            <p class="mini">One paragraph, structured. No argument. No conclusion.</p>
+            <p><span class="kbd">Case type</span> • <span class="kbd">Next date</span> • <span class="kbd">Primary goal</span> • <span class="kbd">Immediate risks</span></p>
+          </div>
+
+          <div class="tile">
+            <h3>2) Timeline anchors</h3>
+            <p class="mini">Dates + events only. No adjectives.</p>
+            <ul>
+              <li><span class="kbd">YYYY-MM-DD</span> — event label</li>
+              <li><span class="kbd">YYYY-MM-DD</span> — filing / service / hearing</li>
+              <li><span class="kbd">YYYY-MM-DD</span> — communication log reference</li>
+            </ul>
+          </div>
+
+          <div class="tile">
+            <h3>3) Document completeness</h3>
+            <p class="mini">What exists, what’s missing, and what the client claims exists but hasn’t provided.</p>
+            <ul>
+              <li>Provided: X</li>
+              <li>Missing: Y</li>
+              <li>Unknown: Z</li>
+            </ul>
+          </div>
+
+          <div class="cta-row">
+            <a class="button" href="attorney-invite.html">Back to invite</a>
+            <a class="button primary" href="matter-binder.html">Matter Binder concept</a>
+          </div>
+
+          <div class="note" role="note">
+            <strong>Preview-only:</strong> This page does not create any duty, relationship, or obligation.
+            No client data is collected here.
+          </div>
+        </section>
+
+        <aside class="card" aria-label="Boundaries">
+          <h2>Boundaries</h2>
+          <ul>
+            <li>No legal advice content</li>
+            <li>No “recommended actions” framed as strategy</li>
+            <li>No jurisdiction-specific instructions here</li>
+            <li>No client-to-attorney messaging (concept-only)</li>
+          </ul>
+
+          <div class="hr"></div>
+
+          <h2>What would come later (not now)</h2>
+          <ul>
+            <li>Authentication</li>
+            <li>Invite links scoped to a matter</li>
+            <li>Read-only access controls</li>
+            <li>Audit trail (who viewed what)</li>
+          </ul>
+
+          <div class="footer">
+            <div><strong>Reminder:</strong> Informational only. Not legal advice.</div>
+          </div>
+        </aside>
+      </div>
+
+    </div>
+  </main>
+</body>
+</html>
