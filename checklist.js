@@ -1,50 +1,141 @@
-<!-- /checklist.html (COPY/PASTE WHOLE FILE) -->
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Checklist — Sharpe Legal</title>
-  <link rel="stylesheet" href="/styles.css" />
-  <style>
-    .page{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:40px 16px;}
-    .box{max-width:980px;width:100%;background:var(--panel);border:1px solid var(--border);border-radius:18px;padding:26px;box-shadow:var(--shadow);}
-    .card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:16px;margin-top:12px;}
-    .item{display:flex;align-items:flex-start;gap:10px;padding:10px;border:1px solid var(--border);border-radius:12px;margin-top:10px;background:rgba(0,0,0,.10);}
-    .item input{margin-top:4px;}
-    .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;}
-    .btn{appearance:none;border:1px solid var(--border);border-radius:12px;padding:12px 14px;cursor:pointer;font-weight:900;}
-    .btn.primary{background:var(--accent);color:#071018;}
-    .btn.secondary{background:transparent;color:var(--text);}
-    .muted{color:var(--muted);font-size:13px;}
-  </style>
-</head>
-<body>
-  <!-- Shared header/nav -->
-  <div id="site-header"></div>
-  <script src="/header-loader.js" defer></script>
-  <script src="/header.js" defer></script>
-  <script src="/i18n.js" defer></script>
+// /checklist.js
+import { requireTier1, readUserDoc, updateUserDoc } from "/gate.js";
 
-  <main class="page">
-    <section class="box">
-      <h1>Checklist</h1>
-      <p class="sub">A simple “next actions” list. This is the spine of Tier 1.</p>
+function nowIso() { return new Date().toISOString(); }
 
-      <div class="card">
-        <div id="list"></div>
+function ensureUI() {
+  // Expected IDs (if you already built them):
+  // - checklistRoot (container), list, newItem, addBtn, saveBtn, msg
+  // If missing, build a minimal UI into the first ".content" or "body".
+  const existing = document.getElementById("checklistRoot");
+  if (existing) return;
 
-        <div class="row">
-          <button id="saveBtn" class="btn primary" type="button">Save</button>
-          <button id="resetBtn" class="btn secondary" type="button">Reset Defaults</button>
-          <button class="btn secondary" type="button" onclick="location.href='/app.html'">Back to App</button>
-        </div>
+  const mount = document.querySelector(".content") || document.body;
+  const wrap = document.createElement("div");
+  wrap.id = "checklistRoot";
+  wrap.innerHTML = `
+    <h1>Checklist</h1>
+    <p class="sub">Add items. Check them off. Saved to your account.</p>
 
-        <div id="msg" class="muted"></div>
+    <div class="template-box">
+      <label class="label" for="newItem">New item</label>
+      <input class="input" id="newItem" type="text" placeholder="Example: Gather last 3 orders + minute orders" />
+      <div class="cta-row">
+        <button class="button primary" id="addBtn" type="button">Add</button>
+        <button class="button" id="saveBtn" type="button">Save</button>
       </div>
-    </section>
-  </main>
+      <div id="msg" class="muted" style="margin-top:10px;"></div>
+    </div>
 
-  <script type="module" src="/checklist.js"></script>
-</body>
-</html>
+    <div class="template-box" style="margin-top:12px;">
+      <div id="list"></div>
+    </div>
+  `;
+  mount.prepend(wrap);
+}
+
+function $(id){ return document.getElementById(id); }
+function setMsg(t){ const el = $("msg"); if (el) el.textContent = t || ""; }
+
+function normalizeItem(label) {
+  const t = String(label || "").trim();
+  if (!t) return null;
+  const key = t.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
+  return { key: key || ("item_" + Math.random().toString(16).slice(2)), label: t, done: false };
+}
+
+function render(items) {
+  const host = $("list");
+  if (!host) return;
+
+  host.innerHTML = "";
+  if (!items.length) {
+    host.innerHTML = `<div class="muted">No items yet.</div>`;
+    return;
+  }
+
+  items.forEach((it, idx) => {
+    const row = document.createElement("div");
+    row.style.display = "flex";
+    row.style.gap = "10px";
+    row.style.alignItems = "flex-start";
+    row.style.margin = "10px 0";
+
+    row.innerHTML = `
+      <input type="checkbox" data-idx="${idx}" ${it.done ? "checked" : ""} />
+      <div style="flex:1;">
+        <div style="font-weight:800; color: var(--text);">${it.label}</div>
+        <div class="muted" style="font-size:12px;">${it.key}</div>
+      </div>
+      <button class="button" type="button" data-del="${idx}">Remove</button>
+    `;
+    host.appendChild(row);
+  });
+}
+
+(async function main(){
+  ensureUI();
+
+  const { user } = await requireTier1();
+
+  let items = [];
+
+  // Load existing
+  try {
+    const d = await readUserDoc(user.uid);
+    items = Array.isArray(d?.checklist?.items) ? d.checklist.items : [];
+  } catch (e) {
+    console.log(e);
+  }
+
+  render(items);
+
+  // Toggle
+  document.addEventListener("change", (e) => {
+    const t = e.target;
+    if (!t || t.tagName !== "INPUT" || t.type !== "checkbox") return;
+    const idx = Number(t.getAttribute("data-idx"));
+    if (!Number.isFinite(idx) || !items[idx]) return;
+    items[idx].done = !!t.checked;
+  });
+
+  // Remove
+  document.addEventListener("click", (e) => {
+    const b = e.target;
+    if (!b) return;
+
+    const del = b.getAttribute?.("data-del");
+    if (del != null) {
+      const idx = Number(del);
+      if (Number.isFinite(idx)) {
+        items.splice(idx, 1);
+        render(items);
+      }
+    }
+  });
+
+  // Add
+  $("addBtn")?.addEventListener("click", () => {
+    const v = $("newItem")?.value || "";
+    const it = normalizeItem(v);
+    if (!it) return;
+
+    items.push(it);
+    if ($("newItem")) $("newItem").value = "";
+    render(items);
+  });
+
+  // Save
+  $("saveBtn")?.addEventListener("click", async () => {
+    try {
+      setMsg("Saving…");
+      await updateUserDoc(user.uid, {
+        checklist: { items, updatedAt: nowIso() }
+      });
+      setMsg("Saved.");
+    } catch (e) {
+      console.log(e);
+      setMsg("Save failed. Check console.");
+    }
+  });
+})();
