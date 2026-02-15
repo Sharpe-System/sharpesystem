@@ -1,84 +1,55 @@
-// start.js — gated intake → save Firestore → redirect to snapshot.html?case=...
+// /start.js
+import { auth, ensureUserDoc, readUserDoc } from "/db.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-import app from "/firebase-config.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+const statusEl = document.getElementById("status");
 
-const auth = getAuth(app);
-const db = getFirestore(app);
-
-function $(id){ return document.getElementById(id); }
-const msgEl = $("msg");
-const form = $("intakeForm");
-const saveBtn = $("saveBtn");
-
-function setMsg(t){ if (msgEl) msgEl.textContent = t || ""; }
-
-function goLogin(nextPath = "/start.html") {
-  window.location.replace(`/login.html?next=${encodeURIComponent(nextPath)}`);
+function setStatus(html) {
+  if (statusEl) statusEl.innerHTML = html || "";
 }
 
-function normalizeList(s){
-  return (s || "")
-    .split(",")
-    .map(x => x.trim())
-    .filter(Boolean);
+function goLoginNext() {
+  window.location.replace("/login.html?next=/start.html");
 }
 
-let currentUser = null;
+function goTier() {
+  window.location.replace("/tier1.html");
+}
 
-onAuthStateChanged(auth, (user) => {
-  if (!user) {
-    goLogin("/start.html");
-    return;
-  }
-  currentUser = user;
-  setMsg("");
-});
+function goIntake() {
+  window.location.replace("/intake.html");
+}
 
-form?.addEventListener("submit", async (e) => {
-  e.preventDefault();
+function goSnapshot() {
+  window.location.replace("/snapshot.html");
+}
 
-  if (!currentUser) {
-    goLogin("/start.html");
-    return;
-  }
+onAuthStateChanged(auth, async (user) => {
+  if (!user) return goLoginNext();
 
   try {
-    saveBtn.disabled = true;
-    setMsg("Saving intake…");
+    setStatus(`Signed in as <strong>${user.email || "(no email)"}</strong> • Checking access…`);
 
-    const payload = {
-      caseType: $("caseType")?.value || "",
-      state: $("state")?.value || "",
-      nextDate: $("nextDate")?.value || "",
-      objective: ($("objective")?.value || "").trim(),
-      risk: $("risk")?.value || "",
-      orders: $("orders")?.value || "",
-      urgency: $("urgency")?.value || "",
-      docs: normalizeList($("docs")?.value || ""),
-      facts: ($("facts")?.value || "").trim(),
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-      version: 1
-    };
+    const u = await ensureUserDoc(user.uid);
+    const active = u?.active === true;
+    const tier = String(u?.tier || "");
 
-    // Basic validation
-    if (!payload.caseType || !payload.state || !payload.risk || !payload.orders || !payload.urgency) {
-      setMsg("Please fill the required dropdowns (case type, state, risk, orders, urgency).");
-      saveBtn.disabled = false;
-      return;
-    }
+    if (!active || tier !== "tier1") return goTier();
 
-    const casesRef = collection(db, "users", currentUser.uid, "cases");
-    const docRef = await addDoc(casesRef, payload);
+    setStatus(`Signed in as <strong>${user.email || "(no email)"}</strong> • Tier: <strong>${tier}</strong> • Routing…`);
 
-    setMsg("Saved. Building snapshot…");
-    window.location.replace(`/snapshot.html?case=${encodeURIComponent(docRef.id)}`);
+    const data = await readUserDoc(user.uid);
+    const intake = data?.intake || null;
 
-  } catch (err) {
-    console.log(err);
-    setMsg("Save failed. Open console for details.");
-    saveBtn.disabled = false;
+    // If intake isn't present / doesn't have minimum structure, send them to intake.
+    if (!intake || !intake.caseType || !intake.stage) return goIntake();
+
+    // Otherwise go snapshot.
+    return goSnapshot();
+
+  } catch (e) {
+    console.log(e);
+    // Fail closed and keep user moving.
+    return goTier();
   }
 });
