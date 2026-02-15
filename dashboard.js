@@ -25,7 +25,7 @@ function setStatus(t) {
 
 function goHomeWithNext() {
   const next = encodeURIComponent(window.location.pathname + window.location.search);
-  window.location.replace(`/?next=${next}`);
+  window.location.replace(`/home.html?next=${next}`);
 }
 
 async function getUserAccess(uid) {
