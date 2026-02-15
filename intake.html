@@ -3,94 +3,79 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Guided Intake — Sharpe Legal</title>
+  <title>Intake — Sharpe Legal</title>
   <link rel="stylesheet" href="/styles.css" />
   <style>
     .page{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:40px 16px;}
-    .box{max-width:980px;width:100%;background:var(--panel);border:1px solid var(--border);border-radius:18px;padding:26px;box-shadow:var(--shadow);}
-    .top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;}
-    h1{margin:0 0 6px;font-size:30px;}
-    .sub{color:var(--muted);margin:0 0 10px;line-height:1.45;}
-    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:12px;}
+    .box{max-width:860px;width:100%;background:var(--panel);border:1px solid var(--border);border-radius:18px;padding:26px;box-shadow:var(--shadow);}
+    .grid{display:grid;grid-template-columns:1fr;gap:12px;margin-top:14px;}
+    @media(min-width:900px){.grid{grid-template-columns:1fr 1fr;}}
+    .label{display:block;font-size:12px;color:var(--soft);margin:10px 0 6px;}
+    .input, textarea, select{
+      width:100%;padding:10px 12px;border-radius:12px;border:1px solid var(--border);
+      background:rgba(255,255,255,.03);color:var(--text);outline:none;font-size:14px;
+    }
+    textarea{min-height:120px;resize:vertical;}
+    .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;}
     .btn{appearance:none;border:1px solid var(--border);border-radius:12px;padding:12px 14px;cursor:pointer;font-weight:900;}
     .btn.primary{background:var(--accent);color:#071018;}
     .btn.secondary{background:transparent;color:var(--text);}
-    .card{margin-top:14px;padding:16px;border-radius:16px;border:1px solid var(--border);background:var(--bg2);}
-    .grid{display:grid;grid-template-columns:1fr;gap:12px;}
-    @media(min-width:900px){.grid{grid-template-columns:1fr 1fr;}}
-    label{display:block;font-size:12px;color:var(--soft);margin:10px 0 6px;}
-    input, select, textarea{
-      width:100%;
-      padding:12px;
-      border-radius:12px;
-      border:1px solid var(--border);
-      background:rgba(255,255,255,.03);
-      color:var(--text);
-      outline:none;
-      font-size:14px;
-    }
-    textarea{min-height:120px;resize:vertical;}
-    .msg{margin-top:12px;color:var(--muted);font-size:13px;}
-    .pill{display:inline-block;padding:6px 10px;border-radius:999px;border:1px solid var(--border);color:var(--muted);font-size:12px;}
+    .msg{margin-top:10px;color:var(--muted);font-size:13px;}
   </style>
 </head>
 <body>
   <main class="page">
     <section class="box">
-      <div class="top">
-        <div>
-          <h1>Guided Intake</h1>
-          <p class="sub">This saves to your Firestore user document. Refreshing the page should reload what you saved.</p>
-          <span class="pill">Tier 1 gated</span>
-        </div>
-        <div class="row">
-          <button class="btn secondary" type="button" onclick="location.href='/app.html'">Back to App</button>
-          <button id="logoutBtn" class="btn secondary" type="button">Log out</button>
-        </div>
-      </div>
+      <h1>Guided Intake</h1>
+      <p class="sub">Short, structured inputs. No narrative sprawl.</p>
 
-      <div class="card">
+      <form id="intakeForm">
         <div class="grid">
           <div>
-            <label for="caseType">Case type</label>
-            <select id="caseType">
+            <label class="label" for="caseType">Case type</label>
+            <select id="caseType" class="input" required>
               <option value="">Select…</option>
-              <option value="custody_visitation">Custody / Visitation</option>
-              <option value="dv_dvro">DV / DVRO</option>
-              <option value="divorce">Divorce</option>
-              <option value="support">Child Support</option>
+              <option value="family_custody">Family — Custody/Visitation</option>
+              <option value="dv_restraining">Domestic Violence / Restraining</option>
+              <option value="divorce_support">Divorce / Support</option>
               <option value="other">Other</option>
             </select>
 
-            <label for="stage">Stage</label>
-            <select id="stage">
+            <label class="label" for="stage">Stage</label>
+            <select id="stage" class="input" required>
               <option value="">Select…</option>
-              <option value="just_started">Just started</option>
+              <option value="new">New / not filed</option>
               <option value="active_case">Active case</option>
-              <option value="upcoming_hearing">Upcoming hearing</option>
-              <option value="post_order">Post-order / enforcement</option>
+              <option value="post_order">After an order</option>
+              <option value="appeal_enforcement">Enforcement / appeal</option>
             </select>
 
-            <label for="goal">Primary goal (one sentence)</label>
-            <input id="goal" type="text" placeholder="Example: Restore custody/visitation immediately and stabilize schedule." />
+            <label class="label" for="nextDate">Next hearing / deadline date</label>
+            <input id="nextDate" class="input" type="date" />
           </div>
 
           <div>
-            <label for="facts">Key facts (bullet style is fine)</label>
-            <textarea id="facts" placeholder="- Date / event&#10;- Date / event&#10;- What matters most right now"></textarea>
+            <label class="label" for="goal">Primary goal (1–2 sentences)</label>
+            <textarea id="goal" class="input" placeholder="Example: Restore parenting time and end ongoing procedural games."></textarea>
 
-            <label for="risks">Immediate risks (optional)</label>
-            <textarea id="risks" placeholder="Example: upcoming hearing date, tight deadlines, service issues, safety allegations, etc."></textarea>
+            <label class="label" for="risks">Immediate risks (short)</label>
+            <textarea id="risks" class="input" placeholder="Example: approaching hearing date; accusations; missed service; incomplete records."></textarea>
           </div>
         </div>
 
+        <label class="label" for="facts">Facts (bullets; no adjectives)</label>
+        <textarea id="facts" class="input" placeholder="Example:
+- YYYY-MM-DD: event
+- YYYY-MM-DD: filing
+- YYYY-MM-DD: exchange / communication"></textarea>
+
         <div class="row">
-          <button id="saveBtn" class="btn primary" type="button">Save Intake</button>
-          <button id="reloadBtn" class="btn secondary" type="button">Reload</button>
+          <button id="saveBtn" class="btn primary" type="submit">Save Intake</button>
+          <button class="btn secondary" type="button" onclick="location.href='/app.html'">Back to App</button>
         </div>
 
         <div id="msg" class="msg"></div>
-      </div>
+      </form>
     </section>
   </main>
 
