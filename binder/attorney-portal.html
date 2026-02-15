@@ -1,16 +1,16 @@
+<!-- /binder/attorney-portal.html -->
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title data-i18n="attorney_portal_title_tag">Attorney Portal — Preview</title>
+  <title>Attorney Portal — Preview</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="description" content="Preview-only attorney portal concept for SharpeSystem." />
 
-  <!-- FIX: absolute path = uniform everywhere -->
+  <!-- IMPORTANT: absolute path so it works from /binder/ -->
   <link rel="stylesheet" href="/styles.css" />
 
   <style>
-    /* Minimal page-local layout that respects global tokens */
     .grid{
       display:grid;
       grid-template-columns: 1.15fr .85fr;
@@ -18,15 +18,6 @@
       margin-top: 12px;
     }
     @media (max-width: 920px){ .grid{ grid-template-columns: 1fr; } }
-
-    /* Ensure cards look consistent even if .card isn’t globally defined */
-    .card{
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 16px;
-      box-shadow: var(--shadow);
-    }
 
     .tile{
       padding: 14px;
@@ -54,6 +45,9 @@
     html[data-theme="light"] .kbd{
       background: rgba(0,0,0,.06);
     }
+
+    .sub{ color: var(--muted); } /* in case page-hero .sub not defined elsewhere */
+    .footer{ margin-top: 14px; font-size: 13px; color: var(--soft); }
   </style>
 </head>
 
@@ -61,7 +55,7 @@
   <!-- Shared header/nav -->
   <div id="site-header"></div>
   <script>
-    // FIX: absolute path so it works no matter where this file lives
+    // IMPORTANT: absolute path so it works from /binder/
     fetch('/partials/header.html')
       .then(r => r.text())
       .then(html => { document.getElementById('site-header').innerHTML = html; })
@@ -72,8 +66,8 @@
     <div class="container content">
 
       <section class="page-hero" aria-label="Attorney portal hero">
-        <h1 data-i18n="attorney_portal_h1">Attorney Portal (Preview)</h1>
-        <p class="sub" data-i18n="attorney_portal_sub">
+        <h1 data-i18n="attorneyPortal.title">Attorney Portal (Preview)</h1>
+        <p class="sub" data-i18n="attorneyPortal.subtitle">
           This is a workflow preview. No authentication. No client data. No messaging.
           The intent is to show how an attorney-facing view would stay clean, bounded, and non-advisory.
         </p>
@@ -81,85 +75,84 @@
 
       <div class="grid">
         <section class="card" aria-label="Portal preview">
-          <h2 data-i18n="attorney_portal_represents_h2">What this page represents</h2>
+          <h2 data-i18n="attorneyPortal.representsTitle">What this page represents</h2>
           <ul>
-            <li><strong data-i18n="attorney_portal_represents_1b">Read-only by default</strong> <span data-i18n="attorney_portal_represents_1s">(concept)</span></li>
-            <li><strong data-i18n="attorney_portal_represents_2b">Structured intake summary</strong> <span data-i18n="attorney_portal_represents_2s">instead of narrative sprawl</span></li>
-            <li><strong data-i18n="attorney_portal_represents_3b">Document checklist</strong> <span data-i18n="attorney_portal_represents_3s">+ timeline slots</span></li>
-            <li><strong data-i18n="attorney_portal_represents_4b">Scope clarity</strong> <span data-i18n="attorney_portal_represents_4s">to reduce confusion and liability ambiguity</span></li>
+            <li><strong data-i18n="attorneyPortal.represents1">Read-only by default</strong> <span class="mini" data-i18n="attorneyPortal.represents1b">(concept)</span></li>
+            <li><strong data-i18n="attorneyPortal.represents2">Structured intake summary</strong> <span class="mini" data-i18n="attorneyPortal.represents2b">instead of narrative sprawl</span></li>
+            <li><strong data-i18n="attorneyPortal.represents3">Document checklist</strong> <span class="mini" data-i18n="attorneyPortal.represents3b">+ timeline slots</span></li>
+            <li><strong data-i18n="attorneyPortal.represents4">Scope clarity</strong> <span class="mini" data-i18n="attorneyPortal.represents4b">to reduce confusion and liability ambiguity</span></li>
           </ul>
 
           <div class="hr"></div>
 
-          <h2 data-i18n="attorney_portal_tiles_h2">Mock “matter view” tiles</h2>
+          <h2 data-i18n="attorneyPortal.tilesTitle">Mock “matter view” tiles</h2>
 
           <div class="tile">
-            <h3 data-i18n="attorney_portal_tile1_h3">1) Snapshot</h3>
-            <p class="mini" data-i18n="attorney_portal_tile1_mini">One paragraph, structured. No argument. No conclusion.</p>
+            <h3 data-i18n="attorneyPortal.tile1Title">1) Snapshot</h3>
+            <p class="mini" data-i18n="attorneyPortal.tile1Mini">One paragraph, structured. No argument. No conclusion.</p>
             <p>
-              <span class="kbd" data-i18n="attorney_portal_kbd_case_type">Case type</span> •
-              <span class="kbd" data-i18n="attorney_portal_kbd_next_date">Next date</span> •
-              <span class="kbd" data-i18n="attorney_portal_kbd_primary_goal">Primary goal</span> •
-              <span class="kbd" data-i18n="attorney_portal_kbd_immediate_risks">Immediate risks</span>
+              <span class="kbd" data-i18n="attorneyPortal.kbdCaseType">Case type</span> •
+              <span class="kbd" data-i18n="attorneyPortal.kbdNextDate">Next date</span> •
+              <span class="kbd" data-i18n="attorneyPortal.kbdGoal">Primary goal</span> •
+              <span class="kbd" data-i18n="attorneyPortal.kbdRisks">Immediate risks</span>
             </p>
           </div>
 
           <div class="tile">
-            <h3 data-i18n="attorney_portal_tile2_h3">2) Timeline anchors</h3>
-            <p class="mini" data-i18n="attorney_portal_tile2_mini">Dates + events only. No adjectives.</p>
+            <h3 data-i18n="attorneyPortal.tile2Title">2) Timeline anchors</h3>
+            <p class="mini" data-i18n="attorneyPortal.tile2Mini">Dates + events only. No adjectives.</p>
             <ul>
-              <li><span class="kbd">YYYY-MM-DD</span> — <span data-i18n="attorney_portal_tl_1">event label</span></li>
-              <li><span class="kbd">YYYY-MM-DD</span> — <span data-i18n="attorney_portal_tl_2">filing / service / hearing</span></li>
-              <li><span class="kbd">YYYY-MM-DD</span> — <span data-i18n="attorney_portal_tl_3">communication log reference</span></li>
+              <li><span class="kbd">YYYY-MM-DD</span> — <span data-i18n="attorneyPortal.tile2Item1">event label</span></li>
+              <li><span class="kbd">YYYY-MM-DD</span> — <span data-i18n="attorneyPortal.tile2Item2">filing / service / hearing</span></li>
+              <li><span class="kbd">YYYY-MM-DD</span> — <span data-i18n="attorneyPortal.tile2Item3">communication log reference</span></li>
             </ul>
           </div>
 
           <div class="tile">
-            <h3 data-i18n="attorney_portal_tile3_h3">3) Document completeness</h3>
-            <p class="mini" data-i18n="attorney_portal_tile3_mini">What exists, what’s missing, and what the client claims exists but hasn’t provided.</p>
+            <h3 data-i18n="attorneyPortal.tile3Title">3) Document completeness</h3>
+            <p class="mini" data-i18n="attorneyPortal.tile3Mini">What exists, what’s missing, and what the client claims exists but hasn’t provided.</p>
             <ul>
-              <li><span data-i18n="attorney_portal_doc_provided">Provided:</span> X</li>
-              <li><span data-i18n="attorney_portal_doc_missing">Missing:</span> Y</li>
-              <li><span data-i18n="attorney_portal_doc_unknown">Unknown:</span> Z</li>
+              <li data-i18n="attorneyPortal.tile3Provided">Provided: X</li>
+              <li data-i18n="attorneyPortal.tile3Missing">Missing: Y</li>
+              <li data-i18n="attorneyPortal.tile3Unknown">Unknown: Z</li>
             </ul>
           </div>
 
           <div class="cta-row">
-            <a class="button" href="/attorney-invite.html" data-i18n="attorney_portal_back_invite">Back to invite</a>
-            <a class="button primary" href="/matter-binder.html" data-i18n="attorney_portal_binder_concept">Matter Binder concept</a>
+            <!-- IMPORTANT: these pages live under /binder/ -->
+            <a class="button" href="/binder/attorney-invite.html" data-i18n="attorneyPortal.backInvite">Back to invite</a>
+            <a class="button primary" href="/binder/matter-binder.html" data-i18n="attorneyPortal.matterBinder">Matter Binder concept</a>
           </div>
 
           <div class="note" role="note">
-            <strong data-i18n="attorney_portal_preview_strong">Preview-only:</strong>
-            <span data-i18n="attorney_portal_preview_note">
+            <strong data-i18n="attorneyPortal.previewOnlyStrong">Preview-only:</strong>
+            <span data-i18n="attorneyPortal.previewOnlyText">
               This page does not create any duty, relationship, or obligation. No client data is collected here.
             </span>
           </div>
         </section>
 
         <aside class="card" aria-label="Boundaries">
-          <h2 data-i18n="attorney_portal_boundaries_h2">Boundaries</h2>
+          <h2 data-i18n="attorneyPortal.boundariesTitle">Boundaries</h2>
           <ul>
-            <li data-i18n="attorney_portal_bound_1">No legal advice content</li>
-            <li data-i18n="attorney_portal_bound_2">No “recommended actions” framed as strategy</li>
-            <li data-i18n="attorney_portal_bound_3">No jurisdiction-specific instructions here</li>
-            <li data-i18n="attorney_portal_bound_4">No client-to-attorney messaging (concept-only)</li>
+            <li data-i18n="attorneyPortal.boundary1">No legal advice content</li>
+            <li data-i18n="attorneyPortal.boundary2">No “recommended actions” framed as strategy</li>
+            <li data-i18n="attorneyPortal.boundary3">No jurisdiction-specific instructions here</li>
+            <li data-i18n="attorneyPortal.boundary4">No client-to-attorney messaging (concept-only)</li>
           </ul>
 
           <div class="hr"></div>
 
-          <h2 data-i18n="attorney_portal_later_h2">What would come later (not now)</h2>
+          <h2 data-i18n="attorneyPortal.laterTitle">What would come later (not now)</h2>
           <ul>
-            <li data-i18n="attorney_portal_later_1">Authentication</li>
-            <li data-i18n="attorney_portal_later_2">Invite links scoped to a matter</li>
-            <li data-i18n="attorney_portal_later_3">Read-only access controls</li>
-            <li data-i18n="attorney_portal_later_4">Audit trail (who viewed what)</li>
+            <li data-i18n="attorneyPortal.later1">Authentication</li>
+            <li data-i18n="attorneyPortal.later2">Invite links scoped to a matter</li>
+            <li data-i18n="attorneyPortal.later3">Read-only access controls</li>
+            <li data-i18n="attorneyPortal.later4">Audit trail (who viewed what)</li>
           </ul>
 
           <div class="footer">
-            <div><strong data-i18n="attorney_portal_reminder_strong">Reminder:</strong>
-              <span data-i18n="attorney_portal_reminder_text">Informational only. Not legal advice.</span>
-            </div>
+            <div><strong data-i18n="attorneyPortal.reminderStrong">Reminder:</strong> <span data-i18n="attorneyPortal.reminderText">Informational only. Not legal advice.</span></div>
           </div>
         </aside>
       </div>
@@ -167,7 +160,7 @@
     </div>
   </main>
 
-  <!-- FIX: load wiring scripts after header injection -->
+  <!-- If you already have these, keep them; if not, harmless to include later -->
   <script src="/header.js"></script>
   <script src="/i18n.js"></script>
 </body>
