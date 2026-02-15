@@ -12,15 +12,7 @@
 <body>
   <!-- Shared header/nav (single source of truth) -->
  <div id="site-header"></div>
-<script type="module">
-  fetch('/partials/header.html')
-    .then(r => r.text())
-    .then(async html => {
-      document.getElementById('site-header').innerHTML = html;
-      await import('/header.js');
-    })
-    .catch(() => {});
-</script>
+<script src="header-loader.js" defer></script>
 
   <main class="page">
     <div class="container content">
