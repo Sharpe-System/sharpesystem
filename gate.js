@@ -1,84 +1,68 @@
 // /gate.js
-// Centralized login + tier gating.
-// Assumes Firestore user docs at: users/{uid}
+// Page guard that waits for auth resolution before redirecting.
 
 import app from "/firebase-config.js";
-import { defaultUserDoc } from "/schema.js";
-
 import {
   getAuth,
-  onAuthStateChanged,
+  onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 import {
   getFirestore,
   doc,
-  getDoc,
-  setDoc,
-  updateDoc,
+  getDoc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-export const auth = getAuth(app);
-export const db = getFirestore(app);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-const USERS_COL = "users";
-
-export function requireLogin(nextPath){
-  const next = encodeURIComponent(nextPath || window.location.pathname);
-  window.location.replace(`/login.html?next=${next}`);
+function getNext() {
+  const url = new URL(window.location.href);
+  return url.pathname + url.search;
 }
 
-export async function ensureUserDoc(uid){
-  const ref = doc(db, USERS_COL, uid);
+function goLogin() {
+  const next = encodeURIComponent(getNext());
+  window.location.replace(`/login?next=${next}`);
+}
+
+async function getUserDoc(uid) {
+  const ref = doc(db, "users", uid);
   const snap = await getDoc(ref);
-
-  if (!snap.exists()) {
-    const d = defaultUserDoc();
-    await setDoc(ref, d, { merge: true });
-    return d;
-  }
-
-  const data = snap.data() || {};
-  if (typeof data.schemaVersion !== "number") {
-    const merged = { ...defaultUserDoc(), ...data };
-    await setDoc(ref, merged, { merge: true });
-    return merged;
-  }
-
-  return data;
+  return snap.exists() ? snap.data() : null;
 }
 
-export async function readUserDoc(uid){
-  const ref = doc(db, USERS_COL, uid);
-  const snap = await getDoc(ref);
-  return snap.exists() ? (snap.data() || null) : null;
-}
+// Usage: <body data-require-auth="1" data-require-tier="tier1">
+export function runGate() {
+  const requireAuth = document.body?.dataset?.requireAuth === "1";
+  const requireTier = document.body?.dataset?.requireTier || "";
 
-export async function updateUserDoc(uid, patch){
-  const ref = doc(db, USERS_COL, uid);
-  await updateDoc(ref, patch);
-}
+  if (!requireAuth && !requireTier) return;
 
-export function requireTier1(){
-  return new Promise((resolve) => {
-    onAuthStateChanged(auth, async (user) => {
-      if (!user) return requireLogin(window.location.pathname);
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      if (requireAuth) goLogin();
+      return;
+    }
 
-      try {
-        const u = await ensureUserDoc(user.uid);
-        const active = u?.active === true;
-        const tier = String(u?.tier || "");
+    if (!requireTier) return;
 
-        if (!active || tier !== "tier1") {
-          window.location.replace("/tier1.html");
-          return;
-        }
+    try {
+      const data = await getUserDoc(user.uid);
+      const tier = data?.tier || "none";
+      const active = data?.active === true;
 
-        resolve({ user, userDoc: u });
-      } catch (e) {
-        console.log(e);
-        window.location.replace("/tier1.html");
+      // Tier rules: must match tier AND active
+      if (tier !== requireTier || !active) {
+        window.location.replace("/tier1");
       }
-    });
+    } catch (e) {
+      console.error(e);
+      // If firestore fails, don't brick the user with loops—send to dashboard
+      window.location.replace("/dashboard");
+    }
   });
 }
+
+// Auto-run if included as a module on the page
+runGate();
