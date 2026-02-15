@@ -16,12 +16,11 @@
     .card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:16px;}
     .price{font-size:26px;font-weight:900;margin:6px 0 10px;}
     ul{margin:8px 0 0;padding-left:18px;color:var(--muted);line-height:1.45;}
-    .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;align-items:center;}
+    .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;}
     .btn{appearance:none;border:1px solid var(--border);border-radius:12px;padding:12px 14px;cursor:pointer;font-weight:900;}
     .btn.primary{background:var(--accent);color:#071018;}
     .btn.secondary{background:transparent;color:var(--text);}
     .pill{display:inline-block;margin-top:8px;padding:6px 10px;border-radius:999px;border:1px solid var(--border);color:var(--muted);font-size:12px;}
-    .msg{margin-top:10px;color:var(--muted);min-height:20px;}
   </style>
 </head>
 <body>
@@ -44,12 +43,12 @@
           </ul>
 
           <div class="row">
-            <button id="continueBtn" class="btn primary" type="button">Continue</button>
-            <button class="btn secondary" type="button" onclick="location.href='/'">Back to landing</button>
+            <!-- FIX: send users through login with next=/app.html (prevents bounce loops) -->
+            <button class="btn primary" onclick="location.href='/login.html?next=/app.html'">Continue</button>
+            <button class="btn secondary" onclick="location.href='/home.html'">Back to landing</button>
           </div>
 
-          <div id="msg" class="msg"></div>
-          <span class="pill">Continue routes by login + access</span>
+          <span class="pill">Continue → Login → App (tier gate enforced)</span>
         </div>
 
         <div class="card">
@@ -57,82 +56,17 @@
           <ul>
             <li>Landing page explains what this is</li>
             <li>Tier 1 page explains what they get</li>
-            <li>App is gated by login + tier</li>
-            <li>Billing automation comes later</li>
+            <li>Login routes to App (via next=)</li>
+            <li>App enforces tier access</li>
           </ul>
           <div class="row">
-            <button class="btn secondary" type="button" onclick="location.href='/login.html?next=/app.html'">Log in directly</button>
-            <button class="btn secondary" type="button" onclick="location.href='/subscribe.html'">Subscribe</button>
+            <button class="btn secondary" onclick="location.href='/login.html?next=/dashboard.html'">Log in (Dashboard)</button>
+            <button class="btn secondary" onclick="location.href='/subscribe.html'">Subscribe</button>
           </div>
+          <span class="pill">If you’re already paid, Login → App should just work.</span>
         </div>
       </div>
     </section>
   </main>
-
-  <script type="module">
-    import app from "/firebase-config.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-
-    const btn = document.getElementById("continueBtn");
-    const msg = document.getElementById("msg");
-
-    function setMsg(t){ if (msg) msg.textContent = t || ""; }
-
-    async function getAccess(uid){
-      const ref = doc(db, "users", uid);
-      const snap = await getDoc(ref);
-      if (!snap.exists()) return { active:false, tier:"" };
-      const d = snap.data() || {};
-      return { active: d.active === true, tier: d.tier || "" };
-    }
-
-    // Keep UI informative (optional)
-    onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        setMsg("Not logged in. Continue will ask you to log in.");
-        return;
-      }
-      try {
-        const access = await getAccess(user.uid);
-        setMsg(access.active ? "Access: ACTIVE" : "Access: not active yet (subscribe to unlock).");
-      } catch {
-        setMsg("Access: unable to read Firestore (check rules).");
-      }
-    });
-
-    btn?.addEventListener("click", async () => {
-      btn.disabled = true;
-      setMsg("Checking access…");
-
-      const user = auth.currentUser;
-      if (!user) {
-        // Not logged in -> login first
-        window.location.href = "/login.html?next=/app.html";
-        return;
-      }
-
-      try {
-        const access = await getAccess(user.uid);
-
-        if (access.active) {
-          window.location.href = "/app.html";
-          return;
-        }
-
-        // Logged in but not active -> subscribe
-        window.location.href = "/subscribe.html";
-      } catch (e) {
-        console.log(e);
-        setMsg("Access check failed. Redirecting to subscribe…");
-        window.location.href = "/subscribe.html";
-      } finally {
-        btn.disabled = false;
-      }
-    });
-  </script>
 </body>
 </html>
