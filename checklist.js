@@ -1,25 +1,24 @@
 // /checklist.js
 import { requireTier1, readUserDoc, updateUserDoc } from "/gate.js";
 
-function nowIso() { return new Date().toISOString(); }
+function nowIso(){ return new Date().toISOString(); }
+function $(id){ return document.getElementById(id); }
+function setMsg(t){ const el = $("msg"); if (el) el.textContent = t || ""; }
 
-function ensureUI() {
-  // Expected IDs (if you already built them):
-  // - checklistRoot (container), list, newItem, addBtn, saveBtn, msg
-  // If missing, build a minimal UI into the first ".content" or "body".
-  const existing = document.getElementById("checklistRoot");
-  if (existing) return;
+function ensureUI(){
+  // If you already have a real checklist.html UI, keep it.
+  // Otherwise, we inject a minimal UI safely.
+  if (document.getElementById("list")) return;
 
   const mount = document.querySelector(".content") || document.body;
   const wrap = document.createElement("div");
-  wrap.id = "checklistRoot";
   wrap.innerHTML = `
     <h1>Checklist</h1>
     <p class="sub">Add items. Check them off. Saved to your account.</p>
 
     <div class="template-box">
       <label class="label" for="newItem">New item</label>
-      <input class="input" id="newItem" type="text" placeholder="Example: Gather last 3 orders + minute orders" />
+      <input class="input" id="newItem" type="text" placeholder="Example: Pull last 3 orders + minute orders" />
       <div class="cta-row">
         <button class="button primary" id="addBtn" type="button">Add</button>
         <button class="button" id="saveBtn" type="button">Save</button>
@@ -34,17 +33,14 @@ function ensureUI() {
   mount.prepend(wrap);
 }
 
-function $(id){ return document.getElementById(id); }
-function setMsg(t){ const el = $("msg"); if (el) el.textContent = t || ""; }
-
-function normalizeItem(label) {
+function normalizeItem(label){
   const t = String(label || "").trim();
   if (!t) return null;
   const key = t.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
   return { key: key || ("item_" + Math.random().toString(16).slice(2)), label: t, done: false };
 }
 
-function render(items) {
+function render(items){
   const host = $("list");
   if (!host) return;
 
@@ -77,10 +73,8 @@ function render(items) {
   ensureUI();
 
   const { user } = await requireTier1();
-
   let items = [];
 
-  // Load existing
   try {
     const d = await readUserDoc(user.uid);
     items = Array.isArray(d?.checklist?.items) ? d.checklist.items : [];
@@ -90,7 +84,6 @@ function render(items) {
 
   render(items);
 
-  // Toggle
   document.addEventListener("change", (e) => {
     const t = e.target;
     if (!t || t.tagName !== "INPUT" || t.type !== "checkbox") return;
@@ -99,33 +92,26 @@ function render(items) {
     items[idx].done = !!t.checked;
   });
 
-  // Remove
   document.addEventListener("click", (e) => {
     const b = e.target;
     if (!b) return;
-
     const del = b.getAttribute?.("data-del");
-    if (del != null) {
-      const idx = Number(del);
-      if (Number.isFinite(idx)) {
-        items.splice(idx, 1);
-        render(items);
-      }
-    }
+    if (del == null) return;
+    const idx = Number(del);
+    if (!Number.isFinite(idx)) return;
+    items.splice(idx, 1);
+    render(items);
   });
 
-  // Add
   $("addBtn")?.addEventListener("click", () => {
     const v = $("newItem")?.value || "";
     const it = normalizeItem(v);
     if (!it) return;
-
     items.push(it);
     if ($("newItem")) $("newItem").value = "";
     render(items);
   });
 
-  // Save
   $("saveBtn")?.addEventListener("click", async () => {
     try {
       setMsg("Saving…");
