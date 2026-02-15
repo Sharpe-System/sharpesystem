@@ -5,18 +5,33 @@
   <title>I’m Not Sure What To Do — SharpeSystem</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <!-- Use ONE global stylesheet -->
-  <link rel="stylesheet" href="/styles.css" />
+  <!-- Use ONE global stylesheet (relative for GitHub Pages) -->
+  <link rel="stylesheet" href="styles.css" />
 </head>
 
 <body>
   <!-- Shared header/nav (single source of truth) -->
   <div id="site-header"></div>
   <script>
-    fetch('/partials/header.html')
-      .then(r => r.text())
-      .then(html => { document.getElementById('site-header').innerHTML = html; })
-      .catch(() => {});
+    // Load header partial, THEN load i18n so it can bind to #langToggle.
+    (function () {
+      function loadI18n() {
+        const s = document.createElement("script");
+        s.src = "i18n.js";
+        document.body.appendChild(s);
+      }
+
+      fetch("partials/header.html")
+        .then(r => r.text())
+        .then(html => {
+          document.getElementById("site-header").innerHTML = html;
+          loadI18n();
+        })
+        .catch(() => {
+          // Even if header fails, still load i18n (it should fail gracefully)
+          loadI18n();
+        });
+    })();
   </script>
 
   <main class="page">
@@ -30,10 +45,10 @@
 
       <h2>Step 1 — What kind of situation is this?</h2>
       <ul>
-        <li><a href="/trees.html">Family / custody / divorce</a> (relationships, kids, money, court orders)</li>
-        <li><a href="/trees.html">Protective order / restraining order</a> (no-contact orders, hearings, alleged abuse)</li>
-        <li><a href="/trees.html">Criminal case</a> (arraignment, plea, probation, court dates)</li>
-        <li><a href="/trees.html">Not sure</a> — keep reading</li>
+        <li><a href="trees.html">Family / custody / divorce</a> (relationships, kids, money, court orders)</li>
+        <li><a href="trees.html">Protective order / restraining order</a> (no-contact orders, hearings, alleged abuse)</li>
+        <li><a href="trees.html">Criminal case</a> (arraignment, plea, probation, court dates)</li>
+        <li><a href="trees.html">Not sure</a> — keep reading</li>
       </ul>
 
       <h2>Step 2 — Is there a deadline or a hearing?</h2>
@@ -53,14 +68,13 @@
       </ul>
 
       <div class="cta-row">
-        <a class="button" href="/trees.html">Go to Decision Trees</a>
+        <a class="button" href="trees.html">Go to Decision Trees</a>
       </div>
 
       <div class="footer-links">
-        <a href="/amicable.html">Try the amicable / structured path</a>
+        <a href="amicable.html">Try the amicable / structured path</a>
       </div>
     </div>
   </main>
-  <script src="i18n.js"></script>
 </body>
 </html>
