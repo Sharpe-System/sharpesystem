@@ -1,97 +1,78 @@
-// snapshot.js — load users/{uid}/cases/{caseId} and render print-ready snapshot
+// snapshot.js
+import { auth, ensureUserDoc, readUserDoc, markSnapshotGenerated } from "/db.js";
+import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-import app from "/firebase-config.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+const snapEl = document.getElementById("snap");
+const msgEl = document.getElementById("msg");
+const copyBtn = document.getElementById("copyBtn");
 
-const auth = getAuth(app);
-const db = getFirestore(app);
+function setMsg(t){ if (msgEl) msgEl.textContent = t || ""; }
+function setSnap(t){ if (snapEl) snapEl.textContent = t || ""; }
 
-function $(id){ return document.getElementById(id); }
-function setMsg(t){ const el = $("msg"); if (el) el.textContent = t || ""; }
-
-function goLogin(nextPath) {
-  window.location.replace(`/login.html?next=${encodeURIComponent(nextPath)}`);
+function goLoginNext() {
+  window.location.replace("/login.html?next=/snapshot.html");
 }
 
-function getCaseId(){
-  const params = new URLSearchParams(window.location.search);
-  return params.get("case") || "";
+function goTier() {
+  window.location.replace("/tier1.html");
 }
 
-function formatDateMaybe(yyyy_mm_dd){
-  if (!yyyy_mm_dd) return "—";
-  return yyyy_mm_dd;
+function fmtLine(label, value) {
+  return `${label}: ${value || "[not provided]"}`;
 }
 
-function renderKV(el, rows){
-  if (!el) return;
-  el.innerHTML = rows.map(([k,v]) =>
-    `<div class="k">${escapeHtml(k)}</div><div class="v">${escapeHtml(v || "—")}</div>`
-  ).join("");
-}
+function buildSnapshot(d) {
+  const intake = d?.intake || {};
+  const lines = [];
 
-function escapeHtml(s){
-  return String(s ?? "")
-    .replaceAll("&","&amp;")
-    .replaceAll("<","&lt;")
-    .replaceAll(">","&gt;")
-    .replaceAll('"',"&quot;")
-    .replaceAll("'","&#039;");
+  lines.push("SHARPESYSTEM — SNAPSHOT");
+  lines.push("");
+  lines.push(fmtLine("Case type", intake.caseType));
+  lines.push(fmtLine("Stage", intake.stage));
+  lines.push(fmtLine("Next date", intake.nextDate));
+  lines.push("");
+  lines.push("PRIMARY GOAL");
+  lines.push(intake.goal ? intake.goal : "[not provided]");
+  lines.push("");
+  lines.push("IMMEDIATE RISKS");
+  lines.push(intake.risks ? intake.risks : "[not provided]");
+  lines.push("");
+  lines.push("FACTS (BULLETS; NO ADJECTIVES)");
+  lines.push(intake.facts ? intake.facts : "[not provided]");
+
+  return lines.join("\n");
 }
 
 onAuthStateChanged(auth, async (user) => {
-  const caseId = getCaseId();
-
-  if (!user) {
-    goLogin(`/snapshot.html?case=${encodeURIComponent(caseId)}`);
-    return;
-  }
-
-  if (!caseId) {
-    setMsg("Missing case id. Go back and create a new intake.");
-    $("meta").textContent = "No case id.";
-    return;
-  }
+  if (!user) return goLoginNext();
 
   try {
-    setMsg("Loading snapshot…");
+    const d0 = await ensureUserDoc(user.uid);
 
-    const ref = doc(db, "users", user.uid, "cases", caseId);
-    const snap = await getDoc(ref);
+    // Gate: must be active + tier1
+    const active = d0?.active === true;
+    const tier = d0?.tier || "";
 
-    if (!snap.exists()) {
-      setMsg("Snapshot not found. Create a new intake.");
-      $("meta").textContent = "Not found.";
-      return;
-    }
+    if (!active || tier !== "tier1") return goTier();
 
-    const d = snap.data() || {};
-    const created = d.createdAt?.toDate ? d.createdAt.toDate() : null;
+    const d = await readUserDoc(user.uid);
+    const text = buildSnapshot(d);
+    setSnap(text);
 
-    $("meta").textContent =
-      `User: ${user.email || user.uid} • Case ID: ${caseId}` +
-      (created ? ` • Created: ${created.toLocaleString()}` : "");
+    // mark generated (non-critical)
+    markSnapshotGenerated(user.uid).catch(() => {});
+  } catch (e) {
+    console.log(e);
+    setMsg("Error loading. Check console.");
+  }
+});
 
-    renderKV($("coreKv"), [
-      ["Case type", d.caseType],
-      ["State", d.state],
-      ["Next court date", formatDateMaybe(d.nextDate)],
-      ["Primary objective", d.objective],
-      ["Risk level", d.risk],
-      ["Existing orders", d.orders],
-      ["Urgency", d.urgency],
-    ]);
-
-    const docs = Array.isArray(d.docs) ? d.docs : [];
-    $("docsList").textContent = docs.length ? docs.map(x => `• ${x}`).join("\n") : "—";
-
-    $("facts").textContent = (d.facts && String(d.facts).trim()) ? d.facts : "—";
-
-    setMsg("");
-
-  } catch (err) {
-    console.log(err);
-    setMsg("Load failed. Open console for details.");
+copyBtn?.addEventListener("click", async () => {
+  try {
+    await navigator.clipboard.writeText(snapEl?.textContent || "");
+    setMsg("Copied.");
+  } catch (e) {
+    console.log(e);
+    setMsg("Copy failed. (Browser permissions)");
   }
 });
