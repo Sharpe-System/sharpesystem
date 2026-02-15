@@ -1,21 +1,19 @@
 // /intake.js
 import { requireTier1, updateUserDoc, readUserDoc } from "/gate.js";
 
-function $(id) { return document.getElementById(id); }
+function $(id){ return document.getElementById(id); }
 
 const form = $("intakeForm");
 const msg = $("msg");
 const saveBtn = $("saveBtn");
 
-function setMsg(t) { if (msg) msg.textContent = t || ""; }
+function setMsg(t){ if (msg) msg.textContent = t || ""; }
+function nowIso(){ return new Date().toISOString(); }
 
-function nowIso() { return new Date().toISOString(); }
-
-(async function main() {
-  // Gate + session
+(async function main(){
   const { user } = await requireTier1();
 
-  // Optional: prefill existing intake
+  // Prefill existing intake if present
   try {
     const d = await readUserDoc(user.uid);
     const intake = d?.intake || {};
@@ -31,6 +29,7 @@ function nowIso() { return new Date().toISOString(); }
 
   form?.addEventListener("submit", async (e) => {
     e.preventDefault();
+
     try {
       if (saveBtn) saveBtn.disabled = true;
       setMsg("Saving…");
