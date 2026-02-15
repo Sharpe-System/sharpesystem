@@ -4,38 +4,38 @@
   <meta charset="utf-8" />
   <title>Attorney Invite — SharpeSystem</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="stylesheet" href="styles.css" />
+  <meta name="description" content="Proof-of-concept attorney invite for SharpeSystem (informational only)." />
+
+  <!-- Always absolute so /binder/* pages work -->
+  <link rel="stylesheet" href="/styles.css" />
 </head>
 
 <body>
   <!-- Shared header/nav -->
   <div id="site-header"></div>
-  <script>
-    fetch("partials/header.html")
-      .then(r => r.text())
-      .then(html => { document.getElementById("site-header").innerHTML = html; })
-      .catch(() => {});
-  </script>
+  <script src="/header-loader.js" defer></script>
+  <script src="/header.js" defer></script>
+  <script src="/i18n.js" defer></script>
 
   <main class="page">
     <div class="container content">
-      <section class="page-hero" aria-label="Attorney invite header">
+      <section class="page-hero" aria-label="Attorney invite hero">
         <h1>Attorney Invite</h1>
-        <p class="sub">
+        <p class="lede">
           This is a proof-of-concept overview of SharpeSystem as procedural orientation and decision support.
           It is not legal advice, not legal strategy, and not a substitute for counsel.
         </p>
       </section>
 
-      <section class="card" aria-label="What this is">
+      <section class="template-box" aria-label="What you're being invited to review">
         <h2>What you’re being invited to review</h2>
         <p>
-          SharpeSystem is a neutral orientation layer: decision trees, scope notices, and process prompts intended to
-          reduce procedural drift and improve the quality of client-provided information.
+          SharpeSystem is a neutral orientation layer: decision trees, scope notices, and process prompts intended to reduce
+          procedural drift and improve the quality of client-provided information.
         </p>
+      </section>
 
-        <div class="hr"></div>
-
+      <section class="template-box" aria-label="Why this may matter in intake">
         <h2>Why this may matter in intake</h2>
         <ul>
           <li><strong>Cleaner intake:</strong> fewer scattered narratives, more structured facts.</li>
@@ -43,71 +43,46 @@
           <li><strong>Better documentation:</strong> consistent “what happened / what’s next” records.</li>
           <li><strong>Boundary clarity:</strong> explicit non-advice framing throughout.</li>
         </ul>
+        <p class="muted" style="margin-top:10px;">
+          Positioning: this is not asking you to adopt anything. It’s a short preview plus optional feedback.
+        </p>
+      </section>
 
-        <div class="note">
-          <strong>Positioning:</strong> this is not asking you to adopt anything. It’s a short preview plus optional feedback.
-        </div>
-
-        <div class="hr"></div>
-
+      <section class="template-box" aria-label="Suggested pages to view">
         <h2>Suggested pages to view</h2>
         <ul>
-          <li><a href="high-conflict-risk-awareness.html">Risk Awareness</a> — tone and scope boundary.</li>
-          <li><a href="trees.html">Decision Trees</a> — the orientation index.</li>
-          <li><a href="status.html">Status</a> — what this is / what it is not.</li>
-          <li><a href="attorney-portal.html">Attorney Portal</a> — preview page (no login yet).</li>
+          <li><a href="/high-conflict-risk-awareness.html">Risk Awareness</a> — tone and scope boundary.</li>
+          <li><a href="/trees.html">Decision Trees</a> — the orientation index.</li>
+          <li><a href="/status.html">Status</a> — what this is / what it is not.</li>
+          <li><a href="/binder/attorney-portal.html">Attorney Portal</a> — preview page (no login).</li>
         </ul>
-
-        <div class="footer">
-          <div><strong>Reminder:</strong> informational only. No attorney-client relationship is formed by viewing this site.</div>
+        <div class="note" role="note">
+          <strong>Reminder:</strong> Informational only. No attorney-client relationship is formed by viewing this site.
         </div>
       </section>
 
-      <section class="card" aria-label="Invite message">
+      <section class="template-box" aria-label="Copy invite message">
         <h2>Copy invite message</h2>
-
-        <div class="template-box" id="inviteBox" style="white-space:pre-wrap;"></div>
-
-        <div class="cta-row">
-          <button class="button primary" id="copyInvite" type="button">Copy invite</button>
-          <a class="button" href="attorney-portal.html">Go to Attorney Portal</a>
-        </div>
-
-        <div class="note">
-          <strong>Tip:</strong> keep it short. If it reads like a pitch deck, cut it in half.
+        <div class="template-box">
+          <p><strong>Hi [Attorney Name],</strong></p>
+          <p>
+            I’m building SharpeSystem as neutral procedural orientation (not legal advice). The goal is to reduce intake chaos:
+            clearer facts, cleaner timelines, fewer avoidable procedural mistakes.
+          </p>
+          <p>
+            Proof of concept (preview):<br />
+            <span class="muted">https://sharpesystem.pages.dev/binder/attorney-invite.html</span>
+          </p>
+          <p class="muted">Informational only. No legal advice. No client data.</p>
         </div>
       </section>
+
+      <div class="footer-links">
+        <a href="/home.html">Home</a> <span class="sep">·</span>
+        <a href="/status.html">Status</a> <span class="sep">·</span>
+        <a href="/binder/attorney-portal.html">Attorney Portal</a>
+      </div>
     </div>
   </main>
-
-  <script>
-    const invite = `Hi [Attorney Name],
-
-I’m building SharpeSystem as neutral procedural orientation (not legal advice). The purpose is to reduce intake chaos: clearer facts, cleaner timelines, fewer avoidable procedural mistakes.
-
-Proof of concept:
-${location.origin}/attorney-invite.html
-
-Strongest tone example:
-${location.origin}/high-conflict-risk-awareness.html
-
-If you have 2 minutes, I’d value one reaction: what would make this genuinely useful in intake, and what would be a hard “no.”
-
-Regards,
-[Your Name]`;
-
-    const box = document.getElementById("inviteBox");
-    if (box) box.textContent = invite;
-
-    async function copyText(t){
-      try { await navigator.clipboard.writeText(t); return true; }
-      catch { return false; }
-    }
-
-    document.getElementById("copyInvite")?.addEventListener("click", async () => {
-      const ok = await copyText(invite);
-      alert(ok ? "Copied." : "Copy failed. Select text manually.");
-    });
-  </script>
 </body>
 </html>
