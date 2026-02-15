@@ -1,62 +1,51 @@
-import app from "/firebase-config.js";
+// login.js
+import app from "./firebase-config.js";
 import {
   getAuth,
-  signInWithEmailAndPassword,
-  GoogleAuthProvider,
-  signInWithPopup,
+  signInWithEmailAndPassword
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const auth = getAuth(app);
 
 const form = document.getElementById("loginForm");
 const emailEl = document.getElementById("email");
-const passEl  = document.getElementById("password");
-const statusEl = document.getElementById("status");
-const googleBtn = document.getElementById("googleBtn");
-const loginBtn = document.getElementById("loginBtn");
+const passEl = document.getElementById("password");
+const msgEl = document.getElementById("msg");
 
-function setStatus(t){ if (statusEl) statusEl.textContent = t || ""; }
-
-function safeNext(raw, fallback="/dashboard.html"){
-  if (!raw) return fallback;
-  if (raw === "undefined" || raw === "null") return fallback;
-  if (!raw.startsWith("/")) return fallback;
-  if (raw.startsWith("//")) return fallback;
-  return raw;
+function setMsg(t) {
+  if (msgEl) msgEl.textContent = t || "";
+  console.log(t);
 }
-function getNext(){
+
+function safeNext() {
   const params = new URLSearchParams(window.location.search);
-  return safeNext(params.get("next"), "/dashboard.html");
+  const next = (params.get("next") || "").trim();
+
+  // Allow only relative file paths like "app.html" or "dashboard.html"
+  // Block anything with ":" or leading "//" or "../"
+  if (!next) return "dashboard.html";
+  if (next.includes(":") || next.startsWith("//") || next.includes("..")) return "dashboard.html";
+
+  // If user passed "/app.html" by accident, normalize it to "app.html"
+  return next.startsWith("/") ? next.slice(1) : next;
 }
 
-form?.addEventListener("submit", async (e) => {
+async function doLogin() {
+  const email = (emailEl?.value || "").trim();
+  const password = passEl?.value || "";
+
+  if (!email || !password) {
+    setMsg("Enter email and password.");
+    return;
+  }
+
+  setMsg("Signing in…");
+  await signInWithEmailAndPassword(auth, email, password);
+
+  window.location.replace(safeNext());
+}
+
+form?.addEventListener("submit", (e) => {
   e.preventDefault();
-  setStatus("Signing in…");
-  try {
-    const email = (emailEl?.value || "").trim();
-    const password = passEl?.value || "";
-    if (!email || !password) { setStatus("Enter email and password."); return; }
-
-    loginBtn && (loginBtn.disabled = true);
-    await signInWithEmailAndPassword(auth, email, password);
-    window.location.replace(getNext());
-  } catch (err) {
-    console.log(err);
-    setStatus("Login failed. Check email/password.");
-    loginBtn && (loginBtn.disabled = false);
-  }
-});
-
-googleBtn?.addEventListener("click", async () => {
-  setStatus("Signing in…");
-  try {
-    googleBtn.disabled = true;
-    const provider = new GoogleAuthProvider();
-    await signInWithPopup(auth, provider);
-    window.location.replace(getNext());
-  } catch (err) {
-    console.log(err);
-    setStatus("Google sign-in failed.");
-    googleBtn.disabled = false;
-  }
+  doLogin().catch((err) => setMsg(err?.message || "Login failed."));
 });
