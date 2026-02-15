@@ -4,15 +4,14 @@
   <meta charset="utf-8" />
   <title data-i18n="triage.meta.title">I’m Not Sure What To Do — SharpeSystem</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-
-  <!-- Use ONE global stylesheet (relative for GitHub Pages) -->
   <link rel="stylesheet" href="/styles.css" />
 </head>
 
 <body>
-  <!-- Shared header/nav (single source of truth) -->
+  <!-- Shared header/nav -->
   <div id="site-header"></div>
- <script src="/header-loader.js" defer></script>
+  <script src="/header-loader.js" defer></script>
+  <script src="/i18n.js" defer></script>
 
   <main class="page">
     <div class="container content">
@@ -26,19 +25,19 @@
       <h2 data-i18n="triage.step1.h2">Step 1 — What kind of situation is this?</h2>
       <ul>
         <li>
-          <a href="trees.html" data-i18n="triage.step1.link1">Family / custody / divorce</a>
+          <a href="/trees.html" data-i18n="triage.step1.link1">Family / custody / divorce</a>
           <span data-i18n="triage.step1.desc1"> (relationships, kids, money, court orders)</span>
         </li>
         <li>
-          <a href="trees.html" data-i18n="triage.step1.link2">Protective order / restraining order</a>
+          <a href="/trees.html" data-i18n="triage.step1.link2">Protective order / restraining order</a>
           <span data-i18n="triage.step1.desc2"> (no-contact orders, hearings, alleged abuse)</span>
         </li>
         <li>
-          <a href="trees.html" data-i18n="triage.step1.link3">Criminal case</a>
+          <a href="/trees.html" data-i18n="triage.step1.link3">Criminal case</a>
           <span data-i18n="triage.step1.desc3"> (arraignment, plea, probation, court dates)</span>
         </li>
         <li>
-          <a href="trees.html" data-i18n="triage.step1.link4">Not sure</a>
+          <a href="/trees.html" data-i18n="triage.step1.link4">Not sure</a>
           <span data-i18n="triage.step1.desc4"> — keep reading</span>
         </li>
       </ul>
@@ -62,15 +61,11 @@
       </ul>
 
       <div class="cta-row">
-        <a class="button" href="trees.html" data-i18n="triage.cta">
-          Go to Decision Trees
-        </a>
+        <a class="button" href="/trees.html" data-i18n="triage.cta">Go to Decision Trees</a>
       </div>
 
       <div class="footer-links">
-        <a href="amicable.html" data-i18n="triage.footer.link">
-          Try the amicable / structured path
-        </a>
+        <a href="/amicable.html" data-i18n="triage.footer.link">Try the amicable / structured path</a>
       </div>
     </div>
   </main>
