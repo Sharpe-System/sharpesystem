@@ -1,68 +1,59 @@
-// /login.js
-import app from "/firebase-config.js";
-import {
-  getAuth,
-  onAuthStateChanged,
-  signInWithEmailAndPassword
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+// /intake.js
+import { requireTier1, updateUserDoc, readUserDoc } from "/gate.js";
 
-const auth = getAuth(app);
+function $(id) { return document.getElementById(id); }
 
-const form = document.getElementById("loginForm");
-const emailEl = document.getElementById("email");
-const passEl = document.getElementById("password");
-const msgEl = document.getElementById("msg");
+const form = $("intakeForm");
+const msg = $("msg");
+const saveBtn = $("saveBtn");
 
-function setMsg(t) {
-  if (msgEl) msgEl.textContent = t || "";
-}
+function setMsg(t) { if (msg) msg.textContent = t || ""; }
 
-function safeNext() {
-  const params = new URLSearchParams(window.location.search);
-  const next = (params.get("next") || "").trim();
-  const fallback = "/dashboard.html";
+function nowIso() { return new Date().toISOString(); }
 
-  if (!next) return fallback;
-  if (!next.startsWith("/")) return fallback;
-  if (next.startsWith("//")) return fallback;
-  if (next.includes("..")) return fallback;
-  if (next.includes("://")) return fallback;
+(async function main() {
+  // Gate + session
+  const { user } = await requireTier1();
 
-  return next;
-}
-
-function revealPage() {
-  document.documentElement.classList.remove("auth-checking");
-}
-
-async function doLogin() {
-  const email = (emailEl?.value || "").trim();
-  const password = passEl?.value || "";
-
-  if (!email || !password) {
-    setMsg("Enter email and password.");
-    return;
+  // Optional: prefill existing intake
+  try {
+    const d = await readUserDoc(user.uid);
+    const intake = d?.intake || {};
+    if ($("caseType")) $("caseType").value = intake.caseType || "";
+    if ($("stage")) $("stage").value = intake.stage || "";
+    if ($("nextDate")) $("nextDate").value = intake.nextDate || "";
+    if ($("goal")) $("goal").value = intake.goal || "";
+    if ($("risks")) $("risks").value = intake.risks || "";
+    if ($("facts")) $("facts").value = intake.facts || "";
+  } catch (e) {
+    console.log(e);
   }
 
-  setMsg("Signing in…");
-  await signInWithEmailAndPassword(auth, email, password);
+  form?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    try {
+      if (saveBtn) saveBtn.disabled = true;
+      setMsg("Saving…");
 
-  window.location.replace(safeNext());
-}
+      const intake = {
+        caseType: $("caseType")?.value || "",
+        stage: $("stage")?.value || "",
+        nextDate: $("nextDate")?.value || "",
+        goal: ($("goal")?.value || "").trim(),
+        risks: ($("risks")?.value || "").trim(),
+        facts: ($("facts")?.value || "").trim(),
+        updatedAt: nowIso(),
+      };
 
-// Auth gate: if already logged in, do not show login page at all.
-onAuthStateChanged(auth, (user) => {
-  if (user) {
-    window.location.replace(safeNext());
-    return;
-  }
+      await updateUserDoc(user.uid, { intake });
 
-  // Logged out: show page + focus email
-  revealPage();
-  if (emailEl) emailEl.focus();
-});
-
-form?.addEventListener("submit", (e) => {
-  e.preventDefault();
-  doLogin().catch((err) => setMsg(err?.message || "Login failed."));
-});
+      setMsg("Saved. Sending you to Snapshot…");
+      setTimeout(() => window.location.replace("/snapshot.html"), 450);
+    } catch (err) {
+      console.log(err);
+      setMsg("Save failed. Check console.");
+    } finally {
+      if (saveBtn) saveBtn.disabled = false;
+    }
+  });
+})();
