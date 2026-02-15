@@ -1,88 +1,68 @@
-// /intake.js
-import { auth, ensureUserDoc, writeIntake } from "/db.js";
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+// /login.js
+import app from "/firebase-config.js";
+import {
+  getAuth,
+  onAuthStateChanged,
+  signInWithEmailAndPassword
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-const form = document.getElementById("intakeForm");
-const msg = document.getElementById("msg");
-const saveBtn = document.getElementById("saveBtn");
+const auth = getAuth(app);
 
-let authResolved = false;
+const form = document.getElementById("loginForm");
+const emailEl = document.getElementById("email");
+const passEl = document.getElementById("password");
+const msgEl = document.getElementById("msg");
 
 function setMsg(t) {
-  if (msg) msg.textContent = t || "";
+  if (msgEl) msgEl.textContent = t || "";
 }
 
-function goLoginNext() {
-  window.location.replace("/login.html?next=/intake.html");
+function safeNext() {
+  const params = new URLSearchParams(window.location.search);
+  const next = (params.get("next") || "").trim();
+  const fallback = "/dashboard.html";
+
+  if (!next) return fallback;
+  if (!next.startsWith("/")) return fallback;
+  if (next.startsWith("//")) return fallback;
+  if (next.includes("..")) return fallback;
+  if (next.includes("://")) return fallback;
+
+  return next;
 }
 
-function getValue(id) {
-  return document.getElementById(id)?.value?.trim() || "";
+function revealPage() {
+  document.documentElement.classList.remove("auth-checking");
 }
 
-/* -------------------------
-   Auth Gate
--------------------------- */
-onAuthStateChanged(auth, async (user) => {
-  authResolved = true;
+async function doLogin() {
+  const email = (emailEl?.value || "").trim();
+  const password = passEl?.value || "";
 
-  if (!user) {
-    goLoginNext();
+  if (!email || !password) {
+    setMsg("Enter email and password.");
     return;
   }
 
-  try {
-    await ensureUserDoc(user.uid);
-  } catch (e) {
-    console.error("User doc init failed:", e);
-    setMsg("Account initialization failed.");
+  setMsg("Signing in…");
+  await signInWithEmailAndPassword(auth, email, password);
+
+  window.location.replace(safeNext());
+}
+
+// Auth gate: if already logged in, do not show login page at all.
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    window.location.replace(safeNext());
+    return;
   }
+
+  // Logged out: show page + focus email
+  revealPage();
+  if (emailEl) emailEl.focus();
 });
 
-/* -------------------------
-   Form Submit
--------------------------- */
-form?.addEventListener("submit", async (e) => {
+form?.addEventListener("submit", (e) => {
   e.preventDefault();
-
-  if (!authResolved) {
-    setMsg("Checking session…");
-    return;
-  }
-
-  const user = auth.currentUser;
-  if (!user) return goLoginNext();
-
-  if (!form.checkValidity()) {
-    setMsg("Please complete required fields.");
-    return;
-  }
-
-  try {
-    if (saveBtn) saveBtn.disabled = true;
-    setMsg("Saving…");
-
-    const intake = {
-      caseType: getValue("caseType"),
-      stage: getValue("stage"),
-      nextDate: getValue("nextDate"),
-      goal: getValue("goal"),
-      risks: getValue("risks"),
-      facts: getValue("facts"),
-    };
-
-    await writeIntake(user.uid, intake);
-
-    setMsg("Saved. Preparing snapshot…");
-
-    setTimeout(() => {
-      window.location.replace("/snapshot.html");
-    }, 600);
-
-  } catch (err) {
-    console.error(err);
-    setMsg("Save failed. Please try again.");
-  } finally {
-    if (saveBtn) saveBtn.disabled = false;
-  }
+  doLogin().catch((err) => setMsg(err?.message || "Login failed."));
 });
