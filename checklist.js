@@ -1,3 +1,4 @@
+<!-- /checklist.html (COPY/PASTE WHOLE FILE) -->
 <!doctype html>
 <html lang="en">
 <head>
@@ -19,6 +20,12 @@
   </style>
 </head>
 <body>
+  <!-- Shared header/nav -->
+  <div id="site-header"></div>
+  <script src="/header-loader.js" defer></script>
+  <script src="/header.js" defer></script>
+  <script src="/i18n.js" defer></script>
+
   <main class="page">
     <section class="box">
       <h1>Checklist</h1>
