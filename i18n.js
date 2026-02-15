@@ -1,4 +1,53 @@
-// i18n.js — simple EN/ES text swap for static pages.
+(function(){
+
+  const translations = {
+    es: {
+      attorney_invite_title: "Invitación para Abogados",
+      decision_trees_title: "Árboles de Decisión",
+      status_title: "Estado",
+      home_title: "Inicio",
+      risk_awareness_title: "Conciencia de Riesgo",
+      matter_binder_title: "Iniciar un Expediente",
+      invite_copy_title: "Copiar mensaje de invitación",
+      // Add more keys gradually
+    }
+  };
+
+  const html = document.documentElement;
+  const toggle = document.getElementById("langToggle");
+
+  function applyLang(lang){
+    html.setAttribute("data-lang", lang);
+    localStorage.setItem("lang", lang);
+
+    if(!translations[lang]) return;
+
+    document.querySelectorAll("[data-i18n]").forEach(el=>{
+      const key = el.getAttribute("data-i18n");
+      if(translations[lang][key]){
+        el.textContent = translations[lang][key];
+      }
+    });
+  }
+
+  const saved = localStorage.getItem("lang");
+  if(saved === "es"){
+    applyLang("es");
+  }
+
+  if(toggle){
+    toggle.addEventListener("click", ()=>{
+      const current = localStorage.getItem("lang");
+      if(current === "es"){
+        localStorage.removeItem("lang");
+        location.reload();
+      } else {
+        applyLang("es");
+      }
+    });
+  }
+
+})();// i18n.js — simple EN/ES text swap for static pages.
 // Opt-in: add data-i18n="key" to elements you want translated.
 // Persists in localStorage.
 
