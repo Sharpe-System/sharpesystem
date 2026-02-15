@@ -1,57 +1,98 @@
 // /header.js
-// Works even when header is injected as a partial.
-// - Theme: sets html[data-theme="dark|light"] + localStorage
-// - Lang: sets html[data-lang="en|es"] + localStorage (i18n can read it)
+// Safe for injected partials: call window.initHeaderControls() after header HTML is injected.
+// Also runs once on DOMContentLoaded, and can be called again safely.
 
+// Storage helpers
 function getSaved(key, fallback) {
-  const v = localStorage.getItem(key);
-  return v && v !== "undefined" && v !== "null" ? v : fallback;
+  try {
+    const v = localStorage.getItem(key);
+    return v && v !== "undefined" && v !== "null" ? v : fallback;
+  } catch (_) {
+    return fallback;
+  }
 }
 
-/* ---------------- THEME ---------------- */
+function setSaved(key, value) {
+  try { localStorage.setItem(key, value); } catch (_) {}
+}
+
+/* ---------------- THEME ----------------
+   Uses: html[data-theme="dark"|"light"]
+   Button (optional): id="themeToggle" OR id="hdrTheme"
+*/
 function applyTheme(mode) {
-  document.documentElement.setAttribute("data-theme", mode);
-  localStorage.setItem("theme", mode);
+  const m = (mode === "light") ? "light" : "dark";
+  document.documentElement.setAttribute("data-theme", m);
+  setSaved("theme", m);
 
-  const btn = document.getElementById("hdrTheme");
-  if (btn) btn.textContent = mode === "light" ? "Light" : "Dark";
+  const btn =
+    document.getElementById("themeToggle") ||
+    document.getElementById("hdrTheme");
+
+  if (btn) btn.textContent = (m === "light") ? "Light" : "Dark";
 }
 
-function initTheme() {
-  const saved = getSaved("theme", "dark");
-  applyTheme(saved);
+function wireThemeToggle() {
+  const btn =
+    document.getElementById("themeToggle") ||
+    document.getElementById("hdrTheme");
 
-  document.getElementById("hdrTheme")?.addEventListener("click", () => {
+  if (!btn) return;
+
+  // prevent double-binding if initHeaderControls is called multiple times
+  if (btn.dataset.bound === "1") return;
+  btn.dataset.bound = "1";
+
+  btn.addEventListener("click", () => {
     const current = document.documentElement.getAttribute("data-theme") || "dark";
     applyTheme(current === "dark" ? "light" : "dark");
   });
 }
 
 /* ---------------- LANGUAGE ----------------
-   This does NOT force your translation system.
-   It just sets a durable attribute your i18n can use.
+   Uses: html[data-lang="en"|"es"]
+   Your header uses: id="langToggle"
 */
 function applyLang(lang) {
-  document.documentElement.setAttribute("data-lang", lang);
-  localStorage.setItem("lang", lang);
+  const l = (lang === "es") ? "es" : "en";
+  document.documentElement.setAttribute("data-lang", l);
+  setSaved("lang", l);
 
-  const btn = document.getElementById("hdrLang");
-  if (btn) btn.textContent = (lang || "en").toUpperCase();
+  const btn = document.getElementById("langToggle");
+  if (btn) btn.textContent = (l === "en") ? "ES" : "EN"; // button shows what you can switch to
 
-  // If you already have an i18n hook, call it here safely:
-  // if (window.applyI18n) window.applyI18n(lang);
+  // If your i18n exposes a function, call it safely:
+  // if (window.applyI18n) window.applyI18n(l);
 }
 
-function initLang() {
-  const saved = getSaved("lang", "en");
-  applyLang(saved);
+function wireLangToggle() {
+  const btn = document.getElementById("langToggle");
+  if (!btn) return;
 
-  document.getElementById("hdrLang")?.addEventListener("click", () => {
+  if (btn.dataset.bound === "1") return;
+  btn.dataset.bound = "1";
+
+  btn.addEventListener("click", () => {
     const current = document.documentElement.getAttribute("data-lang") || "en";
     applyLang(current === "en" ? "es" : "en");
   });
 }
 
-/* ---------------- INIT ---------------- */
-initTheme();
-initLang();
+/* ---------------- INIT (safe for partial injection) ---------------- */
+function initHeaderControls() {
+  // Apply saved settings every time (idempotent)
+  applyTheme(getSaved("theme", "dark"));
+  applyLang(getSaved("lang", "en"));
+
+  // Then wire buttons if present
+  wireThemeToggle();
+  wireLangToggle();
+}
+
+// Expose so header-loader can call it after injection
+window.initHeaderControls = initHeaderControls;
+
+// Run once for pages where header is already present
+document.addEventListener("DOMContentLoaded", () => {
+  initHeaderControls();
+});
