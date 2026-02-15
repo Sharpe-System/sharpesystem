@@ -8,16 +8,16 @@ import {
 
 const auth = getAuth(app);
 
-function $(id){ return document.getElementById(id); }
-function show(el, on){ if (el) el.classList.toggle("hidden", !on); }
+function $(id) { return document.getElementById(id); }
+function show(el, on) { if (el) el.classList.toggle("hidden", !on); }
 
-function wire(){
+function wireHeaderAuth() {
   const navLogin = $("navLogin");
   const navDashboard = $("navDashboard");
   const navLogout = $("navLogout");
 
-  // If header isn't injected yet, bail quietly.
-  if (!navLogin && !navDashboard && !navLogout) return;
+  // Header may not be injected yet.
+  if (!navLogin && !navDashboard && !navLogout) return false;
 
   onAuthStateChanged(auth, (user) => {
     const loggedIn = !!user;
@@ -26,10 +26,10 @@ function wire(){
     show(navDashboard, loggedIn);
     show(navLogout, loggedIn);
 
-    // Optional: if user clicks "Log in" while already logged in, route to dashboard
+    // If user clicks "Log in" while already logged in, send to dashboard.
     if (navLogin) {
       navLogin.onclick = (e) => {
-        if (!loggedIn) return; // normal behavior
+        if (!loggedIn) return;
         e.preventDefault();
         window.location.assign("/dashboard.html");
       };
@@ -40,21 +40,21 @@ function wire(){
     navLogout.addEventListener("click", async () => {
       try {
         await signOut(auth);
-        window.location.assign("/home.html");
       } catch (e) {
         console.log(e);
-        // If signOut fails, still nudge them somewhere sane.
+      } finally {
         window.location.assign("/home.html");
       }
     });
   }
+
+  return true;
 }
 
-// Run after DOM is ready (header may inject late, so retry a few times)
+// Header is injected async. Retry briefly until present.
 let tries = 0;
-const t = setInterval(() => {
+const timer = setInterval(() => {
   tries += 1;
-  wire();
-  // once header exists, wire() will attach; stop after a bit regardless
-  if (document.getElementById("navLogin") || tries > 40) clearInterval(t);
+  const ok = wireHeaderAuth();
+  if (ok || tries > 60) clearInterval(timer);
 }, 150);
