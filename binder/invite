@@ -5,272 +5,37 @@
   <title>Attorney Invite — SharpeSystem</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <link rel="stylesheet" href="/styles.css" />
-
-  <style>
-    :root{
-      --header-h: 56px;
-
-      --bg:#0b0f14;
-      --panel:#101826;
-      --panel2:#0f1622;
-      --text:#e8eef6;
-      --muted:#b6c2d2;
-      --soft:#91a4be;
-      --border:#1b2a3f;
-      --accent:#6ee7ff;
-      --accent2:#a78bfa;
-      --warn:#fbbf24;
-      --ok:#34d399;
-      --bad:#fb7185;
-    }
-    *{box-sizing:border-box}
-
-    body{
-      margin:0;
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
-      background: radial-gradient(1100px 700px at 15% 5%, rgba(110,231,255,.10), transparent 60%),
-                  radial-gradient(900px 600px at 80% 10%, rgba(167,139,250,.10), transparent 55%),
-                  var(--bg);
-      color:var(--text);
-      line-height:1.5;
-    }
-    a{color:var(--accent); text-decoration:none}
-    a:hover{text-decoration:underline}
-
-    /* Keep shared header above sticky elements */
-    .site-header{ z-index: 200; }
-
-    .scopebar{
-      position: sticky;
-      top: var(--header-h);
-      z-index: 150;
-      border-bottom: 1px solid var(--border);
-      background: linear-gradient(180deg, rgba(16,24,38,.96), rgba(11,15,20,.92));
-      backdrop-filter: blur(8px);
-    }
-    .scopebar .wrap{
-      max-width: 980px;
-      margin: 0 auto;
-      padding: 10px 18px;
-    }
-    .scope-row{
-      display:flex;
-      gap: 10px;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-    }
-    .kicker{
-      display:inline-flex; gap:10px; align-items:center;
-      padding: 6px 10px;
-      background: rgba(110,231,255,.08);
-      border: 1px solid rgba(110,231,255,.18);
-      border-radius: 999px;
-      color: var(--muted);
-      font-size: 13px;
-    }
-    .badge{
-      font-weight:700;
-      color: var(--bg);
-      background: var(--accent);
-      padding: 2px 8px;
-      border-radius: 999px;
-      font-size: 12px;
-      letter-spacing:.2px;
-    }
-    .scope-mini{
-      color: var(--muted);
-      font-size: 12px;
-      line-height: 1.35;
-      max-width: 80ch;
-    }
-
-    header.page-hero{
-      padding: 28px 18px 18px;
-      border-bottom:1px solid var(--border);
-      background: linear-gradient(180deg, rgba(16,24,38,.9), rgba(11,15,20,.6));
-    }
-    .wrap{max-width: 980px; margin: 0 auto;}
-    h1{
-      margin: 10px 0 8px;
-      font-size: clamp(26px, 3.2vw, 40px);
-      line-height:1.15;
-    }
-    .sub{
-      margin: 0;
-      color: var(--muted);
-      max-width: 80ch;
-      font-size: 16px;
-    }
-
-    main{padding: 22px 18px 60px;}
-    .grid{
-      display:grid;
-      grid-template-columns: 1.25fr .95fr;
-      gap: 18px;
-      align-items:start;
-    }
-    @media (max-width: 920px){ .grid{grid-template-columns: 1fr;} }
-
-    .panel{
-      background: linear-gradient(180deg, rgba(16,24,38,.86), rgba(15,22,34,.86));
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 18px;
-      box-shadow: 0 10px 30px rgba(0,0,0,.25);
-    }
-    .panel h2{margin: 0 0 10px; font-size: 18px;}
-    .panel p{margin: 10px 0; color: var(--muted);}
-    .panel ul{margin: 10px 0 0; padding-left: 18px; color: var(--muted);}
-    .panel li{margin: 8px 0;}
-    .hr{height:1px; background: var(--border); margin: 14px 0;}
-
-    .mini{
-      background: linear-gradient(180deg, rgba(16,24,38,.72), rgba(15,22,34,.72));
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 16px;
-      position: sticky;
-      top: calc(var(--header-h) + 64px);
-    }
-    @media (max-width: 920px){ .mini{position: static;} }
-    .mini h2{margin: 0 0 10px; font-size: 16px;}
-    .mini p{margin: 10px 0; color: var(--muted); font-size: 14px;}
-
-    .pill-row{display:flex; gap:8px; flex-wrap:wrap; margin-top: 10px;}
-    .pill{
-      padding: 6px 10px;
-      border-radius: 999px;
-      border: 1px solid var(--border);
-      background: rgba(255,255,255,.03);
-      color: var(--soft);
-      font-size: 12px;
-    }
-
-    .label{display:block; font-size: 12px; color: var(--soft); margin: 10px 0 6px;}
-    .input{
-      width: 100%;
-      padding: 10px 12px;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      background: rgba(255,255,255,.03);
-      color: var(--text);
-      outline: none;
-      font-size: 14px;
-    }
-    textarea.input{resize: vertical; min-height: 110px;}
-
-    .btn{
-      appearance:none; border:none; cursor:pointer;
-      width: 100%;
-      padding: 12px 14px;
-      border-radius: 12px;
-      font-weight: 800;
-      font-size: 14px;
-      color: #061019;
-      background: linear-gradient(90deg, var(--accent), var(--accent2));
-      box-shadow: 0 12px 25px rgba(110,231,255,.15);
-      margin-top: 10px;
-    }
-    .btn:active{transform: translateY(1px);}
-    .btn.secondary{
-      color: var(--text);
-      background: rgba(255,255,255,.05);
-      border: 1px solid var(--border);
-      box-shadow: none;
-    }
-
-    .note{
-      margin-top: 12px;
-      padding: 12px 12px;
-      border-radius: 12px;
-      border:1px solid rgba(251,191,36,.25);
-      background: rgba(251,191,36,.08);
-      color: var(--muted);
-      font-size: 14px;
-    }
-    .note strong{color: #fde68a;}
-
-    .footer{
-      margin-top: 18px;
-      padding-top: 14px;
-      border-top: 1px solid var(--border);
-      color: var(--soft);
-      font-size: 12px;
-    }
-    code.inline{
-      padding:2px 6px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      background: rgba(0,0,0,.25);
-      color: var(--text);
-      font-size: 12px;
-    }
-  </style>
+  <!-- RELATIVE -->
+  <link rel="stylesheet" href="styles.css" />
 </head>
 
 <body>
-  <!-- Header fallback (always visible) -->
-  <header class="site-header">
-    <nav class="main-nav" aria-label="Primary">
-      <a href="/home.html" class="brand">SharpeSystem</a>
-      <div class="nav-links">
-        <a href="/home.html">Home</a>
-        <a href="/trees.html">Decision Trees</a>
-        <a href="/status.html">Status</a>
-        <a href="/high-conflict-risk-awareness.html" class="nav-emphasis">Risk Awareness</a>
-      </div>
-    </nav>
-  </header>
 
-  <!-- Swap in shared partial if available -->
-  <div id="site-header" style="display:none;"></div>
+  <!-- Shared header -->
+  <div id="site-header"></div>
   <script>
-    fetch('/partials/header.html')
-      .then(r => r.ok ? r.text() : Promise.reject())
-      .then(html => {
-        document.getElementById('site-header').innerHTML = html;
-        const fallback = document.querySelector('.site-header');
-        if (fallback) fallback.outerHTML = html;
-      })
+    fetch('partials/header.html')
+      .then(r => r.text())
+      .then(html => { document.getElementById('site-header').innerHTML = html; })
       .catch(() => {});
   </script>
 
-  <div class="scopebar" role="region" aria-label="Scope and neutrality notice">
-    <div class="wrap">
-      <div class="scope-row">
-        <div>
-          <div class="kicker">
-            <span class="badge">Proof of Concept</span>
-            <span>Attorney-facing invite • Neutral framing • No portal access required</span>
-          </div>
-          <div class="scope-mini" style="margin-top:8px;">
-            This page is a clean way to invite counsel to view what SharpeSystem is building, without overselling it or implying legal services.
-            Use it when you want a professional “front door” for attorneys.
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+  <main class="page">
+    <div class="container content">
 
-  <header class="page-hero">
-    <div class="wrap">
-      <h1>Attorney Invite</h1>
-      <p class="sub">
-        A short, sober introduction you can send to counsel. It positions SharpeSystem as procedural orientation and decision support —
-        not legal advice, not a replacement for representation.
-      </p>
-    </div>
-  </header>
+      <section class="page-hero">
+        <h1>Attorney Invite</h1>
+        <p class="sub">
+          A short, sober introduction you can send to counsel. It positions SharpeSystem as procedural orientation and decision support —
+          not legal advice, not a replacement for representation.
+        </p>
+      </section>
 
-  <main>
-    <div class="wrap grid">
-      <section class="panel" aria-label="Attorney invite overview">
+      <section class="card">
         <h2>What you’re inviting them to review</h2>
         <p>
-          SharpeSystem is being built as a structured orientation layer: decision trees, scope notices, and disciplined process prompts that
-          reduce procedural drift and improve the quality of client-provided information.
+          SharpeSystem is being built as a structured orientation layer: decision trees, scope notices,
+          and disciplined process prompts that reduce procedural drift and improve the quality of client-provided information.
         </p>
 
         <div class="hr"></div>
@@ -279,63 +44,44 @@
         <ul>
           <li><strong>Cleaner intake:</strong> fewer scattered narratives, more structured facts.</li>
           <li><strong>Lower friction:</strong> clients stop re-litigating basics and start answering the right questions.</li>
-          <li><strong>Better documentation:</strong> consistent, time-stamped, audit-friendly “what happened / what’s next.”</li>
-          <li><strong>Boundary clarity:</strong> pages are explicitly non-advice and non-directive.</li>
+          <li><strong>Better documentation:</strong> consistent, time-stamped records.</li>
+          <li><strong>Boundary clarity:</strong> explicitly non-advice and non-directive.</li>
         </ul>
 
         <div class="note">
-          <strong>Positioning rule:</strong> you are not asking them to “use your system” yet.
-          You’re inviting them to <em>view the concept</em> and optionally give feedback.
+          <strong>Positioning rule:</strong> You are inviting review of the concept — not asking them to adopt a system.
         </div>
 
         <div class="hr"></div>
 
         <h2>Suggested pages to include</h2>
         <ul>
-          <li><a href="/high-conflict-risk-awareness.html">Risk Awareness</a> — neutral education, professional tone.</li>
-          <li><a href="/trees.html">Decision Trees</a> — the orientation “index.”</li>
-          <li><a href="/status.html">Status</a> — the scope boundary in plain English.</li>
+          <li><a href="high-conflict-risk-awareness.html">Risk Awareness</a></li>
+          <li><a href="trees.html">Decision Trees</a></li>
+          <li><a href="status.html">Status</a></li>
         </ul>
 
         <div class="footer">
-          <div><strong>Reminder:</strong> This site provides general orientation only. No legal advice. No representation. No attorney-client relationship.</div>
+          <strong>Reminder:</strong> Orientation only. Not legal advice. No attorney-client relationship.
         </div>
       </section>
 
-      <aside class="mini" aria-label="Copy invite message">
+      <section class="card">
         <h2>Copy an invite message</h2>
-        <p>
-          Keep it calm and low-pressure. The objective is to get a serious attorney to click a link without triggering spam instincts.
-        </p>
-
-        <div class="pill-row" aria-label="Tags">
-          <span class="pill">Low-pressure</span>
-          <span class="pill">Non-advice</span>
-          <span class="pill">Client-intake value</span>
-          <span class="pill">Proof-of-concept</span>
-        </div>
-
-        <div class="hr"></div>
 
         <label class="label" for="attyName">Attorney name (optional)</label>
-        <input class="input" id="attyName" type="text" placeholder="e.g., Ms. Broady" />
+        <input class="input" id="attyName" type="text" />
 
         <label class="label" for="yourName">Your name (optional)</label>
-        <input class="input" id="yourName" type="text" placeholder="e.g., Nathan" />
+        <input class="input" id="yourName" type="text" />
 
-        <label class="label" for="caseType">Case type (optional)</label>
-        <input class="input" id="caseType" type="text" placeholder="e.g., family law / DVRO / custody" />
+        <button class="button primary" id="copyEmail">Copy email text</button>
 
-        <label class="label" for="note">One-line context (optional)</label>
-        <textarea class="input" id="note" placeholder="e.g., I’m building a structured intake/orientation tool to reduce procedural confusion."></textarea>
-
-        <button class="btn" id="copyEmail">Copy email text</button>
-        <button class="btn secondary" id="copyShort">Copy short message</button>
-
-        <div class="footer">
-          <div><strong>Tip:</strong> paste into email first. If it reads like a pitch deck, shorten it.</div>
+        <div class="note">
+          Paste into email first. Keep it short.
         </div>
-      </aside>
+      </section>
+
     </div>
   </main>
 
@@ -343,69 +89,37 @@
     function buildEmail() {
       const atty = (document.getElementById('attyName').value || '').trim();
       const you = (document.getElementById('yourName').value || '').trim();
-      const caseType = (document.getElementById('caseType').value || '').trim();
-      const extra = (document.getElementById('note').value || '').trim();
 
       const greeting = atty ? `Hi ${atty},` : `Hi,`;
       const signoff = you ? `Regards,\n${you}` : `Regards,`;
 
-      const portalLink = `${window.location.origin}/attorney-invite.html`;
-      const riskLink = `${window.location.origin}/high-conflict-risk-awareness.html`;
-
-      const oneLine = extra ? `${extra}\n\n` : '';
-
-      const caseLine = caseType ? `Context: ${caseType}.\n\n` : '';
-
       return `${greeting}
 
-${caseLine}${oneLine}I’m building a small, neutral “procedural orientation” layer called SharpeSystem. The goal is not legal advice — it’s decision support: helping people enter the system confused and leave calibrated, with cleaner facts and fewer avoidable procedural errors.
+I’ve been building SharpeSystem as a neutral procedural orientation layer (not legal advice).
 
-If you’re open to it, here is a short attorney-facing invite page (proof of concept):
-${portalLink}
+If you’re open to it, here is the attorney-facing overview:
+attorney-invite.html
 
-And here’s the strongest example page (tone + scope boundary):
-${riskLink}
+Strongest tone example:
+high-conflict-risk-awareness.html
 
-If you have 2 minutes, I’d value any reaction: what would make this genuinely useful in attorney intake, and what would be a hard “no.”
+If you have 2 minutes, I’d value any reaction.
 
 ${signoff}`;
     }
 
-    function buildShort() {
-      const atty = (document.getElementById('attyName').value || '').trim();
-      const you = (document.getElementById('yourName').value || '').trim();
-      const portalLink = `${window.location.origin}/attorney-invite.html`;
-      const greeting = atty ? `Hi ${atty} —` : `Hi —`;
-      const sign = you ? `— ${you}` : `—`;
-
-      return `${greeting} I’m building SharpeSystem as neutral procedural orientation (not legal advice). Proof of concept here: ${portalLink} ${sign}`;
-    }
-
-    async function copyToClipboard(text) {
+    async function copy(text) {
       try {
         await navigator.clipboard.writeText(text);
-        return true;
-      } catch (e) {
-        const ta = document.createElement('textarea');
-        ta.value = text;
-        document.body.appendChild(ta);
-        ta.select();
-        const ok = document.execCommand('copy');
-        document.body.removeChild(ta);
-        return ok;
+        alert("Copied.");
+      } catch {
+        alert("Copy failed.");
       }
     }
 
-    document.getElementById('copyEmail').addEventListener('click', async () => {
-      const ok = await copyToClipboard(buildEmail());
-      alert(ok ? 'Email text copied.' : 'Could not copy. Select and copy manually.');
-    });
-
-    document.getElementById('copyShort').addEventListener('click', async () => {
-      const ok = await copyToClipboard(buildShort());
-      alert(ok ? 'Short message copied.' : 'Could not copy. Select and copy manually.');
-    });
+    document.getElementById('copyEmail')
+      .addEventListener('click', () => copy(buildEmail()));
   </script>
+
 </body>
 </html>
-
