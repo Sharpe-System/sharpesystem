@@ -1,5 +1,5 @@
 // /i18n.js
-// English default. Spanish optional.
+// English default. Spanish optional. Re-applies after header partial inject.
 
 (function () {
   const STORAGE_KEY = "sharpe_lang"; // "en" | "es"
@@ -13,7 +13,7 @@
       "nav.attorneys": "For Attorneys",
       "nav.attorneyPortal": "Attorney Portal",
       "nav.risk": "Risk Awareness",
-      "toggle.lang": "ES"
+      "toggle.lang": "ES" // button shows what you can switch to
     },
     es: {
       brand: "SharpeSystem",
@@ -28,12 +28,16 @@
   };
 
   function getLang() {
-    const v = localStorage.getItem(STORAGE_KEY);
-    return v === "es" ? "es" : "en";
+    try {
+      const v = localStorage.getItem(STORAGE_KEY);
+      return v === "es" ? "es" : "en";
+    } catch (_) {
+      return "en";
+    }
   }
 
   function setLang(lang) {
-    localStorage.setItem(STORAGE_KEY, lang);
+    try { localStorage.setItem(STORAGE_KEY, lang); } catch (_) {}
   }
 
   function applyLang(lang) {
@@ -56,14 +60,19 @@
     applyLang(next);
   }
 
+  // Works even if header is injected later
   document.addEventListener("click", (e) => {
-    if (e.target && e.target.id === "langToggle") {
+    const t = e.target;
+    if (t && t.id === "langToggle") {
       e.preventDefault();
       toggleLang();
     }
   });
 
-  // Apply once on load
+  // Apply now
   applyLang(getLang());
 
+  // Re-apply when header.html is injected
+  const obs = new MutationObserver(() => applyLang(getLang()));
+  obs.observe(document.documentElement, { childList: true, subtree: true });
 })();
