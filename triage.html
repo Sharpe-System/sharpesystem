@@ -12,27 +12,7 @@
 <body>
   <!-- Shared header/nav (single source of truth) -->
   <div id="site-header"></div>
-  <script>
-    // Load header partial, THEN load i18n so it can bind to #langToggle.
-    (function () {
-      function loadI18n() {
-        const s = document.createElement("script");
-        s.src = "i18n.js";
-        document.body.appendChild(s);
-      }
-
-      fetch("partials/header.html")
-        .then(r => r.text())
-        .then(html => {
-          document.getElementById("site-header").innerHTML = html;
-          loadI18n();
-        })
-        .catch(() => {
-          // Even if header fails, still load i18n (it should fail gracefully)
-          loadI18n();
-        });
-    })();
-  </script>
+ <script src="header-loader.js" defer></script>
 
   <main class="page">
     <div class="container content">
