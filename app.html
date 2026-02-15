@@ -1,4 +1,4 @@
-<!-- app.html -->
+<!-- app.html (durable gate + account status + logout) -->
 <!doctype html>
 <html lang="en">
 <head>
@@ -30,6 +30,7 @@
     .pill{display:inline-block;padding:6px 10px;border-radius:999px;border:1px solid var(--border);color:var(--muted);font-size:12px;}
     .warn{border-color:rgba(251,191,36,.35);background:rgba(251,191,36,.08);}
     .status{margin-top:8px;color:var(--muted);font-size:13px;line-height:1.4;}
+    .status strong{color:var(--text);}
   </style>
 </head>
 <body>
@@ -38,8 +39,8 @@
       <div class="top">
         <div>
           <h1>Sharpe Legal — App</h1>
-          <p class="sub">Tier 1 hub. Intake → next steps → outputs.</p>
-          <div id="acctStatus" class="status">Checking account…</div>
+          <p class="sub">Tier hub. Intake → next steps → outputs.</p>
+          <div id="acctStatus" class="status">Checking session…</div>
           <span class="pill">Paid users land here</span>
         </div>
 
@@ -87,14 +88,107 @@
           <h2>Coming Next</h2>
           <p>Leave these dumb for now. Wire later.</p>
           <div class="list">
-            <a class="link" href="/attorney-portal.html"><div>Attorney Portal <span>later</span></div><div>→</div></a>
+            <a class="link" href="/binder/attorney-portal.html"><div>Attorney Portal <span>later</span></div><div>→</div></a>
             <a class="link" href="/subscribe.html"><div>Billing <span>Square automation later</span></div><div>→</div></a>
           </div>
         </div>
       </div>
     </section>
   </main>
-<script src="i18n.js"></script>
-  <script type="module" src="/app.js"></script>
+
+  <!-- keep your translation loader if you want it -->
+  <script src="/i18n.js"></script>
+
+  <script type="module">
+    // Durable access gate lives here so app.html enforces tier by itself.
+
+    import app from "/firebase-config.js";
+    import { getAuth, onAuthStateChanged, signOut } from
+      "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFirestore, doc, getDoc } from
+      "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const acctStatus = document.getElementById("acctStatus");
+    const logoutBtn = document.getElementById("logoutBtn");
+
+    function setStatus(html) {
+      if (acctStatus) acctStatus.innerHTML = html;
+    }
+
+    function safeNext(raw, fallback = "/app.html") {
+      if (!raw) return fallback;
+      if (raw === "undefined" || raw === "null") return fallback;
+      if (!raw.startsWith("/")) return fallback;
+      if (raw.startsWith("//")) return fallback;
+      return raw;
+    }
+
+    function redirectToLogin(next = "/app.html") {
+      const n = encodeURIComponent(safeNext(next, "/app.html"));
+      window.location.replace(`/login.html?next=${n}`);
+    }
+
+    async function getUserDoc(uid) {
+      const ref = doc(db, "users", uid);
+      return await getDoc(ref);
+    }
+
+    // ---- Logout ----
+    logoutBtn?.addEventListener("click", async () => {
+      try {
+        await signOut(auth);
+      } finally {
+        window.location.replace("/home.html");
+      }
+    });
+
+    // ---- Gate ----
+    onAuthStateChanged(auth, async (user) => {
+      try {
+        if (!user) {
+          // Not logged in → go to login with next back to app
+          redirectToLogin("/app.html");
+          return;
+        }
+
+        setStatus(`Signed in as <strong>${user.email || "(no email)"}</strong> • Checking access…`);
+
+        const userDoc = await getUserDoc(user.uid);
+
+        // If no document, treat as not subscribed/activated
+        if (!userDoc.exists()) {
+          window.location.replace("/tier1.html");
+          return;
+        }
+
+        const data = userDoc.data() || {};
+
+        // Tier gate
+        if (!data.tier) {
+          window.location.replace("/tier1.html");
+          return;
+        }
+
+        // Optional: require tier1 specifically
+        // if (data.tier !== "tier1") { window.location.replace("/tier1.html"); return; }
+
+        const tier = String(data.tier || "");
+        const active = data.active === true;
+
+        setStatus(`Signed in as <strong>${user.email || "(no email)"}</strong> • Tier: <strong>${tier}</strong> • Active: <strong>${active ? "true" : "false"}</strong>`);
+
+        // If you want: active must be true as well
+        // if (!active) { window.location.replace("/tier1.html"); return; }
+
+      } catch (e) {
+        console.log(e);
+        // Fail closed (don’t leave user stuck)
+        window.location.replace("/tier1.html");
+      }
+    });
+  </script>
 </body>
 </html>
