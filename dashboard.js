@@ -1,38 +1,28 @@
 // /dashboard.js
-import app from "/firebase-config.js";
-import { getAuth, onAuthStateChanged, signOut } from
-  "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { auth, ensureUserDoc } from "/db.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-const auth = getAuth(app);
+const who = document.getElementById("who");
+const tierPill = document.getElementById("tierPill");
+const activePill = document.getElementById("activePill");
 
-const statusEl = document.getElementById("status");
-const whoEl = document.getElementById("who");
-const logoutBtn = document.getElementById("logoutBtn");
+function setText(el, t){ if (el) el.textContent = t || ""; }
 
-function setStatus(html) {
-  if (statusEl) statusEl.innerHTML = html;
+function goLogin() {
+  window.location.replace("/login.html?next=/dashboard.html");
 }
 
-function goLogin(next = "/dashboard.html") {
-  const n = encodeURIComponent(next);
-  window.location.replace(`/login.html?next=${n}`);
-}
+onAuthStateChanged(auth, async (user) => {
+  if (!user) return goLogin();
 
-logoutBtn?.addEventListener("click", async () => {
   try {
-    await signOut(auth);
-  } finally {
-    window.location.replace("/home.html");
-  }
-});
+    setText(who, `Signed in as ${user.email || "(no email)"}`);
+    const d = await ensureUserDoc(user.uid);
 
-onAuthStateChanged(auth, (user) => {
-  if (!user) {
-    goLogin("/dashboard.html");
-    return;
+    setText(tierPill, `Tier: ${d?.tier || "(none)"}`);
+    setText(activePill, `Active: ${d?.active === true ? "true" : "false"}`);
+  } catch (e) {
+    console.log(e);
+    setText(who, "Error loading user doc. Check console.");
   }
-
-  const email = user.email || "(no email)";
-  setStatus(`Signed in as <strong>${email}</strong>`);
-  if (whoEl) whoEl.textContent = email;
 });
