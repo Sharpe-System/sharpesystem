@@ -2,34 +2,67 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Dashboard</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Dashboard — SharpeSystem</title>
   <link rel="stylesheet" href="/styles.css" />
   <style>
     .page{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:40px 16px;}
-    .box{max-width:860px;width:100%;background:var(--panel);border:1px solid var(--border);border-radius:18px;
-      padding:26px;box-shadow:var(--shadow);}
-    h1{margin:0 0 10px;font-size:28px;}
-    .muted{color:var(--muted);}
+    .box{max-width:980px;width:100%;background:var(--panel);border:1px solid var(--border);border-radius:18px;padding:26px;box-shadow:var(--shadow);}
+    .top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+    h1{margin:0 0 6px;font-size:30px;}
+    .sub{margin:0;color:var(--muted);line-height:1.45;}
     .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:14px;}
-    button{appearance:none;border:1px solid var(--border);border-radius:12px;padding:10px 12px;cursor:pointer;}
-    #logoutBtn{background:transparent;color:var(--text);}
+    .btn{appearance:none;border:1px solid var(--border);border-radius:12px;padding:12px 14px;cursor:pointer;font-weight:900;text-decoration:none;display:inline-flex;align-items:center;gap:10px;}
+    .btn.primary{background:var(--accent);color:#071018;}
+    .btn.secondary{background:transparent;color:var(--text);}
+    .btn.ghost{background:transparent;color:var(--muted);}
+    .grid{display:grid;grid-template-columns:1fr;gap:14px;margin-top:18px;}
+    @media(min-width:900px){.grid{grid-template-columns:1fr 1fr;}}
+    .card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:16px;}
+    .card h2{margin:0 0 8px;font-size:18px;}
+    .card p{margin:0;color:var(--muted);line-height:1.45;}
+    .pill{display:inline-block;margin-top:10px;padding:6px 10px;border-radius:999px;border:1px solid var(--border);color:var(--muted);font-size:12px;}
+    .mono{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;}
   </style>
 </head>
 <body>
   <main class="page">
     <section class="box">
-      <h1>Dashboard</h1>
-      <div id="status" class="muted">Loading session...</div>
-      <div id="status">Loading session...</div>
-
-      <div class="row">
-        <button id="logoutBtn" type="button">Log out</button>
-        <button type="button" onclick="location.href='/tier1.html'">Tier 1</button>
+      <div class="top">
+        <div>
+          <h1>Dashboard</h1>
+          <p class="sub">Signed-in hub. From here, go to Tier 1, App, or Billing.</p>
+          <div id="status" class="pill mono">Loading session…</div>
+        </div>
+        <div class="row">
+          <a class="btn ghost" href="/home.html">Home</a>
+          <a class="btn secondary" href="/tier1.html">Tier 1</a>
+          <a class="btn secondary" href="/app.html">App</a>
+          <a class="btn secondary" href="/subscribe.html">Subscribe</a>
+          <button id="logoutBtn" class="btn primary" type="button">Log out</button>
+        </div>
       </div>
 
-      <script type="module" src="/dashboard.js"></script>
+      <div class="grid">
+        <div class="card">
+          <h2>Next action</h2>
+          <p>Start the Tier 1 ramp or open the App hub.</p>
+          <div class="row">
+            <a class="btn primary" href="/app.html">Open App</a>
+            <a class="btn secondary" href="/tier1.html">Tier 1 details</a>
+          </div>
+          <span class="pill">If you’re not “active”, App will route you back to Tier 1.</span>
+        </div>
+
+        <div class="card">
+          <h2>Status</h2>
+          <p>Use this while you’re building: if auth breaks, you’ll see it immediately.</p>
+          <span class="pill">Auth + routing are your spine.</span>
+        </div>
+      </div>
     </section>
   </main>
+
+  <script type="module" src="/dashboard.js"></script>
 </body>
 </html>
