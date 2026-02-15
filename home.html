@@ -3,26 +3,26 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>SharpeSystem — Home</title>
+  <title>SharpeSystem</title>
   <link rel="stylesheet" href="/styles.css" />
   <style>
-    .page{min-height:100vh;padding:32px 16px;}
-    .container{max-width:1100px;margin:0 auto;}
-    .header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;
-      background:var(--panel);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow);}
+    .page{min-height:100vh;padding:22px 16px;}
+    .wrap{max-width:980px;margin:0 auto;}
+    .hdr{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
+      padding:12px 14px;border:1px solid var(--border);border-radius:16px;background:var(--panel);box-shadow:var(--shadow);}
     .brand{display:flex;flex-direction:column;gap:2px;}
     .brand b{font-size:16px;}
-    .brand span{font-size:12px;color:var(--muted);font-weight:800;}
+    .brand span{color:var(--muted);font-size:12px;}
     .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
-    .btn{appearance:none;border:1px solid var(--border);border-radius:12px;padding:10px 12px;cursor:pointer;
-      font-weight:900;text-decoration:none;display:inline-flex;align-items:center;gap:10px;}
+    .btn{appearance:none;border:1px solid var(--border);border-radius:12px;padding:10px 12px;cursor:pointer;font-weight:900;
+      text-decoration:none;display:inline-flex;align-items:center;gap:10px;}
     .btn.primary{background:var(--accent);color:#071018;}
     .btn.secondary{background:transparent;color:var(--text);}
     .hero{margin-top:18px;background:var(--panel);border:1px solid var(--border);border-radius:18px;padding:26px;box-shadow:var(--shadow);}
-    h1{margin:0 0 10px;font-size:38px;}
-    .sub{margin:0;color:var(--muted);line-height:1.5;max-width:70ch;}
-    .cards{margin-top:14px;display:grid;gap:14px;grid-template-columns:1fr;}
-    @media(min-width:900px){.cards{grid-template-columns:1fr 1fr;}}
+    h1{margin:0 0 10px;font-size:34px;}
+    .sub{margin:0;color:var(--muted);line-height:1.45;max-width:70ch;}
+    .grid{display:grid;grid-template-columns:1fr;gap:14px;margin-top:14px;}
+    @media(min-width:900px){.grid{grid-template-columns:1fr 1fr;}}
     .card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:16px;}
     .card h2{margin:0 0 8px;font-size:18px;}
     .card p{margin:0;color:var(--muted);line-height:1.45;}
@@ -31,43 +31,38 @@
 </head>
 <body>
   <main class="page">
-    <div class="container">
+    <div class="wrap">
 
-      <header class="header">
+      <header class="hdr">
         <div class="brand">
           <b>SharpeSystem</b>
-          <span>Procedural orientation + decision support</span>
+          <span>Procedural orientation + decision support (informational only)</span>
         </div>
-        <div class="row">
+        <nav class="row">
           <a class="btn secondary" href="/tier1.html">Sharpe Legal</a>
           <a id="loginLink" class="btn primary" href="/login.html?next=/dashboard.html">Log in</a>
-        </div>
+        </nav>
       </header>
 
       <section class="hero">
-        <h1>SharpeSystem</h1>
+        <h1>Calm structure for high-stakes situations.</h1>
         <p class="sub">
-          Calm, structured, non-directive workflows for high-stakes situations — starting with family court and custody.
+          Start with Sharpe Legal. The goal is fast orientation, correct next steps, and templates that reduce error under stress.
         </p>
 
-        <div class="cards">
+        <div class="grid">
           <div class="card">
-            <h2>Sharpe Legal</h2>
-            <p>Tier 1: intake + checklists + launchable templates. Clear next actions, not chaos.</p>
-            <div class="row" style="margin-top:12px;">
-              <a class="btn primary" href="/tier1.html">View Tier 1</a>
-              <a class="btn secondary" href="/login.html?next=/app.html">Go to App</a>
-            </div>
-            <span class="pill">Public → Login → App (gated)</span>
+            <h2>First-time flow</h2>
+            <p>Home → Tier 1 → Login → App</p>
+            <span class="pill">If you were redirected here, the system will preserve your next page.</span>
           </div>
-
           <div class="card">
-            <h2>Account</h2>
-            <p>Dashboard is your stable signed-in hub: status, tier, and links to the next pages.</p>
+            <h2>Tier 1</h2>
+            <p>“Stop drowning” tier: intake → next steps → draft scaffolds.</p>
             <div class="row" style="margin-top:12px;">
-              <a class="btn secondary" href="/login.html?next=/dashboard.html">Sign in to Dashboard</a>
+              <a class="btn primary" href="/tier1.html">Open Tier 1</a>
+              <a class="btn secondary" href="/dashboard.html">Dashboard</a>
             </div>
-            <span class="pill">Public → Login → Dashboard</span>
           </div>
         </div>
       </section>
@@ -76,20 +71,13 @@
   </main>
 
   <script>
-    // Durable "next" handling: only allow internal paths, prevent /undefined and external redirects.
-    (function () {
-      const params = new URLSearchParams(location.search);
-      const rawNext = params.get("next");
-      const safeNext = (v, fallback) => {
-        if (!v) return fallback;
-        if (v === "undefined" || v === "null") return fallback;
-        if (!v.startsWith("/")) return fallback;
-        if (v.startsWith("//")) return fallback;
-        return v;
-      };
-      const next = safeNext(rawNext, "/dashboard.html");
-      document.getElementById("loginLink").href = `/login.html?next=${encodeURIComponent(next)}`;
-    })();
+    // If we arrived with ?next=..., aim the login button at that destination.
+    const params = new URLSearchParams(location.search);
+    const next = params.get("next");
+    const loginLink = document.getElementById("loginLink");
+    if (loginLink && next) {
+      loginLink.href = "/login.html?next=" + encodeURIComponent(next);
+    }
   </script>
 </body>
 </html>
