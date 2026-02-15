@@ -2,16 +2,13 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Attorney Invite — SharpeSystem</title>
+  <title>Start a Matter Binder — SharpeSystem</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-
-  <!-- RELATIVE -->
   <link rel="stylesheet" href="styles.css" />
 </head>
 
 <body>
 
-  <!-- Shared header -->
   <div id="site-header"></div>
   <script>
     fetch('partials/header.html')
@@ -24,102 +21,43 @@
     <div class="container content">
 
       <section class="page-hero">
-        <h1>Attorney Invite</h1>
+        <h1>Start a Matter Binder</h1>
         <p class="sub">
-          A short, sober introduction you can send to counsel. It positions SharpeSystem as procedural orientation and decision support —
-          not legal advice, not a replacement for representation.
+          A structured container for timelines, documents, and decisions — without advice.
         </p>
       </section>
 
       <section class="card">
-        <h2>What you’re inviting them to review</h2>
-        <p>
-          SharpeSystem is being built as a structured orientation layer: decision trees, scope notices,
-          and disciplined process prompts that reduce procedural drift and improve the quality of client-provided information.
-        </p>
+        <h2>What this does</h2>
+        <ul>
+          <li>Centralizes facts</li>
+          <li>Preserves timelines</li>
+          <li>Creates a clean shareable record</li>
+          <li>Reduces emotional drift</li>
+        </ul>
 
         <div class="hr"></div>
 
-        <h2>Why attorneys might care</h2>
+        <h2>What this does not do</h2>
         <ul>
-          <li><strong>Cleaner intake:</strong> fewer scattered narratives, more structured facts.</li>
-          <li><strong>Lower friction:</strong> clients stop re-litigating basics and start answering the right questions.</li>
-          <li><strong>Better documentation:</strong> consistent, time-stamped records.</li>
-          <li><strong>Boundary clarity:</strong> explicitly non-advice and non-directive.</li>
+          <li>Does not provide legal advice</li>
+          <li>Does not replace an attorney</li>
+          <li>Does not recommend strategy</li>
         </ul>
 
         <div class="note">
-          <strong>Positioning rule:</strong> You are inviting review of the concept — not asking them to adopt a system.
+          Design principle: clarity over urgency.
         </div>
 
-        <div class="hr"></div>
-
-        <h2>Suggested pages to include</h2>
-        <ul>
-          <li><a href="high-conflict-risk-awareness.html">Risk Awareness</a></li>
-          <li><a href="trees.html">Decision Trees</a></li>
-          <li><a href="status.html">Status</a></li>
-        </ul>
-
-        <div class="footer">
-          <strong>Reminder:</strong> Orientation only. Not legal advice. No attorney-client relationship.
+        <div class="cta-row">
+          <a class="button primary" href="#">Start a new Matter Binder</a>
+          <a class="button" href="attorney-invite.html">View Attorney Invite Page</a>
         </div>
-      </section>
 
-      <section class="card">
-        <h2>Copy an invite message</h2>
-
-        <label class="label" for="attyName">Attorney name (optional)</label>
-        <input class="input" id="attyName" type="text" />
-
-        <label class="label" for="yourName">Your name (optional)</label>
-        <input class="input" id="yourName" type="text" />
-
-        <button class="button primary" id="copyEmail">Copy email text</button>
-
-        <div class="note">
-          Paste into email first. Keep it short.
-        </div>
       </section>
 
     </div>
   </main>
-
-  <script>
-    function buildEmail() {
-      const atty = (document.getElementById('attyName').value || '').trim();
-      const you = (document.getElementById('yourName').value || '').trim();
-
-      const greeting = atty ? `Hi ${atty},` : `Hi,`;
-      const signoff = you ? `Regards,\n${you}` : `Regards,`;
-
-      return `${greeting}
-
-I’ve been building SharpeSystem as a neutral procedural orientation layer (not legal advice).
-
-If you’re open to it, here is the attorney-facing overview:
-attorney-invite.html
-
-Strongest tone example:
-high-conflict-risk-awareness.html
-
-If you have 2 minutes, I’d value any reaction.
-
-${signoff}`;
-    }
-
-    async function copy(text) {
-      try {
-        await navigator.clipboard.writeText(text);
-        alert("Copied.");
-      } catch {
-        alert("Copy failed.");
-      }
-    }
-
-    document.getElementById('copyEmail')
-      .addEventListener('click', () => copy(buildEmail()));
-  </script>
 
 </body>
 </html>
