@@ -2,7 +2,7 @@
 import { requireTier1, readUserDoc } from "/gate.js";
 
 function $(id){ return document.getElementById(id); }
-function setStatus(html) {
+function setStatus(html){
   const el = $("status");
   if (el) el.innerHTML = html || "";
 }
