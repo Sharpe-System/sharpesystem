@@ -8,25 +8,24 @@ import {
 
 const auth = getAuth(app);
 
-function $(id) { return document.getElementById(id); }
-function show(el, on) { if (el) el.classList.toggle("hidden", !on); }
+function $(id){ return document.getElementById(id); }
+function show(el, on){ if (el) el.classList.toggle("hidden", !on); }
 
-function wireHeaderAuth() {
+function wireHeaderAuth(){
   const navLogin = $("navLogin");
   const navDashboard = $("navDashboard");
   const navLogout = $("navLogout");
 
-  // Header may not be injected yet.
+  // Header might not be injected yet.
   if (!navLogin && !navDashboard && !navLogout) return false;
 
   onAuthStateChanged(auth, (user) => {
     const loggedIn = !!user;
-
     show(navLogin, !loggedIn);
     show(navDashboard, loggedIn);
     show(navLogout, loggedIn);
 
-    // If user clicks "Log in" while already logged in, send to dashboard.
+    // If user is already logged in and clicks "Log in", go to dashboard instead.
     if (navLogin) {
       navLogin.onclick = (e) => {
         if (!loggedIn) return;
@@ -38,23 +37,19 @@ function wireHeaderAuth() {
 
   if (navLogout) {
     navLogout.addEventListener("click", async () => {
-      try {
-        await signOut(auth);
-      } catch (e) {
-        console.log(e);
-      } finally {
-        window.location.assign("/home.html");
-      }
+      try { await signOut(auth); }
+      catch(e){ console.log(e); }
+      finally { window.location.assign("/home.html"); }
     });
   }
 
   return true;
 }
 
-// Header is injected async. Retry briefly until present.
+// Header is injected async; retry until it exists.
 let tries = 0;
-const timer = setInterval(() => {
+const t = setInterval(() => {
   tries += 1;
   const ok = wireHeaderAuth();
-  if (ok || tries > 60) clearInterval(timer);
+  if (ok || tries > 60) clearInterval(t);
 }, 150);
