@@ -9,12 +9,15 @@
 
 <body>
   <div id="site-header"></div>
-  <script>
-    fetch('/partials/header.html')
-      .then(r => r.text())
-      .then(html => { document.getElementById('site-header').innerHTML = html; })
-      .catch(() => {});
-  </script>
+<script type="module">
+  fetch('/partials/header.html')
+    .then(r => r.text())
+    .then(async html => {
+      document.getElementById('site-header').innerHTML = html;
+      await import('/header.js');
+    })
+    .catch(() => {});
+</script>
 
   <main class="page">
     <div class="container content">
