@@ -1,28 +1,62 @@
 // /dashboard.js
-import { auth, ensureUserDoc } from "/db.js";
+import { auth, ensureUserDoc, requireLogin } from "/gate.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-const who = document.getElementById("who");
-const tierPill = document.getElementById("tierPill");
-const activePill = document.getElementById("activePill");
+function $(id){ return document.getElementById(id); }
+function set(el, t){ if (el) el.textContent = t || ""; }
+function setHtml(el, h){ if (el) el.innerHTML = h || ""; }
 
-function setText(el, t){ if (el) el.textContent = t || ""; }
+const who = $("who");
+const tier = $("tier");
+const links = $("links");
+const msg = $("msg");
 
-function goLogin() {
-  window.location.replace("/login.html?next=/dashboard.html");
+function linkRow(items) {
+  return items.map(([href, label]) => `<a class="button" href="${href}">${label}</a>`).join(" ");
 }
 
 onAuthStateChanged(auth, async (user) => {
-  if (!user) return goLogin();
+  if (!user) return requireLogin("/dashboard.html");
 
   try {
-    setText(who, `Signed in as ${user.email || "(no email)"}`);
-    const d = await ensureUserDoc(user.uid);
+    set(who, user.email || "(no email)");
 
-    setText(tierPill, `Tier: ${d?.tier || "(none)"}`);
-    setText(activePill, `Active: ${d?.active === true ? "true" : "false"}`);
+    const u = await ensureUserDoc(user.uid);
+    const active = u?.active === true;
+    const t = String(u?.tier || "");
+
+    set(tier, active ? (t || "(none)") : "inactive");
+
+    // Links are deterministic:
+    const common = [
+      ["/home.html", "Home"],
+      ["/status.html", "Status"],
+      ["/trees.html", "Decision Trees"],
+    ];
+
+    const appLinks = [
+      ["/start.html", "Start"],
+      ["/intake.html", "Intake"],
+      ["/snapshot.html", "Snapshot"],
+      ["/timeline.html", "Timeline"],
+      ["/checklist.html", "Checklist"],
+    ];
+
+    if (active && t === "tier1") {
+      setHtml(links, linkRow(appLinks) + `<div class="hr"></div>` + linkRow(common));
+      set(msg, "Tier 1 active.");
+      return;
+    }
+
+    // Not tier1: show subscribe path
+    setHtml(links, linkRow([
+      ["/tier1.html", "Tier 1"],
+      ["/subscribe.html", "Subscribe"],
+      ...common
+    ]));
+    set(msg, "Tier 1 not active yet.");
   } catch (e) {
     console.log(e);
-    setText(who, "Error loading user doc. Check console.");
+    set(msg, "Dashboard error. Check console.");
   }
 });
