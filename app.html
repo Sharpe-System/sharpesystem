@@ -1,112 +1,94 @@
-<!-- app.html (durable gate + account status + logout) -->
+<!-- /app.html -->
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Sharpe Legal — App</title>
+
   <link rel="stylesheet" href="/styles.css" />
-  <style>
-    .page{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:40px 16px;}
-    .box{max-width:1080px;width:100%;background:var(--panel);border:1px solid var(--border);border-radius:18px;
-      padding:26px;box-shadow:var(--shadow);}
-    h1{margin:0 0 8px;font-size:32px;}
-    .sub{color:var(--muted);margin:0 0 18px;line-height:1.45;}
-    .top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
-    .row{display:flex;gap:10px;flex-wrap:wrap;}
-    .btn{appearance:none;border:1px solid var(--border);border-radius:12px;padding:12px 14px;cursor:pointer;font-weight:900;text-decoration:none;display:inline-flex;align-items:center;gap:10px;}
-    .btn.primary{background:var(--accent);color:#071018;}
-    .btn.secondary{background:transparent;color:var(--text);}
-    .btn.ghost{background:transparent;color:var(--muted);}
-    .grid{display:grid;grid-template-columns:1fr;gap:14px;margin-top:18px;}
-    @media(min-width:900px){.grid{grid-template-columns:1fr 1fr;}}
-    .card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:16px;}
-    .card h2{margin:0 0 8px;font-size:18px;}
-    .card p{margin:0 0 10px;color:var(--muted);line-height:1.45;}
-    .list{display:flex;flex-direction:column;gap:10px;margin-top:10px;}
-    .link{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px;border-radius:14px;border:1px solid var(--border);
-      background:rgba(0,0,0,.12);text-decoration:none;color:var(--text);}
-    .link span{color:var(--muted);font-weight:800;font-size:12px;}
-    .pill{display:inline-block;padding:6px 10px;border-radius:999px;border:1px solid var(--border);color:var(--muted);font-size:12px;}
-    .warn{border-color:rgba(251,191,36,.35);background:rgba(251,191,36,.08);}
-    .status{margin-top:8px;color:var(--muted);font-size:13px;line-height:1.4;}
-    .status strong{color:var(--text);}
-  </style>
 </head>
+
 <body>
+
+  <!-- Shared header -->
+  <div id="site-header"></div>
+  <script src="/header-loader.js" defer></script>
+  <script src="/header.js" defer></script>
+
   <main class="page">
-    <section class="box">
-      <div class="top">
-        <div>
-          <h1>Sharpe Legal — App</h1>
-          <p class="sub">Tier hub. Intake → next steps → outputs.</p>
-          <div id="acctStatus" class="status">Checking session…</div>
-          <span class="pill">Paid users land here</span>
-        </div>
+    <div class="container content">
 
-        <div class="row">
-          <a class="btn ghost" href="/home.html">Home</a>
-          <a class="btn ghost" href="/tier1.html">Tier 1</a>
-          <a class="btn secondary" href="/dashboard.html">Account</a>
-          <a class="btn secondary" href="/subscribe.html">Billing</a>
-          <button id="logoutBtn" class="btn secondary" type="button">Log out</button>
-        </div>
-      </div>
+      <section>
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+          <div>
+            <h1>Sharpe Legal — App</h1>
+            <p class="lede">Tier hub. Intake → next steps → outputs.</p>
+            <div id="acctStatus" class="muted">Checking session…</div>
+          </div>
 
-      <div class="grid">
-        <div class="card">
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <a class="button" href="/home.html">Home</a>
+            <a class="button" href="/tier1.html">Tier 1</a>
+            <a class="button" href="/dashboard.html">Account</a>
+            <a class="button" href="/subscribe.html">Billing</a>
+            <button id="logoutBtn" class="button">Log out</button>
+          </div>
+        </div>
+      </section>
+
+      <div class="hr"></div>
+
+      <section class="grid" style="margin-top:18px; display:grid; gap:16px;">
+        
+        <div class="template-box">
           <h2>Start Here</h2>
-          <p>Fast ramp: intake → facts → next steps → draft scaffolds.</p>
-          <div class="list">
-            <a class="link" href="/start.html"><div>Start / Orientation <span>fast ramp</span></div><div>→</div></a>
-            <a class="link" href="/intake.html"><div>Guided Intake <span>turn chaos into structure</span></div><div>→</div></a>
-            <a class="link" href="/notes.html"><div>Case Notes <span>capture facts now</span></div><div>→</div></a>
-          </div>
+          <ul>
+            <li><a href="/start.html">Start / Orientation</a></li>
+            <li><a href="/intake.html">Guided Intake</a></li>
+            <li><a href="/notes.html">Case Notes</a></li>
+          </ul>
         </div>
 
-        <div class="card">
+        <div class="template-box">
           <h2>Risk & Scenarios</h2>
-          <p>Users self-sort so they don’t take the wrong path.</p>
-          <div class="list">
-            <a class="link warn" href="/high-conflict-risk-awareness.html"><div>High-Conflict Risk Awareness <span>do not improvise</span></div><div>→</div></a>
-            <a class="link" href="/amicable.html"><div>Amicable / Low-Conflict <span>clean protocol</span></div><div>→</div></a>
-            <a class="link" href="/insurance-claims.html"><div>Insurance / Claims <span>alternate workflow</span></div><div>→</div></a>
-          </div>
+          <ul>
+            <li><a href="/high-conflict-risk-awareness.html">High-Conflict Risk Awareness</a></li>
+            <li><a href="/amicable.html">Amicable / Low-Conflict</a></li>
+            <li><a href="/insurance-claims.html">Insurance / Claims</a></li>
+          </ul>
         </div>
 
-        <div class="card">
+        <div class="template-box">
           <h2>Admin</h2>
-          <p>Utility pages.</p>
-          <div class="list">
-            <a class="link" href="/status.html"><div>Status <span>system checks</span></div><div>→</div></a>
-            <a class="link" href="/success.html"><div>Success <span>post-action confirmation</span></div><div>→</div></a>
-            <a class="link" href="/home.html"><div>Home <span>public landing</span></div><div>→</div></a>
-          </div>
+          <ul>
+            <li><a href="/status.html">Status</a></li>
+            <li><a href="/success.html">Success</a></li>
+            <li><a href="/home.html">Home</a></li>
+          </ul>
         </div>
 
-        <div class="card">
+        <div class="template-box">
           <h2>Coming Next</h2>
-          <p>Leave these dumb for now. Wire later.</p>
-          <div class="list">
-            <a class="link" href="/binder/attorney-portal.html"><div>Attorney Portal <span>later</span></div><div>→</div></a>
-            <a class="link" href="/subscribe.html"><div>Billing <span>Square automation later</span></div><div>→</div></a>
-          </div>
+          <ul>
+            <li><a href="/binder/attorney-portal.html">Attorney Portal</a></li>
+            <li><a href="/subscribe.html">Billing</a></li>
+          </ul>
         </div>
-      </div>
-    </section>
+
+      </section>
+
+    </div>
   </main>
 
-  <!-- keep your translation loader if you want it -->
   <script src="/i18n.js"></script>
 
   <script type="module">
-    // Durable access gate lives here so app.html enforces tier by itself.
-
     import app from "/firebase-config.js";
-    import { getAuth, onAuthStateChanged, signOut } from
-      "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import { getFirestore, doc, getDoc } from
-      "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged, signOut }
+      from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFirestore, doc, getDoc }
+      from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
     const auth = getAuth(app);
     const db = getFirestore(app);
@@ -118,77 +100,48 @@
       if (acctStatus) acctStatus.innerHTML = html;
     }
 
-    function safeNext(raw, fallback = "/app.html") {
-      if (!raw) return fallback;
-      if (raw === "undefined" || raw === "null") return fallback;
-      if (!raw.startsWith("/")) return fallback;
-      if (raw.startsWith("//")) return fallback;
-      return raw;
+    function redirectToLogin() {
+      window.location.replace("/login.html?next=/app.html");
     }
 
-    function redirectToLogin(next = "/app.html") {
-      const n = encodeURIComponent(safeNext(next, "/app.html"));
-      window.location.replace(`/login.html?next=${n}`);
-    }
-
-    async function getUserDoc(uid) {
-      const ref = doc(db, "users", uid);
-      return await getDoc(ref);
-    }
-
-    // ---- Logout ----
     logoutBtn?.addEventListener("click", async () => {
-      try {
-        await signOut(auth);
-      } finally {
-        window.location.replace("/home.html");
-      }
+      try { await signOut(auth); }
+      finally { window.location.replace("/home.html"); }
     });
 
-    // ---- Gate ----
     onAuthStateChanged(auth, async (user) => {
       try {
         if (!user) {
-          // Not logged in → go to login with next back to app
-          redirectToLogin("/app.html");
+          redirectToLogin();
           return;
         }
 
         setStatus(`Signed in as <strong>${user.email || "(no email)"}</strong> • Checking access…`);
 
-        const userDoc = await getUserDoc(user.uid);
+        const snap = await getDoc(doc(db, "users", user.uid));
 
-        // If no document, treat as not subscribed/activated
-        if (!userDoc.exists()) {
+        if (!snap.exists()) {
           window.location.replace("/tier1.html");
           return;
         }
 
-        const data = userDoc.data() || {};
+        const data = snap.data() || {};
 
-        // Tier gate
         if (!data.tier) {
           window.location.replace("/tier1.html");
           return;
         }
 
-        // Optional: require tier1 specifically
-        // if (data.tier !== "tier1") { window.location.replace("/tier1.html"); return; }
+        setStatus(
+          `Signed in as <strong>${user.email}</strong> • Tier: <strong>${data.tier}</strong> • Active: <strong>${data.active === true}</strong>`
+        );
 
-        const tier = String(data.tier || "");
-        const active = data.active === true;
-
-        setStatus(`Signed in as <strong>${user.email || "(no email)"}</strong> • Tier: <strong>${tier}</strong> • Active: <strong>${active ? "true" : "false"}</strong>`);
-
-        // If you want: active must be true as well
-        // if (!active) { window.location.replace("/tier1.html"); return; }
-
-      } catch (e) {
-        console.log(e);
-        // Fail closed (don’t leave user stuck)
+      } catch (err) {
+        console.log(err);
         window.location.replace("/tier1.html");
       }
     });
   </script>
+
 </body>
 </html>
