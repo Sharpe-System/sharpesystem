@@ -2,16 +2,19 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Start a Matter Binder — SharpeSystem</title>
+  <title>For Attorneys — Invite</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="stylesheet" href="styles.css" />
+  <meta name="description" content="Attorney-facing invite for SharpeSystem. Proof-of-concept workflow preview only." />
+
+  <!-- IMPORTANT: binder/ pages must use ../ for root assets -->
+  <link rel="stylesheet" href="../styles.css" />
 </head>
 
 <body>
-
+  <!-- Shared header/nav -->
   <div id="site-header"></div>
   <script>
-    fetch('partials/header.html')
+    fetch('../partials/header.html')
       .then(r => r.text())
       .then(html => { document.getElementById('site-header').innerHTML = html; })
       .catch(() => {});
@@ -20,44 +23,157 @@
   <main class="page">
     <div class="container content">
 
-      <section class="page-hero">
-        <h1>Start a Matter Binder</h1>
+      <section class="page-hero" aria-label="Attorney invite hero">
+        <h1>For Attorneys</h1>
         <p class="sub">
-          A structured container for timelines, documents, and decisions — without advice.
+          Proof-of-concept: procedural orientation + structured intake support.
+          Informational only. No portal access required. No legal advice. No attorney-client relationship.
         </p>
       </section>
 
-      <section class="card">
-        <h2>What this does</h2>
+      <section class="card" aria-label="What this is">
+        <h2>What this is</h2>
         <ul>
-          <li>Centralizes facts</li>
-          <li>Preserves timelines</li>
-          <li>Creates a clean shareable record</li>
-          <li>Reduces emotional drift</li>
+          <li><strong>Orientation layer:</strong> decision trees, scope notices, and disciplined prompts to reduce procedural drift.</li>
+          <li><strong>Intake hygiene:</strong> encourages structured facts, clean timelines, and document completeness.</li>
+          <li><strong>Non-directive:</strong> designed to avoid strategy, tactics, or jurisdiction-specific instructions.</li>
+        </ul>
+
+        <div class="note" role="note">
+          <strong>Scope boundary:</strong> This is not a legal service. It does not replace counsel. It is not advice.
+        </div>
+      </section>
+
+      <section class="card" aria-label="Why this might matter">
+        <h2>Why this might matter to counsel</h2>
+        <ul>
+          <li><strong>Cleaner intake:</strong> less narrative sprawl, more usable facts.</li>
+          <li><strong>Fewer missing pieces:</strong> checklists help clients gather docs before first contact.</li>
+          <li><strong>Better continuity:</strong> consistent “what happened / what’s next / what’s missing” formatting.</li>
+          <li><strong>Boundary clarity:</strong> explicit non-advice positioning reduces liability ambiguity.</li>
         </ul>
 
         <div class="hr"></div>
 
-        <h2>What this does not do</h2>
-        <ul>
-          <li>Does not provide legal advice</li>
-          <li>Does not replace an attorney</li>
-          <li>Does not recommend strategy</li>
-        </ul>
-
-        <div class="note">
-          Design principle: clarity over urgency.
+        <div class="cta-row">
+          <a class="button primary" href="attorney-portal.html">View Attorney Portal Preview</a>
+          <a class="button" href="matter-binder.html">View Matter Binder Concept</a>
         </div>
+
+        <div class="footer-links" style="margin-top:14px;">
+          <a href="../high-conflict-risk-awareness.html">Risk Awareness</a> <span class="sep">·</span>
+          <a href="../status.html">Status</a> <span class="sep">·</span>
+          <a href="../trees.html">Decision Trees</a>
+        </div>
+      </section>
+
+      <section class="card" aria-label="Copy invite text">
+        <h2>Copy invite text</h2>
+        <p class="muted">
+          Keep it low-pressure. The goal is a quick click + quick impression, not a pitch.
+        </p>
+
+        <label class="label" for="attyName">Attorney name (optional)</label>
+        <input class="input" id="attyName" type="text" placeholder="e.g., Ms. Broady" />
+
+        <label class="label" for="yourName">Your name (optional)</label>
+        <input class="input" id="yourName" type="text" placeholder="e.g., Nathan" />
+
+        <label class="label" for="caseType">Case type (optional)</label>
+        <input class="input" id="caseType" type="text" placeholder="e.g., family law / custody / DVRO" />
+
+        <label class="label" for="oneLine">One-line context (optional)</label>
+        <textarea class="input" id="oneLine" rows="4" placeholder="Example: I’m building a neutral intake/orientation layer to reduce procedural confusion and improve the quality of client-provided facts."></textarea>
 
         <div class="cta-row">
-          <a class="button primary" href="#">Start a new Matter Binder</a>
-          <a class="button" href="attorney-invite.html">View Attorney Invite Page</a>
+          <button class="button primary" id="copyEmail" type="button">Copy email</button>
+          <button class="button" id="copyShort" type="button">Copy short message</button>
         </div>
 
+        <div class="note" role="note" style="margin-top:14px;">
+          <strong>Important:</strong> This is a preview of a concept, not an invitation to provide services through the site.
+        </div>
+
+        <div class="footer" style="margin-top:16px;">
+          <div><strong>Reminder:</strong> Informational only. Not legal advice. Not strategy.</div>
+        </div>
       </section>
 
     </div>
   </main>
 
+  <script>
+    function originPath(rel){ return new URL(rel, window.location.href).toString(); }
+
+    function buildEmail(){
+      const atty = (document.getElementById('attyName').value || '').trim();
+      const you = (document.getElementById('yourName').value || '').trim();
+      const caseType = (document.getElementById('caseType').value || '').trim();
+      const oneLine = (document.getElementById('oneLine').value || '').trim();
+
+      const greeting = atty ? `Hi ${atty},` : `Hi,`;
+      const signoff = you ? `Regards,\n${you}` : `Regards,`;
+
+      const inviteLink = originPath('attorney-invite.html');
+      const portalLink = originPath('attorney-portal.html');
+      const riskLink = originPath('../high-conflict-risk-awareness.html');
+
+      const caseLine = caseType ? `Context: ${caseType}.\n\n` : '';
+      const extraLine = oneLine ? `${oneLine}\n\n` : '';
+
+      return `${greeting}
+
+${caseLine}${extraLine}I’m building SharpeSystem as a neutral “procedural orientation” layer — not legal advice, not legal strategy. The intent is cleaner intake: structured facts, timelines, and document completeness.
+
+Invite page (scope + positioning):
+${inviteLink}
+
+Attorney portal preview (conceptual, not access-controlled yet):
+${portalLink}
+
+Example of tone + scope boundary:
+${riskLink}
+
+If you have 2 minutes, I’d value any reaction: what would make this useful in attorney intake, and what would be a hard “no.”
+
+${signoff}`;
+    }
+
+    function buildShort(){
+      const atty = (document.getElementById('attyName').value || '').trim();
+      const you = (document.getElementById('yourName').value || '').trim();
+
+      const portalLink = originPath('attorney-portal.html');
+      const greeting = atty ? `Hi ${atty} —` : `Hi —`;
+      const sign = you ? `— ${you}` : `—`;
+
+      return `${greeting} I’m building SharpeSystem as neutral procedural orientation (not legal advice). Attorney preview here: ${portalLink} ${sign}`;
+    }
+
+    async function copyToClipboard(text){
+      try{
+        await navigator.clipboard.writeText(text);
+        return true;
+      }catch(e){
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        const ok = document.execCommand('copy');
+        document.body.removeChild(ta);
+        return ok;
+      }
+    }
+
+    document.getElementById('copyEmail')?.addEventListener('click', async () => {
+      const ok = await copyToClipboard(buildEmail());
+      alert(ok ? 'Email copied.' : 'Copy failed. Select + copy manually.');
+    });
+
+    document.getElementById('copyShort')?.addEventListener('click', async () => {
+      const ok = await copyToClipboard(buildShort());
+      alert(ok ? 'Short message copied.' : 'Copy failed. Select + copy manually.');
+    });
+  </script>
 </body>
 </html>
