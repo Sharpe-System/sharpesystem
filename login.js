@@ -1,4 +1,4 @@
-// login.js
+// login.js — durable submit + safe ?next= redirect
 import app from "/firebase-config.js";
 import {
   getAuth,
@@ -9,66 +9,71 @@ import {
 
 const auth = getAuth(app);
 
+// These IDs must exist in login.html:
+// <form id="loginForm"> ... </form>
+// <input id="email" ...>
+// <input id="password" ...>
+// <button id="googleBtn" type="button">Google</button>
+// <div id="status"></div>
+const form = document.getElementById("loginForm");
 const emailEl = document.getElementById("email");
-const passEl = document.getElementById("password");
-const loginBtn = document.getElementById("loginBtn");
-const googleBtn = document.getElementById("googleBtn");
+const passEl  = document.getElementById("password");
 const statusEl = document.getElementById("status");
+const googleBtn = document.getElementById("googleBtn");
 
 function setStatus(t) {
   if (statusEl) statusEl.textContent = t || "";
-  console.log(t);
 }
 
-function getNextPath() {
+function safeNext(raw, fallback = "/dashboard.html") {
+  if (!raw) return fallback;
+  if (raw === "undefined" || raw === "null") return fallback;
+  if (!raw.startsWith("/")) return fallback;
+  if (raw.startsWith("//")) return fallback;
+  return raw;
+}
+
+function getNext() {
   const params = new URLSearchParams(window.location.search);
-  const next = params.get("next");
-  // Default after login
-  return next && next.startsWith("/") ? next : "/dashboard.html";
+  return safeNext(params.get("next"), "/dashboard.html");
 }
 
-async function doEmailLogin() {
-  const email = (emailEl?.value || "").trim();
-  const password = passEl?.value || "";
-
-  if (!email || !password) {
-    setStatus("Enter email + password.");
-    return;
+async function doEmailLogin(e) {
+  e.preventDefault(); // <-- makes Enter submit work
+  setStatus("Signing in…");
+  try {
+    const email = (emailEl?.value || "").trim();
+    const password = passEl?.value || "";
+    if (!email || !password) {
+      setStatus("Enter email and password.");
+      return;
+    }
+    await signInWithEmailAndPassword(auth, email, password);
+    window.location.replace(getNext());
+  } catch (err) {
+    console.log(err);
+    setStatus("Login failed. Check email/password.");
   }
-
-  setStatus("Signing in...");
-  await signInWithEmailAndPassword(auth, email, password);
-
-  const next = getNextPath();
-  window.location.replace(next);
 }
 
-async function doGoogleLogin() {
-  setStatus("Opening Google...");
-  const provider = new GoogleAuthProvider();
-  await signInWithPopup(auth, provider);
+form?.addEventListener("submit", doEmailLogin);
 
-  const next = getNextPath();
-  window.location.replace(next);
-}
-
-// Click handlers
-loginBtn?.addEventListener("click", (e) => {
-  e.preventDefault();
-  doEmailLogin().catch((err) => setStatus(err?.message || "Login failed."));
-});
-
-googleBtn?.addEventListener("click", (e) => {
-  e.preventDefault();
-  doGoogleLogin().catch((err) => setStatus(err?.message || "Google login failed."));
-});
-
-// ENTER submits from either field
-function onEnterSubmit(e) {
+// Optional: allow Enter from password field even if form markup is weird
+passEl?.addEventListener("keydown", (e) => {
   if (e.key === "Enter") {
-    e.preventDefault();
-    doEmailLogin().catch((err) => setStatus(err?.message || "Login failed."));
+    // If form exists, submit it; otherwise run handler directly
+    if (form) form.requestSubmit?.();
   }
-}
-emailEl?.addEventListener("keydown", onEnterSubmit);
-passEl?.addEventListener("keydown", onEnterSubmit);
+});
+
+googleBtn?.addEventListener("click", async () => {
+  setStatus("Signing in…");
+  try {
+    const provider = new GoogleAuthProvider();
+    await signInWithPopup(auth, provider);
+    window.location.replace(getNext());
+  } catch (err) {
+    console.log(err);
+    setStatus("Google sign-in failed.");
+  }
+});
