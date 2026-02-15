@@ -1,67 +1,58 @@
-// /snapshot.js
-import { requireTier1, readUserDoc, updateUserDoc } from "/gate.js";
+// /intake.js
+import { requireTier1, updateUserDoc, readUserDoc } from "/gate.js";
 
-function $(id) { return document.getElementById(id); }
+function $(id){ return document.getElementById(id); }
 
-const snapEl = $("snap");
-const msgEl = $("msg");
-const copyBtn = $("copyBtn");
+const form = $("intakeForm");
+const msg = $("msg");
+const saveBtn = $("saveBtn");
 
-function setMsg(t) { if (msgEl) msgEl.textContent = t || ""; }
-function setSnap(t) { if (snapEl) snapEl.textContent = t || ""; }
-function nowIso() { return new Date().toISOString(); }
+function setMsg(t){ if (msg) msg.textContent = t || ""; }
+function nowIso(){ return new Date().toISOString(); }
 
-function fmtLine(label, value) {
-  return `${label}: ${value || "[not provided]"}`;
-}
-
-function buildSnapshot(d) {
-  const intake = d?.intake || {};
-  const lines = [];
-
-  lines.push("SHARPESYSTEM — SNAPSHOT");
-  lines.push("");
-  lines.push(fmtLine("Case type", intake.caseType));
-  lines.push(fmtLine("Stage", intake.stage));
-  lines.push(fmtLine("Next date", intake.nextDate));
-  lines.push("");
-
-  lines.push("PRIMARY GOAL");
-  lines.push(intake.goal ? intake.goal : "[not provided]");
-  lines.push("");
-
-  lines.push("IMMEDIATE RISKS");
-  lines.push(intake.risks ? intake.risks : "[not provided]");
-  lines.push("");
-
-  lines.push("FACTS (BULLETS; NO ADJECTIVES)");
-  lines.push(intake.facts ? intake.facts : "[not provided]");
-
-  return lines.join("\n");
-}
-
-(async function main() {
+(async function main(){
   const { user } = await requireTier1();
 
+  // Prefill existing intake if present
   try {
     const d = await readUserDoc(user.uid);
-    const text = buildSnapshot(d);
-    setSnap(text);
-
-    // Non-critical mark
-    updateUserDoc(user.uid, { snapshot: { generatedAt: nowIso() } }).catch(() => {});
+    const intake = d?.intake || {};
+    if ($("caseType")) $("caseType").value = intake.caseType || "";
+    if ($("stage")) $("stage").value = intake.stage || "";
+    if ($("nextDate")) $("nextDate").value = intake.nextDate || "";
+    if ($("goal")) $("goal").value = intake.goal || "";
+    if ($("risks")) $("risks").value = intake.risks || "";
+    if ($("facts")) $("facts").value = intake.facts || "";
   } catch (e) {
     console.log(e);
-    setMsg("Error loading. Check console.");
   }
 
-  copyBtn?.addEventListener("click", async () => {
+  form?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
     try {
-      await navigator.clipboard.writeText(snapEl?.textContent || "");
-      setMsg("Copied.");
-    } catch (e) {
-      console.log(e);
-      setMsg("Copy failed. (Browser permissions)");
+      if (saveBtn) saveBtn.disabled = true;
+      setMsg("Saving…");
+
+      const intake = {
+        caseType: $("caseType")?.value || "",
+        stage: $("stage")?.value || "",
+        nextDate: $("nextDate")?.value || "",
+        goal: ($("goal")?.value || "").trim(),
+        risks: ($("risks")?.value || "").trim(),
+        facts: ($("facts")?.value || "").trim(),
+        updatedAt: nowIso(),
+      };
+
+      await updateUserDoc(user.uid, { intake });
+
+      setMsg("Saved. Sending you to Snapshot…");
+      setTimeout(() => window.location.replace("/snapshot.html"), 450);
+    } catch (err) {
+      console.log(err);
+      setMsg("Save failed. Check console.");
+    } finally {
+      if (saveBtn) saveBtn.disabled = false;
     }
   });
 })();
