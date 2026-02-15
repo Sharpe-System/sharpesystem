@@ -2,182 +2,124 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>For Attorneys — SharpeSystem</title>
+  <title>Attorney Portal — Preview</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Preview-only attorney portal concept for SharpeSystem." />
 
-  <!-- Global stylesheet -->
+  <!-- ✅ absolute -->
   <link rel="stylesheet" href="/styles.css" />
+
+  <!-- ✅ injected header -->
+  <script src="/header.js" defer></script>
+  <script src="/header-loader.js" defer></script>
+  <script src="/i18n.js" defer></script>
+
+  <style>
+    .grid{display:grid;grid-template-columns: 1.15fr .85fr;gap: 14px;margin-top: 12px;}
+    @media (max-width: 920px){ .grid{ grid-template-columns: 1fr; } }
+    .tile{padding: 14px;border-radius: var(--radius);border: 1px solid var(--border);background: rgba(255,255,255,.03);margin-top: 12px;}
+    .tile h3{ margin: 0 0 6px; }
+    .mini{ font-size: 13px; color: var(--soft); }
+    .kbd{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 12px;padding: 2px 6px;border: 1px solid var(--border);border-radius: 8px;
+      background: rgba(0,0,0,.25);color: var(--text);
+    }
+  </style>
 </head>
 
 <body>
-  <!-- Shared header/nav (single source of truth) -->
- <div id="site-header"></div>
-<script src="header-loader.js" defer></script>
+  <!-- Shared header/nav -->
+  <div id="site-header"></div>
 
   <main class="page">
     <div class="container content">
-      <div class="kicker-row">
-        <span class="kicker-pill">Attorney-facing</span>
-        <span class="kicker-text">Decision support • Procedural orientation • Not legal advice</span>
-      </div>
 
-      <h1>For Attorneys</h1>
-
-      <p class="lead">
-        SharpeSystem is an orientation layer for people who are overwhelmed by procedure.
-        It reduces noise, improves client clarity, and standardizes intake artifacts—without drafting filings or giving advice.
-      </p>
-
-      <div class="card-grid">
-        <section class="card">
-          <h2>What it is</h2>
-          <ul>
-            <li>Structured procedural orientation (decision trees, timelines, terminology)</li>
-            <li>Client calibration: “what matters next” vs. emotional spirals</li>
-            <li>Clean artifact capture: dates, orders, pleadings, communications, exhibits</li>
-            <li>Consistency: repeatable flows across similar case types</li>
-          </ul>
-        </section>
-
-        <section class="card">
-          <h2>What it is not</h2>
-          <ul>
-            <li>Not legal advice</li>
-            <li>Not a substitute for counsel</li>
-            <li>Not a filing generator (at least initially)</li>
-            <li>Not a “strategy” tool for escalation</li>
-          </ul>
-        </section>
-      </div>
-
-      <section class="panel">
-        <h2>Why attorneys might care</h2>
-        <ul>
-          <li><strong>Fewer resets:</strong> less time spent re-explaining procedure across meetings</li>
-          <li><strong>Cleaner intake:</strong> clients arrive with structured facts, dates, and documents</li>
-          <li><strong>Lower friction:</strong> clients understand constraints and dead ends earlier</li>
-          <li><strong>Better scope control:</strong> keeps work inside defined tasks and timelines</li>
-        </ul>
-
-        <p class="muted">
-          The system is designed to be calm, factual, and non-reassuring—reducing performative conflict and improving signal.
+      <section class="page-hero" aria-label="Attorney portal hero">
+        <h1>Attorney Portal (Preview)</h1>
+        <p class="lede">
+          Workflow preview only. No authentication. No client data. No messaging.
+          This shows how an attorney-facing view could remain clean, bounded, and non-advisory.
         </p>
       </section>
 
-      <section class="panel">
-        <h2>Proof-of-concept paths</h2>
-        <div class="two-col">
-          <div class="mini-card">
-            <h3>Client-side orientation</h3>
-            <p class="muted">
-              The user enters confused and leaves calibrated. Decision trees show forks and dead ends explicitly.
-            </p>
-            <div class="cta-row left">
-              <a class="button" href="/trees.html">View Decision Trees</a>
-              <a class="button ghost" href="/high-conflict-risk-awareness.html">Risk Awareness</a>
-            </div>
+      <div class="grid">
+        <section class="template-box" aria-label="Portal preview">
+          <h2>What this page represents</h2>
+          <ul>
+            <li><strong>Read-only by default</strong> (concept)</li>
+            <li><strong>Structured intake summary</strong> instead of narrative sprawl</li>
+            <li><strong>Document checklist</strong> + timeline slots</li>
+            <li><strong>Scope clarity</strong> to reduce confusion and liability ambiguity</li>
+          </ul>
+
+          <div class="hr"></div>
+
+          <h2>Mock “matter view” tiles</h2>
+
+          <div class="tile">
+            <h3>1) Snapshot</h3>
+            <p class="mini">One paragraph, structured. No argument. No conclusion.</p>
+            <p><span class="kbd">Case type</span> • <span class="kbd">Next date</span> • <span class="kbd">Primary goal</span> • <span class="kbd">Immediate risks</span></p>
           </div>
 
-          <div class="mini-card">
-            <h3>Attorney-side preview</h3>
-            <p class="muted">
-              A future portal can provide a case workspace (“binder”), exportable packets, and a shared client view—without email chaos.
-            </p>
-            <div class="cta-row left">
-              <a class="button ghost" href="#invite">Copy an invite template</a>
-            </div>
+          <div class="tile">
+            <h3>2) Timeline anchors</h3>
+            <p class="mini">Dates + events only. No adjectives.</p>
+            <ul>
+              <li><span class="kbd">YYYY-MM-DD</span> — event label</li>
+              <li><span class="kbd">YYYY-MM-DD</span> — filing / service / hearing</li>
+              <li><span class="kbd">YYYY-MM-DD</span> — communication log reference</li>
+            </ul>
           </div>
-        </div>
-      </section>
 
-      <section class="panel" id="invite">
-        <h2>Invite template (copy/paste)</h2>
-        <p class="muted">Use this when you want a client to self-orient before the next consult.</p>
+          <div class="tile">
+            <h3>3) Document completeness</h3>
+            <p class="mini">What exists, what’s missing, and what the client claims exists but hasn’t provided.</p>
+            <ul>
+              <li>Provided: X</li>
+              <li>Missing: Y</li>
+              <li>Unknown: Z</li>
+            </ul>
+          </div>
 
-        <div class="template-box" role="group" aria-label="Attorney invite template">
-          <p><strong>Subject:</strong> Orientation before our next meeting</p>
-          <p><strong>Body:</strong></p>
-          <p>
-            Before we meet, please review this orientation resource. It is decision support / procedural orientation only (not legal advice).
-            The goal is to reduce confusion and help you organize the key facts, dates, and documents so we can use our time efficiently.
-          </p>
-          <p>
-            Start here: <span class="inline">/home.html</span><br/>
-            If conflict is escalating, review: <span class="inline">/high-conflict-risk-awareness.html</span>
-          </p>
-          <p>
-            Come prepared with: timeline of events, all orders, most recent filings, and a short list of the outcomes you want.
-          </p>
-        </div>
+          <div class="cta-row">
+            <a class="button" href="/binder/attorney-invite.html">Back to invite</a>
+            <a class="button primary" href="/binder/matter-binder.html">Matter Binder concept</a>
+          </div>
 
-        <div class="cta-row left">
-          <button class="button" id="copyInvite">Copy template</button>
-          <button class="button ghost" id="copyLink">Copy portal link</button>
-        </div>
+          <div class="note" role="note">
+            <strong>Preview-only:</strong> No duty, relationship, or obligation is created by viewing this page.
+            No client data is collected here.
+          </div>
+        </section>
 
-        <p class="fineprint">
-          Reminder: This page is informational. Jurisdictions vary. Counsel should apply their own professional judgment.
-        </p>
-      </section>
+        <aside class="template-box" aria-label="Boundaries">
+          <h2>Boundaries</h2>
+          <ul>
+            <li>No legal advice content</li>
+            <li>No “recommended actions” framed as strategy</li>
+            <li>No jurisdiction-specific instructions here</li>
+            <li>No client-to-attorney messaging (concept-only)</li>
+          </ul>
+
+          <div class="hr"></div>
+
+          <h2>What would come later (not now)</h2>
+          <ul>
+            <li>Authentication</li>
+            <li>Invite links scoped to a matter</li>
+            <li>Read-only access controls</li>
+            <li>Audit trail (who viewed what)</li>
+          </ul>
+
+          <div class="template-box" style="margin-top:12px;">
+            <strong>Reminder:</strong> Informational only. Not legal advice.
+          </div>
+        </aside>
+      </div>
+
     </div>
   </main>
-
-  <script>
-    function buildInvite() {
-      const origin = window.location.origin || "";
-      const portal = origin ? origin + "/attorney-portal.html" : "/attorney-portal.html";
-      const start = origin ? origin + "/home.html" : "/home.html";
-      const risk = origin ? origin + "/high-conflict-risk-awareness.html" : "/high-conflict-risk-awareness.html";
-
-      return `Subject: Orientation before our next meeting
-
-Before we meet, please review this orientation resource. It is decision support / procedural orientation only (not legal advice).
-The goal is to reduce confusion and help you organize the key facts, dates, and documents so we can use our time efficiently.
-
-Start here: ${start}
-If conflict is escalating, review: ${risk}
-
-Come prepared with: timeline of events, all orders, most recent filings, and a short list of the outcomes you want.
-
-(Attorney preview / portal): ${portal}
-`;
-    }
-
-    async function copyToClipboard(text) {
-      try {
-        await navigator.clipboard.writeText(text);
-        return true;
-      } catch (e) {
-        const ta = document.createElement('textarea');
-        ta.value = text;
-        document.body.appendChild(ta);
-        ta.select();
-        const ok = document.execCommand('copy');
-        document.body.removeChild(ta);
-        return ok;
-      }
-    }
-
-    const inviteBtn = document.getElementById('copyInvite');
-    const linkBtn = document.getElementById('copyLink');
-
-    if (inviteBtn) {
-      inviteBtn.addEventListener('click', async () => {
-        const ok = await copyToClipboard(buildInvite());
-        alert(ok ? 'Template copied.' : 'Could not copy. Copy manually.');
-      });
-    }
-
-    if (linkBtn) {
-      linkBtn.addEventListener('click', async () => {
-        const href = window.location.origin
-          ? window.location.origin + '/attorney-portal.html'
-          : '/attorney-portal.html';
-        const ok = await copyToClipboard(href);
-        alert(ok ? 'Link copied.' : 'Could not copy. Copy manually.');
-      });
-    }
-  </script>
-  <script src="i18n.js"></script>
 </body>
 </html>
