@@ -5,9 +5,17 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Log In — SharpeSystem</title>
   <link rel="stylesheet" href="/styles.css" />
-</head>
-<body>
 
+  <!-- Prevent "login form flash" while auth state is being checked -->
+  <style>
+    html.auth-checking body { visibility: hidden; }
+  </style>
+  <script>
+    document.documentElement.classList.add("auth-checking");
+  </script>
+</head>
+
+<body>
   <!-- Shared header/nav -->
   <div id="site-header"></div>
   <script src="/header-loader.js" defer></script>
@@ -33,21 +41,14 @@
 
         <div class="footer-links" style="margin-top:16px;">
           <a href="/home.html">Back to Home</a> <span class="sep">·</span>
-          <a href="/tier1.html">Sharpe Legal</a> <span class="sep">·</span>
-          <a href="/attorney-invite.html">For Attorneys</a>
+          <a href="/tier1.html">Sharpe Legal</a>
+          <span class="sep">·</span>
+          <a href="/binder/attorney-invite.html">For Attorneys</a>
         </div>
       </form>
     </div>
   </main>
 
   <script type="module" src="/login.js"></script>
-  <script>
-  document.addEventListener("DOMContentLoaded", function () {
-    const emailField = document.getElementById("email");
-    if (emailField) {
-      emailField.focus();
-    }
-  });
-</script>
 </body>
 </html>
