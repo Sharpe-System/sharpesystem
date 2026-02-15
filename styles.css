@@ -369,3 +369,19 @@ html[data-theme="light"] .lang-toggle{
   border-color: rgba(0,0,0,.10);
   background: rgba(0,0,0,.03);
 }
+/* Header toggle button (language / future toggles) */
+.nav-toggle{
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--soft);
+  padding: 7px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.10);
+  background: rgba(255,255,255,.03);
+  cursor: pointer;
+}
+.nav-toggle:hover{
+  color: var(--text);
+  border-color: rgba(255,255,255,.18);
+  background: rgba(255,255,255,.05);
+}
