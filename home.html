@@ -2,103 +2,94 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Home — SharpeSystem</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>SharpeSystem — Home</title>
   <link rel="stylesheet" href="/styles.css" />
+  <style>
+    .page{min-height:100vh;padding:32px 16px;}
+    .container{max-width:1100px;margin:0 auto;}
+    .header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;
+      background:var(--panel);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow);}
+    .brand{display:flex;flex-direction:column;gap:2px;}
+    .brand b{font-size:16px;}
+    .brand span{font-size:12px;color:var(--muted);font-weight:800;}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+    .btn{appearance:none;border:1px solid var(--border);border-radius:12px;padding:10px 12px;cursor:pointer;
+      font-weight:900;text-decoration:none;display:inline-flex;align-items:center;gap:10px;}
+    .btn.primary{background:var(--accent);color:#071018;}
+    .btn.secondary{background:transparent;color:var(--text);}
+    .hero{margin-top:18px;background:var(--panel);border:1px solid var(--border);border-radius:18px;padding:26px;box-shadow:var(--shadow);}
+    h1{margin:0 0 10px;font-size:38px;}
+    .sub{margin:0;color:var(--muted);line-height:1.5;max-width:70ch;}
+    .cards{margin-top:14px;display:grid;gap:14px;grid-template-columns:1fr;}
+    @media(min-width:900px){.cards{grid-template-columns:1fr 1fr;}}
+    .card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:16px;}
+    .card h2{margin:0 0 8px;font-size:18px;}
+    .card p{margin:0;color:var(--muted);line-height:1.45;}
+    .pill{display:inline-block;margin-top:10px;padding:6px 10px;border-radius:999px;border:1px solid var(--border);color:var(--muted);font-size:12px;}
+  </style>
 </head>
-
 <body>
-  <!-- Shared header/nav -->
-  <div id="site-header"></div>
-  <script>
-    fetch('/partials/header.html')
-      .then(r => r.text())
-      .then(html => { document.getElementById('site-header').innerHTML = html; })
-      .catch(() => {});
-  </script>
-
   <main class="page">
-    <div class="container content">
+    <div class="container">
 
-      <section class="page-hero" aria-label="Home hero">
+      <header class="header">
+        <div class="brand">
+          <b>SharpeSystem</b>
+          <span>Procedural orientation + decision support</span>
+        </div>
+        <div class="row">
+          <a class="btn secondary" href="/tier1.html">Sharpe Legal</a>
+          <a id="loginLink" class="btn primary" href="/login.html?next=/dashboard.html">Log in</a>
+        </div>
+      </header>
+
+      <section class="hero">
         <h1>SharpeSystem</h1>
         <p class="sub">
-          Procedural orientation and decision support for high-stakes situations.
-          Calm, structured, and non-directive — <strong>informational only</strong>.
-        </p>
-      </section>
-
-      <section class="card" aria-label="Primary starting points">
-        <h2>Start here</h2>
-        <p>
-          Pick the closest entry point. The goal is to help you get oriented, identify deadlines, and reduce avoidable mistakes —
-          without turning this into legal advice or strategy.
+          Calm, structured, non-directive workflows for high-stakes situations — starting with family court and custody.
         </p>
 
-        <div class="hr"></div>
-
-        <h2>Primary paths</h2>
-        <ul>
-          <li>
-            <a href="/trees.html"><strong>Decision Trees</strong></a> — choose the branch that matches your situation
-          </li>
-          <li>
-            <a href="/triage.html"><strong>Triage</strong></a> — “I don’t know what I’m dealing with; help me classify it”
-          </li>
-          <li>
-            <a href="/amicable.html"><strong>Resolve This Amicably</strong></a> — structured communication to reduce friction early
-          </li>
-          <li>
-           <li>
-  <a href="high-conflict-risk-awareness.html"><strong>Risk Awareness</strong></a> — neutral education on escalation patterns and ambiguity risk
-</li>
-<li>
-  <a href="status.html"><strong>Status</strong></a> — what this is / what it is not
-</li>
-<li>
-  <a href="attorney-invite.html"><strong>For Attorneys</strong></a> — attorney invite + portal proof of concept
-</li>
-
-
-        <div class="cta-row">
-          <a class="button primary" href="/trees.html">Go to Decision Trees</a>
-          <a class="button" href="/triage.html">Start with Triage</a>
-        </div>
-
-        <div class="note" role="note" aria-label="Scope note">
-          <strong>Scope:</strong> This site is educational. It does not provide legal advice, legal strategy, or jurisdiction-specific rules.
-          If you have immediate safety concerns, contact local emergency services.
-        </div>
-      </section>
-
-      <section class="card" aria-label="How to use this">
-        <h2>How to use this (without getting lost)</h2>
-        <ul>
-          <li><strong>Anchor on time:</strong> if you have a hearing or deadline, start there.</li>
-          <li><strong>Keep it narrow:</strong> focus on one issue at a time.</li>
-          <li><strong>Prefer clarity over narrative:</strong> systems respond to clean records and simple timelines.</li>
-        </ul>
-
-        <div class="bottom-nav" aria-label="Quick navigation">
-          <div class="left">
-            <a class="button" href="/status.html">Read Status</a>
-            <a class="button" href="/amicable.html">Amicable Path</a>
+        <div class="cards">
+          <div class="card">
+            <h2>Sharpe Legal</h2>
+            <p>Tier 1: intake + checklists + launchable templates. Clear next actions, not chaos.</p>
+            <div class="row" style="margin-top:12px;">
+              <a class="btn primary" href="/tier1.html">View Tier 1</a>
+              <a class="btn secondary" href="/login.html?next=/app.html">Go to App</a>
+            </div>
+            <span class="pill">Public → Login → App (gated)</span>
           </div>
-          <div class="right">
-            <span class="hint">If conflict is rising:</span>
-            <a class="button primary" href="/high-conflict-risk-awareness.html">Risk Awareness</a>
-          </div>
-        </div>
 
-        <div class="footer">
-          <div><strong>Reminder:</strong> Informational only. Not legal advice. Not strategy.</div>
-          <div style="margin-top:6px;">
-            If you’re unsure what category you’re in, start with <code class="inline">Triage</code>.
+          <div class="card">
+            <h2>Account</h2>
+            <p>Dashboard is your stable signed-in hub: status, tier, and links to the next pages.</p>
+            <div class="row" style="margin-top:12px;">
+              <a class="btn secondary" href="/login.html?next=/dashboard.html">Sign in to Dashboard</a>
+            </div>
+            <span class="pill">Public → Login → Dashboard</span>
           </div>
         </div>
       </section>
 
     </div>
   </main>
+
+  <script>
+    // Durable "next" handling: only allow internal paths, prevent /undefined and external redirects.
+    (function () {
+      const params = new URLSearchParams(location.search);
+      const rawNext = params.get("next");
+      const safeNext = (v, fallback) => {
+        if (!v) return fallback;
+        if (v === "undefined" || v === "null") return fallback;
+        if (!v.startsWith("/")) return fallback;
+        if (v.startsWith("//")) return fallback;
+        return v;
+      };
+      const next = safeNext(rawNext, "/dashboard.html");
+      document.getElementById("loginLink").href = `/login.html?next=${encodeURIComponent(next)}`;
+    })();
+  </script>
 </body>
 </html>
