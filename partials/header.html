@@ -1,29 +1,24 @@
-<!-- /partials/header.html -->
 <header class="site-header">
   <nav class="main-nav" aria-label="Primary">
-    <a href="/home.html" class="brand" data-i18n="brand">SharpeSystem</a>
+    <a href="/home" class="brand" data-i18n="brand">SharpeSystem</a>
 
     <div class="nav-links">
-      <a href="/home.html" data-i18n="nav.home">Home</a>
-      <a href="/trees.html" data-i18n="nav.trees">Decision Trees</a>
-      <a href="/status.html" data-i18n="nav.status">Status</a>
+      <a href="/home" data-i18n="nav.home">Home</a>
+      <a href="/trees" data-i18n="nav.trees">Decision Trees</a>
+      <a href="/status" data-i18n="nav.status">Status</a>
 
-      <!-- Attorney path (Portal is NOT in header) -->
-      <a href="/binder/attorney-invite.html" data-i18n="nav.attorneys">For Attorneys</a>
+      <!-- Attorney path: ONLY "For Attorneys" in header -->
+      <a href="/binder/attorney-invite" data-i18n="nav.attorneys">For Attorneys</a>
 
       <!-- Keep Risk emphasized -->
-      <a href="/high-conflict-risk-awareness.html" class="nav-emphasis" data-i18n="nav.risk">Risk Awareness</a>
+      <a href="/high-conflict-risk-awareness" class="nav-emphasis" data-i18n="nav.risk">Risk Awareness</a>
 
-      <!-- Auth-aware nav: these are toggled by /header-auth.js -->
-      <a id="navDashboard" class="hidden" href="/dashboard.html">Dashboard</a>
-      <a id="navLogin" href="/login.html?next=/dashboard.html">Log in</a>
-      <button id="navLogout" class="nav-toggle hidden" type="button">Log out</button>
+      <!-- Account (dynamic) -->
+      <a id="navAccount" href="/login?next=/dashboard">Log in</a>
+      <button id="navLogout" class="btn secondary" type="button" style="display:none;">Log out</button>
 
       <!-- Language toggle -->
       <button id="langToggle" class="lang-toggle" type="button" data-i18n="toggle.lang">ES</button>
     </div>
   </nav>
 </header>
-
-<!-- Auth-aware nav wiring -->
-<script type="module" src="/header-auth.js"></script>
