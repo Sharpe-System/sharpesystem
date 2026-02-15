@@ -1,8 +1,10 @@
 // /i18n.js
-// English default. Spanish optional. Re-applies after header partial inject.
+// English default. Spanish optional.
+// Re-applies once after header partial injection.
 
 (function () {
   const STORAGE_KEY = "sharpe_lang"; // "en" | "es"
+  const HEADER_EVENT = "sharpe:header:loaded";
 
   const dict = {
     en: {
@@ -60,23 +62,23 @@
     applyLang(next);
   }
 
-  // Delegated click listener
+  // Click handler (works even if header injected later)
   document.addEventListener("click", (e) => {
-    if (e.target && e.target.id === "langToggle") {
+    const t = e.target;
+    if (t && t.id === "langToggle") {
       e.preventDefault();
       toggleLang();
     }
   });
 
-  // Initial apply
+  // Apply now
   applyLang(getLang());
 
-  // Re-apply only when header is injected
-  const headerEl = document.getElementById("site-header");
-  if (headerEl) {
-    const obs = new MutationObserver(() => {
-      applyLang(getLang());
-    });
-    obs.observe(headerEl, { childList: true });
-  }
+  // Re-apply once after header injection
+  let reapplied = false;
+  document.addEventListener(HEADER_EVENT, () => {
+    if (reapplied) return;
+    reapplied = true;
+    applyLang(getLang());
+  });
 })();
