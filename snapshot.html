@@ -3,112 +3,41 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Snapshot</title>
+  <title>Snapshot — Sharpe Legal</title>
   <link rel="stylesheet" href="/styles.css" />
   <style>
-    .page{padding: 26px 18px 60px;}
-    .container{max-width: 980px;margin: 0 auto;}
-    .wrap{
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      background: linear-gradient(180deg, rgba(16,24,38,.86), rgba(15,22,34,.86));
-      padding: 22px;
-    }
-    html[data-theme="light"] .wrap{
-      background: linear-gradient(180deg, rgba(255,255,255,.90), rgba(244,247,251,.92));
-    }
-    .top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;}
-    .meta{color: var(--muted); font-size: 13px; line-height: 1.5;}
-    .pill{display:inline-block;padding:6px 10px;border-radius:999px;border:1px solid var(--border);color:var(--muted);font-size:12px;}
+    .page{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:40px 16px;}
+    .box{max-width:980px;width:100%;background:var(--panel);border:1px solid var(--border);border-radius:18px;padding:26px;box-shadow:var(--shadow);}
     .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;}
-    .btn{
-      appearance:none;border:1px solid var(--border);
-      border-radius:999px;padding:12px 16px;cursor:pointer;font-weight:760;font-size:14px;
-      background: rgba(255,255,255,.04); color: var(--text);
-    }
-    .btn.primary{
-      border:none;color:#061019;
-      background: linear-gradient(90deg, var(--accent), var(--accent2));
-    }
-    html[data-theme="light"] .btn.primary{ color:#fff; }
-
-    .grid{display:grid;grid-template-columns: 1fr;gap:14px;margin-top: 16px;}
-    @media(min-width: 900px){ .grid{grid-template-columns: 1fr 1fr;} }
-    .card{
-      padding: 14px;
-      border-radius: var(--radius);
-      border: 1px solid var(--border);
-      background: rgba(255,255,255,.03);
-    }
-    .card h2{margin:0 0 8px;font-size:16px;}
-    .kv{display:grid;grid-template-columns: 160px 1fr;gap:8px 12px;font-size:14px;}
-    .k{color: var(--soft); font-weight: 760;}
-    .v{color: var(--text);}
-    .facts{white-space: pre-wrap; color: var(--muted); line-height: 1.55;}
-    .msg{margin-top: 10px; color: var(--muted); font-size: 13px;}
-
-    /* Print-friendly */
-    @media print{
-      .site-header, .row, .pill { display:none !important; }
-      body{ background: #fff !important; }
-      .wrap{ box-shadow: none !important; background: #fff !important; border: none !important; padding: 0 !important; }
-      .card{ background: #fff !important; }
-      a{ color:#000 !important; text-decoration:none !important; }
-    }
+    .btn{appearance:none;border:1px solid var(--border);border-radius:12px;padding:12px 14px;cursor:pointer;font-weight:900;}
+    .btn.primary{background:var(--accent);color:#071018;}
+    .btn.secondary{background:transparent;color:var(--text);}
+    .card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:16px;margin-top:12px;}
+    .mono{white-space:pre-wrap;font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;font-size:13px;color:var(--text);}
+    .muted{color:var(--muted);}
   </style>
 </head>
 <body>
-
-  <!-- Shared header/nav -->
-  <div id="site-header"></div>
-  <script>
-    fetch('/partials/header.html')
-      .then(r => r.text())
-      .then(html => { document.getElementById('site-header').innerHTML = html; })
-      .catch(() => {});
-  </script>
-
   <main class="page">
-    <div class="container">
-      <section class="wrap">
-        <div class="top">
-          <div>
-            <h1>Case Snapshot</h1>
-            <div class="meta" id="meta">Loading…</div>
-            <span class="pill">Printable output</span>
-          </div>
+    <section class="box">
+      <h1>Snapshot</h1>
+      <p class="sub">Auto-generated from your intake. Clean. Exportable. No adjectives.</p>
 
-          <div class="row">
-            <button class="btn primary" type="button" onclick="window.print()">Print</button>
-            <button class="btn" type="button" onclick="location.href='/start.html'">New Intake</button>
-            <button class="btn" type="button" onclick="location.href='/app.html'">Back to App</button>
-          </div>
-        </div>
+      <div class="card">
+        <div id="snap" class="mono">Loading…</div>
+      </div>
 
-        <div id="msg" class="msg"></div>
+      <div class="row">
+        <button id="copyBtn" class="btn primary" type="button">Copy Snapshot</button>
+        <button class="btn secondary" type="button" onclick="location.href='/timeline.html'">Timeline</button>
+        <button class="btn secondary" type="button" onclick="location.href='/checklist.html'">Checklist</button>
+        <button class="btn secondary" type="button" onclick="location.href='/app.html'">Back to App</button>
+      </div>
 
-        <div class="grid">
-          <div class="card">
-            <h2>Core</h2>
-            <div class="kv" id="coreKv"></div>
-          </div>
-
-          <div class="card">
-            <h2>Documents (provided)</h2>
-            <div class="facts" id="docsList"></div>
-          </div>
-
-          <div class="card" style="grid-column: 1 / -1;">
-            <h2>Core Facts</h2>
-            <div class="facts" id="facts"></div>
-          </div>
-        </div>
-      </section>
-    </div>
+      <div id="msg" class="muted" style="margin-top:10px;"></div>
+    </section>
   </main>
 
-  <script src="/i18n.js"></script>
   <script type="module" src="/snapshot.js"></script>
 </body>
 </html>
