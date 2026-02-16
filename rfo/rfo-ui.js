@@ -7,6 +7,11 @@
       but prevents focus from escaping the current step (wrap only at edges)
    ✅ Support gating: if childrenCount becomes 0, support is auto-unchecked and cannot appear later
    ✅ Orders->Other text: enabled when Other OR Emergency is checked (prevents dead-ends)
+
+   NEW in THIS version:
+   ✅ Disaster-proof persistence: localStorage backup on every change
+   ✅ Refresh/resume: returns to last step + restores answers even if offline/auth fails
+   ✅ Finish routing: goes to /pricing.html (account + tier selection) instead of dashboard
 */
 
 (function () {
@@ -38,11 +43,53 @@
     statusEl.textContent = msg || "";
   }
 
+  // ---------------------------------------------------------
+  // Disaster-proof local backup (refresh/offline safe)
+  // ---------------------------------------------------------
+  const LS_STATE_KEY = "rfo_intake_state_v1";
+  const LS_STEP_KEY  = "rfo_intake_step_v1";
+
+  function backupToLocal() {
+    try {
+      localStorage.setItem(LS_STATE_KEY, JSON.stringify(state || {}));
+      localStorage.setItem(LS_STEP_KEY, String(currentStepId || "case_info"));
+    } catch (e) {}
+  }
+
+  function restoreFromLocal() {
+    try {
+      const raw = localStorage.getItem(LS_STATE_KEY);
+      const step = localStorage.getItem(LS_STEP_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === "object") return { parsed, step };
+      }
+    } catch (e) {}
+    return { parsed: null, step: null };
+  }
+
+  function ensureShape(s) {
+    s = s || {};
+    s.meta = s.meta || {};
+    s.caseInfo = s.caseInfo || {};
+    s.ordersRequested = s.ordersRequested || {};
+    s.custody = s.custody || {};
+    s.visitation = s.visitation || {};
+    s.support = s.support || {};
+    s.emergency = s.emergency || {};
+    return s;
+  }
+
   function persist() {
     if (!state) return;
     state.meta = state.meta || {};
     state.meta.lastStepId = currentStepId;
-    window.RFO_STATE.save(state);
+
+    // Primary persistence (may be offline/authless; do not let it break the UI)
+    try { window.RFO_STATE.save(state); } catch (e) {}
+
+    // Always keep a local backup
+    backupToLocal();
   }
 
   function escapeHtml(s) {
@@ -810,7 +857,7 @@
   }
 
   // ---------------------------------------------------------
-  // STEP: Review
+  // STEP: Review (temporary JSON)
   // ---------------------------------------------------------
   function renderReview() {
     const steps = window.RFO_ROUTER.getActiveSteps(state).map(s => s.title).join(" → ");
@@ -843,6 +890,9 @@
     const steps = window.RFO_ROUTER.getActiveSteps(state);
     const exists = steps.some(s => s.id === currentStepId);
     if (!exists) currentStepId = steps[0].id;
+
+    // Save step immediately so refresh always resumes here
+    persist();
 
     if (currentStepId === "case_info") {
       renderCaseInfo().then(finalizeNav);
@@ -882,8 +932,11 @@
   // Save/Reset
   if (btnSave) {
     btnSave.addEventListener("click", () => {
-      const ok = window.RFO_STATE.save(state);
-      setStatus(ok ? "Saved." : "Save failed.");
+      const ok = (function () {
+        try { return window.RFO_STATE.save(state); } catch (e) { return false; }
+      })();
+      backupToLocal();
+      setStatus(ok ? "Saved." : "Saved locally.");
     });
   }
 
@@ -891,9 +944,14 @@
     btnReset.addEventListener("click", () => {
       const sure = confirm("Reset Request for Order data? This clears your saved answers.");
       if (!sure) return;
-      state = window.RFO_STATE.reset();
-      state.meta = state.meta || {};
+
+      try { state = window.RFO_STATE.reset(); } catch (e) { state = {}; }
+      state = ensureShape(state);
+
       currentStepId = "case_info";
+
+      try { localStorage.removeItem(LS_STATE_KEY); localStorage.removeItem(LS_STEP_KEY); } catch (e) {}
+
       setStatus("Reset.");
       renderStep();
     });
@@ -903,6 +961,7 @@
   if (btnBack) {
     btnBack.addEventListener("click", () => {
       currentStepId = window.RFO_ROUTER.prevStepId(state, currentStepId);
+      persist();
       renderStep();
     });
   }
@@ -919,32 +978,56 @@
       const idx = steps.findIndex(s => s.id === currentStepId);
 
       if (idx >= steps.length - 1) {
-        window.RFO_STATE.save(state);
-        setStatus("Saved. Returning to dashboard…");
+        // FINALIZE: save + route to pricing/account instead of dashboard
+        try { window.RFO_STATE.save(state); } catch (e) {}
+        backupToLocal();
+
+        setStatus("Saved. Next: create account / choose a tier…");
         setTimeout(() => {
-          window.location.href = "/dashboard.html";
+          window.location.href = "/pricing.html";
         }, 250);
         return;
       }
 
       currentStepId = window.RFO_ROUTER.nextStepId(state, currentStepId);
+      persist();
       renderStep();
     });
   }
 
-  // ✅ Single init (this replaces any prior duplicate init blocks)
+  // ✅ Single init (with local restore fallback)
   (function init() {
     setStatus("Loading…");
+
+    const local = restoreFromLocal();
+
     Promise.resolve(window.RFO_STATE.load())
       .then((loaded) => {
-        state = loaded;
-        state.meta = state.meta || {};
-        currentStepId = state.meta.lastStepId ? state.meta.lastStepId : "case_info";
+        state = ensureShape(loaded);
+
+        // If primary load is empty/invalid, recover from local backup
+        if (!state || typeof state !== "object" || !state.caseInfo) {
+          state = ensureShape(local.parsed);
+        }
+
+        // Prefer local last-step if present (most reliable for refresh resume)
+        currentStepId = String(local.step || state.meta.lastStepId || "case_info");
+
         setStatus("Ready.");
         renderStep();
       })
       .catch((err) => {
         console.error(err);
+
+        // Total fallback: local backup
+        if (local.parsed) {
+          state = ensureShape(local.parsed);
+          currentStepId = String(local.step || "case_info");
+          setStatus("Recovered locally.");
+          renderStep();
+          return;
+        }
+
         setStatus("Load failed. Try refresh.");
       });
   })();
