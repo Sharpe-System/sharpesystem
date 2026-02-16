@@ -1,24 +1,23 @@
 /* /dashboard.js
-   Dashboard session check (no getAuth() calls here).
-   Uses frozen firebase-config exports to avoid "getProvider" crash.
+   Fix: never call getAuth() here.
+   Use getAuthStateOnce + getUserProfile from firebase-config.js.
 */
 
 import { getAuthStateOnce, getUserProfile } from "/firebase-config.js";
 
 function $(id) { return document.getElementById(id); }
 
-const tierEl = $("tierValue") || $("tier");        // supports either id
-const activeEl = $("activeValue") || $("active");  // supports either id
-const statusEl = $("statusLine") || $("status");   // supports either id
+const tierEl = $("tierValue") || $("tier");
+const activeEl = $("activeValue") || $("active");
+const statusEl = $("statusLine") || $("status");
 
-function setText(el, text) { if (el) el.textContent = text; }
+function setText(el, text) { if (el) el.textContent = text || ""; }
 
 (async function init() {
   try {
     setText(statusEl, "Checking session…");
 
     const { user } = await getAuthStateOnce();
-
     if (!user) {
       setText(statusEl, "Not logged in.");
       setText(tierEl, "—");
@@ -27,9 +26,8 @@ function setText(el, text) { if (el) el.textContent = text; }
     }
 
     const profile = await getUserProfile(user.uid);
-
-    const tier = (profile && profile.tier) ? profile.tier : "free";
-    const active = (profile && typeof profile.active === "boolean") ? profile.active : false;
+    const tier = profile?.tier || "free";
+    const active = (typeof profile?.active === "boolean") ? profile.active : false;
 
     setText(statusEl, "Session active.");
     setText(tierEl, tier);
@@ -37,7 +35,5 @@ function setText(el, text) { if (el) el.textContent = text; }
   } catch (e) {
     console.error(e);
     setText(statusEl, "Session check failed. See console.");
-    setText(tierEl, "—");
-    setText(activeEl, "—");
   }
 })();
