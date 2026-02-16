@@ -27,13 +27,6 @@
     return !!(o.custody || o.visitation || o.support || o.attorneyFees || o.other);
   }
 
-  
-    if (!o) return false;
-    // Emergency checked, and no other order type checked.
-    const anyOther = !!(o.custody || o.visitation || o.support || o.attorneyFees || o.other);
-    return !!o.emergency && !anyOther;
-  }
-
   function buildSteps(state) {
     const steps = [
       { id: "case_info", title: "Case Information" },
