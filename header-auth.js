@@ -1,64 +1,57 @@
-import app from "/firebase-config.js";
-import {
-  getAuth,
-  onAuthStateChanged,
-  signOut
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import {
-  getFirestore,
-  doc,
-  getDoc
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+// /header-auth.js
+// Frozen AUTH CORE helper:
+// - Updates header auth UI if elements exist
+// - Provides logout action
+// - Does not redirect or gate pages (gate.js owns gating)
 
-const auth = getAuth(app);
-const db = getFirestore(app);
+import { getAuthStateOnce, getUserProfile, auth } from "/firebase-config.js";
+import { signOut } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
 
-function removeAuthChecking() {
-  document.documentElement.classList.remove("auth-checking");
+function qs(sel) { return document.querySelector(sel); }
+
+function safeText(el, txt) {
+  if (!el) return;
+  el.textContent = txt;
 }
 
-function redirect(path) {
-  window.location.replace(path);
+function show(el, on) {
+  if (!el) return;
+  el.style.display = on ? "" : "none";
 }
 
-onAuthStateChanged(auth, async (user) => {
-  try {
-    const requireAuth = document.body.dataset.requireAuth === "1";
-    const requireTier = document.body.dataset.requireTier;
+(async function headerAuthBoot() {
+  // Optional hooks (use whichever your header has):
+  const elUser = qs("[data-auth-user]");          // span/div for "Signed in as..."
+  const elTier = qs("[data-auth-tier]");          // badge/label
+  const elLogin = qs("[data-auth-login]");        // link/button -> login
+  const elLogout = qs("[data-auth-logout]");      // button -> logout
 
-    if (!requireAuth) {
-      removeAuthChecking();
-      return;
-    }
+  // If nothing exists, do nothing.
+  if (!elUser && !elTier && !elLogin && !elLogout) return;
 
-    if (!user) {
-      redirect(`/login.html?next=${encodeURIComponent(location.pathname)}`);
-      return;
-    }
+  const { user } = await getAuthStateOnce();
 
-    if (!requireTier) {
-      removeAuthChecking();
-      return;
-    }
-
-    const snap = await getDoc(doc(db, "users", user.uid));
-
-    if (!snap.exists()) {
-      redirect("/tier1.html");
-      return;
-    }
-
-    const data = snap.data() || {};
-
-    if (data.tier !== requireTier || data.active !== true) {
-      redirect("/tier1.html");
-      return;
-    }
-
-    removeAuthChecking();
-
-  } catch (err) {
-    console.error(err);
-    removeAuthChecking();
+  if (!user) {
+    show(elLogin, true);
+    show(elLogout, false);
+    safeText(elUser, "");
+    safeText(elTier, "");
+    return;
   }
-});
+
+  show(elLogin, false);
+  show(elLogout, true);
+
+  safeText(elUser, user.email || "Signed in");
+  const profile = await getUserProfile(user.uid);
+  safeText(elTier, (profile?.tier || "free").toString());
+
+  if (elLogout) {
+    elLogout.addEventListener("click", async (e) => {
+      e.preventDefault();
+      try { await signOut(auth); } catch {}
+      // No redirect here. If page requires auth, gate.js on reload/navigation will handle.
+      window.location.reload();
+    }, { once: true });
+  }
+})();
