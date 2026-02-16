@@ -1,13 +1,20 @@
 /* /rfo/rfo-state.js
    SharpeSystem — Request for Order (RFO) module
-   Purpose: Single source of truth + persistence layer (localStorage).
-   Structure-first. Design later.
+   Firestore-backed persistence layer
+   Replaces localStorage with per-user document storage.
 */
 
 (function () {
   "use strict";
 
-  const STORAGE_KEY = "sharpe_rfo_state_v1";
+  // ---- REQUIREMENTS ----
+  // firebase-config.js must initialize:
+  //   window.firebaseApp
+  //   window.firebaseAuth
+  //   window.firebaseDB
+
+  const COLLECTION = "modules";
+  const DOC_ID = "rfo";
 
   function nowISO() {
     try { return new Date().toISOString(); } catch (e) { return ""; }
@@ -26,19 +33,17 @@
         lastStepId: "case_info"
       },
 
-      // SECTION 1 — Case Information
       caseInfo: {
-        state: "",             // CA, TX, etc (keep generic)
+        state: "",
         county: "",
         courthouse: "",
         caseNumber: "",
         petitioner: "",
         respondent: "",
-        relationship: "marriage", // marriage | parentage | domestic_partnership | other
+        relationship: "marriage",
         childrenCount: 0
       },
 
-      // SECTION 2 — Orders Requested
       ordersRequested: {
         custody: false,
         visitation: false,
@@ -49,52 +54,46 @@
         emergency: false
       },
 
-      // SECTION 3 — Custody (Work Block 3)
       custody: {
-        legalCustodyRequested: "",   // joint | sole | ""
-        physicalCustodyRequested: "",// joint | sole | ""
-        primaryTimeshareRequested: "",// me | other | equal | ""
-        exchangeLocation: "",        // school | police_station | other | ""
+        legalCustodyRequested: "",
+        physicalCustodyRequested: "",
+        primaryTimeshareRequested: "",
+        exchangeLocation: "",
         exchangeLocationOther: "",
         notes: ""
       },
 
-      // SECTION 4 — Visitation (Work Block 3)
       visitation: {
-        scheduleText: "",          // freeform description
-        supervisionRequested: "",  // none | supervised | ""
+        scheduleText: "",
+        supervisionRequested: "",
         supervisionDetails: ""
       },
 
-      // SECTION 5 — Support (Work Block 3)
       support: {
-        childSupportRequested: "",     // establish | modify | terminate | ""
-        spousalSupportRequested: "",   // establish | modify | terminate | n_a | ""
+        childSupportRequested: "",
+        spousalSupportRequested: "",
         guidelineRequested: true,
         requestedEffectiveDate: "",
         notes: ""
       },
 
-      // Emergency Addendum (Work Block 3 toggle behavior)
       emergency: {
-        immediateHarmRisk: "",        // yes | no | ""
+        immediateHarmRisk: "",
         harmDescription: "",
         recentIncidentDate: "",
-        policeReportFiled: "",        // yes | no | ""
+        policeReportFiled: "",
         policeAgency: "",
         policeReportNumber: "",
-        priorOrdersExist: "",         // yes | no | ""
+        priorOrdersExist: "",
         priorOrdersDescription: ""
       }
     };
   }
 
   function normalizeState(raw) {
-    // Basic guardrails so older/bad state does not crash UI.
     const base = defaultState();
     if (!raw || typeof raw !== "object") return base;
 
-    // Merge shallowly by top-level keys; nested keys default if missing.
     const merged = deepClone(base);
 
     for (const k of Object.keys(base)) {
@@ -107,11 +106,9 @@
       }
     }
 
-    // Meta sanity
-    merged.meta = Object.assign({}, base.meta, (raw.meta || {}));
+    merged.meta = Object.assign({}, base.meta, raw.meta || {});
     merged.meta.updatedAt = nowISO();
 
-    // Keep lastStepId safe
     if (!merged.meta.lastStepId || typeof merged.meta.lastStepId !== "string") {
       merged.meta.lastStepId = "case_info";
     }
@@ -119,43 +116,70 @@
     return merged;
   }
 
-  function load() {
+  // ---- FIRESTORE HELPERS ----
+
+  async function getUserDocRef() {
+    const auth = window.firebaseAuth;
+    const db = window.firebaseDB;
+
+    const user = auth.currentUser;
+    if (!user) return null;
+
+    return window.firebaseDoc(db, "users", user.uid, COLLECTION, DOC_ID);
+  }
+
+  async function load() {
     try {
-      const txt = localStorage.getItem(STORAGE_KEY);
-      if (!txt) return defaultState();
-      const parsed = JSON.parse(txt);
-      return normalizeState(parsed);
+      const ref = await getUserDocRef();
+      if (!ref) return defaultState();
+
+      const snap = await window.firebaseGetDoc(ref);
+      if (!snap.exists()) {
+        return defaultState();
+      }
+
+      return normalizeState(snap.data());
     } catch (e) {
+      console.error("RFO load error:", e);
       return defaultState();
     }
   }
 
-  function save(state) {
+  async function save(state) {
     try {
+      const ref = await getUserDocRef();
+      if (!ref) return false;
+
       const s = deepClone(state);
       if (!s.meta) s.meta = {};
       s.meta.updatedAt = nowISO();
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
+
+      await window.firebaseSetDoc(ref, s, { merge: true });
       return true;
     } catch (e) {
+      console.error("RFO save error:", e);
       return false;
     }
   }
 
-  function reset() {
+  async function reset() {
     try {
-      localStorage.removeItem(STORAGE_KEY);
-    } catch (e) {}
+      const ref = await getUserDocRef();
+      if (ref) {
+        await window.firebaseSetDoc(ref, defaultState(), { merge: false });
+      }
+    } catch (e) {
+      console.error("RFO reset error:", e);
+    }
     return defaultState();
   }
 
-  // Expose a small API for router/ui.
   window.RFO_STATE = {
-    STORAGE_KEY,
     defaultState,
     load,
     save,
     reset,
     normalizeState
   };
+
 })();
