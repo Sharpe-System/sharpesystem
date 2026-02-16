@@ -11,7 +11,11 @@
   <script src="/header-loader.js"></script>
 </head>
 
-<body>
+<body
+  data-require-auth="1"
+  data-require-tier="tier1"
+  data-next="/rfo/index.html"
+>
   <!-- Centralized header -->
   <div id="headerMount"></div>
 
@@ -50,9 +54,13 @@
     </div>
   </main>
 
-  <!-- Core: state → router → ui -->
+  <!-- Auth gate first -->
+  <script type="module" src="/gate.js"></script>
+
+  <!-- Core: state → router → locations → ui -->
   <script src="/rfo/rfo-state.js"></script>
   <script src="/rfo/rfo-router.js"></script>
+  <script src="/rfo/rfo-locations.js"></script>
   <script src="/rfo/rfo-ui.js"></script>
 </body>
 </html>
