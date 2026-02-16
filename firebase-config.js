@@ -18,12 +18,12 @@ import {
  * Keep it here only; do not duplicate init elsewhere.
  */
 const firebaseConfig = {
-  apiKey: "REPLACE_ME",
-  authDomain: "REPLACE_ME",
-  projectId: "REPLACE_ME",
-  storageBucket: "REPLACE_ME",
-  messagingSenderId: "REPLACE_ME",
-  appId: "REPLACE_ME",
+  apiKey: "AIzaSyDhpiApUlhDz-hADnBfGE5Q9FLCGgkk9d4",
+  authDomain: "sharpe-legal.firebaseapp.com",
+  projectId: "sharpe-legal",
+  storageBucket: "sharpe-legal.firebasestorage.app",
+  messagingSenderId: "770027799385",
+  appId: "1:770027799385:web:64c3f7bd4b7a140f5c0248",
 };
 
 export const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
