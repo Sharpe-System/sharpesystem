@@ -71,26 +71,39 @@
 
   // --- Validation ---------------------------------------------------------
 
-  function validateOrdersRequested(state) {
+  function validateStep(state, stepId) {
   const missing = [];
-  const o = state.ordersRequested || {};
 
-  // Must select at least one order type OR emergency
-  if (!anyOrderSelected(o) && !o.emergency) {
-    missing.push("Select at least one order requested");
-    return missing;
+  // Safety: never hard-crash navigation due to a missing validator
+  function callValidator(fnName) {
+    const fn = (typeof window !== "undefined" ? window[fnName] : undefined) || (typeof fnName === "function" ? fnName : undefined);
+    if (typeof fn === "function") {
+      const out = fn(state);
+      if (Array.isArray(out) && out.length) missing.push(...out);
+      return;
+    }
+    // If a validator is referenced but not defined, do NOT block Next — just warn.
+    console.warn(`[RFO_ROUTER] Validator missing: ${fnName} (step: ${stepId}). Allowing navigation.`);
   }
 
-  // Support cannot be selected when childrenCount=0
-  if (o.support && !hasChildren(state)) {
-    missing.push("Support cannot be selected when no children are entered");
-  }
+  // Map step id -> validator function name (string)
+  // IMPORTANT: this matches your step ids used in rfo-ui.js
+  const map = {
+    case_info: "validateCaseInfo",
+    orders_requested: "validateOrdersRequested",
+    custody: "validateCustody",
+    visitation: "validateVisitation",
+    support: "validateSupport",
+    emergency: "validateEmergency",
+    review: null
+  };
 
-  // If Other is selected, require otherText
-  if (o.other && !normalizeStr(o.otherText)) {
-    missing.push("Describe the 'Other' orders requested");
-  }
+  const vName = map[stepId];
 
+  if (!vName) return missing;
+  callValidator(vName);
+  return missing;
+}
   return missing;
 }
 
