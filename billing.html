@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Billing — SharpeSystem</title>
+
+  <!-- Global styles -->
+  <link rel="stylesheet" href="/styles.css" />
+
+  <!-- Optional i18n loader (absolute path) -->
+  <script src="/i18n.js" defer></script>
+</head>
+<body>
+
+  <main class="page" style="max-width:1000px;margin:0 auto;padding:24px;">
+    <header style="margin-bottom:20px;">
+      <div style="font-weight:700;font-size:20px;">SharpeSystem</div>
+      <div class="muted" style="margin-top:4px;">
+        Manage your plan and billing status.
+      </div>
+    </header>
+
+    <section class="card" style="padding:20px;">
+      <h1 style="margin-top:0;">Billing</h1>
+
+      <div style="margin-top:16px;">
+        <div><strong>Current Tier:</strong> <span id="tierValue">—</span></div>
+        <div style="margin-top:6px;"><strong>Active:</strong> <span id="activeValue">—</span></div>
+      </div>
+
+      <div style="margin-top:24px;display:flex;gap:12px;flex-wrap:wrap;">
+        <button class="btn" id="btnUpgradeBasic">Upgrade to Basic</button>
+        <button class="btn" id="btnUpgradePro">Upgrade to Pro</button>
+        <button class="btn" id="btnUpgradeAttorney">Upgrade to Attorney</button>
+      </div>
+
+      <div class="muted" style="margin-top:20px;font-size:13px;">
+        If your tier does not update immediately, refresh the page after checkout.
+      </div>
+    </section>
+
+    <footer class="muted" style="margin-top:24px;">
+      <a href="/dashboard.html">Back to Dashboard</a>
+    </footer>
+  </main>
+
+  <!-- Billing logic -->
+  <script type="module" src="/billing.js"></script>
+
+</body>
+</html>
