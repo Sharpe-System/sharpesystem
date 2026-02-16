@@ -4,48 +4,88 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Log In — SharpeSystem</title>
+
   <link rel="stylesheet" href="/styles.css" />
+
+  <!-- If you use i18n site-wide, keep it absolute -->
+  <script src="/i18n.js" defer></script>
 </head>
+
 <body>
-  <!-- IMPORTANT: Do NOT load /header.js (it 404s and breaks pages) -->
+  <!-- Inline header (replaces broken /header.js) -->
+  <header class="topbar" style="position:sticky;top:0;z-index:10;">
+    <div class="wrap" style="max-width:1100px;margin:0 auto;padding:14px 18px;">
+      <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+        <div style="font-weight:800;letter-spacing:.2px;">SharpeSystem</div>
 
-  <main class="page" style="max-width:920px;margin:0 auto;padding:24px;">
-    <header style="margin-bottom:18px;">
-      <div style="font-weight:700;">SharpeSystem</div>
-      <div class="muted" style="margin-top:4px;">Access your dashboard or gated app pages.</div>
-    </header>
+        <nav class="muted" style="display:flex;gap:12px;flex-wrap:wrap;">
+          <a href="/home.html">Home</a>
+          <a href="/decision-trees.html">Decision Trees</a>
+          <a href="/status.html">Status</a>
+          <a href="/attorneys.html">For Attorneys</a>
+          <a href="/risk-awareness.html">Risk Awareness</a>
+        </nav>
 
-    <section class="card" style="padding:18px;">
-      <h1 style="margin:0 0 8px 0;">Log In</h1>
-      <p class="muted" style="margin:0 0 18px 0;">Use your email + password.</p>
+        <div style="margin-left:auto;display:flex;gap:10px;align-items:center;">
+          <a class="btn" href="/pricing.html" style="text-decoration:none;">Plans</a>
+        </div>
+      </div>
+    </div>
+    <div style="height:1px;background:rgba(255,255,255,.06);"></div>
+  </header>
 
-      <div class="rfoField" style="margin-bottom:12px;">
-        <span>Email</span>
-        <input id="email" type="email" autocomplete="email" placeholder="you@example.com" />
+  <main style="max-width:980px;margin:0 auto;padding:28px 18px 40px;">
+    <section class="card" style="padding:22px;">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;">
+        <div>
+          <h1 style="margin:0 0 6px 0;">Log In</h1>
+          <div class="muted" style="margin:0;">
+            Access your dashboard or gated app pages.
+          </div>
+        </div>
+
+        <div class="muted" style="text-align:right;font-size:12px;line-height:1.25;">
+          <div><strong>Tip:</strong> If you completed an intake first, it’s saved in this browser.</div>
+          <div>Create an account to sync it.</div>
+        </div>
       </div>
 
-      <div class="rfoField" style="margin-bottom:12px;">
-        <span>Password</span>
-        <input id="password" type="password" autocomplete="current-password" placeholder="••••••••" />
+      <div style="margin-top:18px;display:grid;grid-template-columns:1fr;gap:12px;max-width:680px;">
+        <label class="rfoField">
+          <span>Email</span>
+          <input id="email" type="email" autocomplete="email" placeholder="you@example.com" />
+        </label>
+
+        <label class="rfoField">
+          <span>Password</span>
+          <input id="password" type="password" autocomplete="current-password" placeholder="••••••••" />
+        </label>
+
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:6px;">
+          <button class="btn" id="btnLogin" type="button">Log In</button>
+          <button class="btn" id="btnSignup" type="button">Create account</button>
+
+          <span id="msg" class="muted" style="margin-left:auto;"></span>
+        </div>
+
+        <div class="muted" style="font-size:12px;margin-top:8px;">
+          By continuing, you agree that SharpeSystem is not a law firm and does not provide legal advice.
+        </div>
       </div>
 
-      <div style="display:flex;gap:10px;align-items:center;margin-top:14px;">
-        <button class="btn" id="btnLogin" type="button">Log In</button>
-        <button class="btn" id="btnSignup" type="button">Create account</button>
-        <span id="msg" class="muted" style="margin-left:auto;"></span>
-      </div>
+      <div style="height:1px;background:rgba(255,255,255,.06);margin:18px 0;"></div>
 
-      <div class="muted" style="margin-top:14px;font-size:12px;">
-        If you completed an intake before creating an account, your intake is saved locally in this browser.
-        Once logged in, you’ll be able to sync it.
+      <div class="muted" style="display:flex;gap:14px;flex-wrap:wrap;">
+        <a href="/home.html">Back to Home</a>
+        <span>·</span>
+        <a href="/pricing.html">Plans</a>
+        <span>·</span>
+        <a href="/dashboard.html">Dashboard</a>
       </div>
     </section>
-
-    <footer class="muted" style="margin-top:18px;">
-      <a href="/home.html">Back to Home</a> · <a href="/pricing.html">Plans</a>
-    </footer>
   </main>
 
+  <!-- Login logic -->
   <script type="module" src="/login.js"></script>
 </body>
 </html>
