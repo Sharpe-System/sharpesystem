@@ -1,74 +1,89 @@
 // /gate.js
-// Waits for Firebase auth resolution BEFORE redirecting.
-// Body attributes control behavior:
+// Canonical gate for all protected pages.
+// Usage: put these on <body>:
 //   data-require-auth="1"
-//   data-require-tier="tier1"
+//   data-require-tier="tier1"   (optional)
+//   data-next="/dashboard.html" (optional)
 
 import app from "/firebase-config.js";
-import {
-  getAuth,
-  onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-
-import {
-  getFirestore,
-  doc,
-  getDoc
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { safeNext } from "/safeNext.js";
 
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-function currentPathWithQuery() {
-  return window.location.pathname + window.location.search;
+function getBodyAttr(name) {
+  return document.body?.getAttribute(name) || "";
 }
 
-function goLogin() {
-  const next = encodeURIComponent(currentPathWithQuery());
-  window.location.replace(`/login?next=${next}`);
+function isEnabled(name) {
+  return getBodyAttr(name) === "1";
 }
 
-async function loadUserDoc(uid) {
-  const ref = doc(db, "users", uid);
-  const snap = await getDoc(ref);
-  return snap.exists() ? snap.data() : null;
+function requiredTier() {
+  const t = getBodyAttr("data-require-tier");
+  return t ? String(t).toLowerCase() : "";
 }
 
-function normalizeTier(v) {
-  return (v || "").toString().trim().toLowerCase();
+function nextTarget() {
+  // Prefer explicit data-next, else current path+query
+  const explicit = getBodyAttr("data-next");
+  if (explicit) return explicit;
+
+  const path = window.location.pathname || "/";
+  const qs = window.location.search || "";
+  return path + qs;
 }
 
-async function handleAuthed(user, requireTier) {
-  if (!requireTier) return;
-
-  try {
-    const data = await loadUserDoc(user.uid);
-    const tier = normalizeTier(data?.tier);
-    const active = data?.active === true;
-
-    if (tier !== normalizeTier(requireTier) || !active) {
-      window.location.replace("/tier1");
-    }
-  } catch (e) {
-    console.error("Gate doc read failed:", e);
-    // fail open to dashboard instead of looping
-    window.location.replace("/dashboard");
-  }
+function go(url) {
+  window.location.replace(url);
 }
 
-export function runGate() {
-  const requireAuth = document.body?.dataset?.requireAuth === "1";
-  const requireTier = document.body?.dataset?.requireTier || "";
+async function checkTier(user, tierReq) {
+  if (!tierReq) return true;
 
-  if (!requireAuth && !requireTier) return;
+  const snap = await getDoc(doc(db, "users", user.uid));
+  if (!snap.exists()) return false;
+
+  const data = snap.data() || {};
+  const userTier = String(data.tier || "").toLowerCase();
+
+  return userTier === tierReq;
+}
+
+(function initGate() {
+  // If page doesn't require auth, do nothing.
+  if (!isEnabled("data-require-auth")) return;
+
+  // Prevent gate running on login page (safety)
+  if ((window.location.pathname || "").startsWith("/login")) return;
+
+  const tierReq = requiredTier();
+  const next = safeNext(nextTarget(), "/dashboard.html");
 
   onAuthStateChanged(auth, async (user) => {
-    if (!user) {
-      if (requireAuth) goLogin();
-      return;
-    }
-    await handleAuthed(user, requireTier);
-  });
-}
+    try {
+      if (!user) {
+        go(`/login.html?next=${encodeURIComponent(next)}`);
+        return;
+      }
 
-runGate();
+      // If tier required, enforce it
+      if (tierReq) {
+        const ok = await checkTier(user, tierReq);
+        if (!ok) {
+          go("/tier1.html");
+          return;
+        }
+      }
+
+      // Auth ok + tier ok => allow page to render
+      // (No-op)
+
+    } catch (e) {
+      console.log("gate error", e);
+      go(`/login.html?next=${encodeURIComponent(next)}`);
+    }
+  });
+})();
