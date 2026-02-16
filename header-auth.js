@@ -1,66 +1,64 @@
-// /header-auth.js
-// Header account link behavior (NO redirects; just swaps link/button)
-
 import app from "/firebase-config.js";
 import {
   getAuth,
   onAuthStateChanged,
   signOut
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {
+  getFirestore,
+  doc,
+  getDoc
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const auth = getAuth(app);
+const db = getFirestore(app);
 
-function setEl(id, fn) {
-  const el = document.getElementById(id);
-  if (el) fn(el);
+function removeAuthChecking() {
+  document.documentElement.classList.remove("auth-checking");
 }
 
-function setLoggedOutUI() {
-  setEl("navAccount", (a) => {
-    a.textContent = "Log in";
-    a.setAttribute("href", "/login?next=/dashboard");
-    a.style.display = "";
-  });
-  setEl("navLogout", (b) => {
-    b.style.display = "none";
-    b.setAttribute("aria-hidden", "true");
-  });
+function redirect(path) {
+  window.location.replace(path);
 }
 
-function setLoggedInUI() {
-  setEl("navAccount", (a) => {
-    a.textContent = "Dashboard";
-    a.setAttribute("href", "/dashboard");
-    a.style.display = "";
-  });
-  setEl("navLogout", (b) => {
-    b.style.display = "";
-    b.removeAttribute("aria-hidden");
-  });
-}
+onAuthStateChanged(auth, async (user) => {
+  try {
+    const requireAuth = document.body.dataset.requireAuth === "1";
+    const requireTier = document.body.dataset.requireTier;
 
-function bindLogoutOnce() {
-  setEl("navLogout", (b) => {
-    if (b.dataset.bound === "1") return;
-    b.dataset.bound = "1";
-    b.addEventListener("click", async () => {
-      try {
-        await signOut(auth);
-        window.location.href = "/home";
-      } catch (e) {
-        console.error(e);
-      }
-    });
-  });
-}
+    if (!requireAuth) {
+      removeAuthChecking();
+      return;
+    }
 
-// called AFTER header HTML is injected
-window.initHeaderAuth = function initHeaderAuth() {
-  bindLogoutOnce();
-  setLoggedOutUI(); // default until auth resolves
+    if (!user) {
+      redirect(`/login.html?next=${encodeURIComponent(location.pathname)}`);
+      return;
+    }
 
-  onAuthStateChanged(auth, (user) => {
-    if (user) setLoggedInUI();
-    else setLoggedOutUI();
-  });
-};
+    if (!requireTier) {
+      removeAuthChecking();
+      return;
+    }
+
+    const snap = await getDoc(doc(db, "users", user.uid));
+
+    if (!snap.exists()) {
+      redirect("/tier1.html");
+      return;
+    }
+
+    const data = snap.data() || {};
+
+    if (data.tier !== requireTier || data.active !== true) {
+      redirect("/tier1.html");
+      return;
+    }
+
+    removeAuthChecking();
+
+  } catch (err) {
+    console.error(err);
+    removeAuthChecking();
+  }
+});
