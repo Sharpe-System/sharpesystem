@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="/styles.css" />
 </head>
 
-<body>
+<body class="shell">
 
   <!-- Shared header -->
   <div id="site-header"></div>
@@ -16,60 +16,114 @@
   <script src="/header.js" defer></script>
   <script src="/i18n.js" defer></script>
 
-  <main class="page">
-    <div class="container content">
+  <!-- Optional UI hardening (recommended). Add /ui.js file if not already present. -->
+  <script src="/ui.js" defer></script>
 
-      <!-- Hero -->
-      <section class="page-hero" aria-label="Home hero">
-        <h1>SharpeSystem</h1>
-        <p class="lede">
-          Procedural orientation and decision support for high-stakes situations.
-          Calm, structured, and non-directive — <strong>informational only.</strong>
-        </p>
+  <!-- Optional global loading overlay (UI.js will use it if present) -->
+  <div id="globalLoading" class="no-print" style="display:none; position:fixed; inset:0; z-index:9998; background:rgba(11,15,20,.72); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);">
+    <div style="position:absolute; left:50%; top:16%; transform:translateX(-50%); width:min(560px, calc(100% - 32px)); border:1px solid rgba(27,42,63,.8); border-radius:22px; background:rgba(255,255,255,.04); box-shadow:0 18px 40px rgba(0,0,0,.35); padding:16px 16px;">
+      <div class="row" style="justify-content:space-between;">
+        <div style="font-weight:700; letter-spacing:.2px;">Loading…</div>
+        <div class="small soft">If this persists, refresh.</div>
+      </div>
+      <div style="height:10px;"></div>
+      <div style="height:10px; border-radius:999px; border:1px solid rgba(27,42,63,.85); background:rgba(255,255,255,.02); overflow:hidden;">
+        <div style="height:100%; width:45%; background:linear-gradient(90deg, rgba(110,231,255,.18), rgba(167,139,250,.18)); border-right:1px solid rgba(110,231,255,.28); animation: shimmer 1.1s linear infinite;"></div>
+      </div>
+      <style>
+        @keyframes shimmer { 0%{transform:translateX(-35%)} 100%{transform:translateX(145%)} }
+      </style>
+    </div>
+  </div>
 
-        <div class="note" role="note">
+  <main>
+    <div class="container">
+
+      <!-- HERO -->
+      <section class="panel" style="padding:var(--pad);">
+        <div class="row" style="justify-content:space-between; align-items:flex-start;">
+          <div style="min-width:220px; max-width:740px;">
+            <h1>SharpeSystem</h1>
+            <p class="muted" style="margin-top:6px;">
+              Procedural orientation and decision support for high-stakes situations.
+              Calm, structured, and non-directive — <strong>informational only.</strong>
+            </p>
+          </div>
+
+          <div class="badge" title="Informational only" style="margin-top:6px;">
+            <span aria-hidden="true" style="width:8px; height:8px; border-radius:50%; background:rgba(110,231,255,.8); display:inline-block;"></span>
+            Informational
+          </div>
+        </div>
+
+        <div class="alert warn" role="note" style="margin-top:14px;">
           <strong>Scope:</strong> This site is educational. It does not provide legal advice,
-          legal strategy, or jurisdiction-specific rules. If you have immediate safety
-          concerns, contact local emergency services.
+          legal strategy, or jurisdiction-specific rules. If you have immediate safety concerns,
+          contact local emergency services.
+        </div>
+
+        <div class="hr"></div>
+
+        <!-- PRIMARY CTA -->
+        <div class="stack">
+          <div class="row">
+            <a class="btn primary" href="/triage.html">Start with Triage</a>
+            <a class="btn" href="/trees.html">Decision Trees</a>
+            <a class="btn" href="/tier1.html">Sharpe Legal</a>
+            <a class="btn" href="/binder/attorney-invite.html">For Attorneys</a>
+          </div>
+
+          <div class="row small">
+            <a id="authLink" href="/login.html?next=/dashboard.html" class="soft">Log in</a>
+            <span class="soft" aria-hidden="true">·</span>
+            <a href="/status.html" class="soft">Status</a>
+            <span class="soft" aria-hidden="true">·</span>
+            <a href="/high-conflict-risk-awareness.html" class="soft">Risk Awareness</a>
+          </div>
         </div>
       </section>
 
-      <!-- Start Here -->
-      <section class="template-box" aria-label="Start here">
-        <h2>Start here</h2>
+      <div style="height:14px;"></div>
+
+      <!-- PATHS -->
+      <section class="card" style="padding:var(--pad);">
+        <h2>Primary paths</h2>
         <p class="muted">
-          Pick the closest entry point. The goal is to help you get oriented,
-          identify deadlines, and reduce avoidable mistakes —
-          without turning this into advice or strategy.
+          Pick the closest entry point. The goal is to help you get oriented, identify deadlines,
+          and reduce avoidable mistakes — without turning this into advice or strategy.
         </p>
 
-        <div class="cta-row">
-          <a class="button primary" href="/triage.html">Start with Triage</a>
-          <a class="button" href="/trees.html">Decision Trees</a>
-          <a class="button" href="/tier1.html">Sharpe Legal</a>
-          <a class="button" href="/binder/attorney-invite.html">For Attorneys</a>
+        <div class="grid-2" style="margin-top:12px;">
+          <div class="card" style="padding:14px;">
+            <h3 style="margin-top:0;">Decision Trees</h3>
+            <p class="muted">Choose the branch that matches your situation.</p>
+            <div class="row"><a class="btn" href="/trees.html">Open Trees</a></div>
+          </div>
+
+          <div class="card" style="padding:14px;">
+            <h3 style="margin-top:0;">Triage</h3>
+            <p class="muted">“I don’t know what I’m dealing with — help me classify it.”</p>
+            <div class="row"><a class="btn primary" href="/triage.html">Start Triage</a></div>
+          </div>
+
+          <div class="card" style="padding:14px;">
+            <h3 style="margin-top:0;">Resolve This Amicably</h3>
+            <p class="muted">Structured communication to reduce friction early.</p>
+            <div class="row"><a class="btn" href="/amicable.html">Open Amicable</a></div>
+          </div>
+
+          <div class="card" style="padding:14px;">
+            <h3 style="margin-top:0;">Risk Awareness</h3>
+            <p class="muted">Neutral education on escalation patterns and ambiguity risk.</p>
+            <div class="row"><a class="btn" href="/high-conflict-risk-awareness.html">Open Risk Awareness</a></div>
+          </div>
         </div>
 
-        <!-- Secondary links -->
-        <div class="link-row" aria-label="Secondary links">
-          <a id="authLink" href="/login.html?next=/dashboard.html">Log in</a>
-          <span class="sep">·</span>
-          <a href="/status.html">Status</a>
-          <span class="sep">·</span>
-          <a href="/high-conflict-risk-awareness.html">Risk Awareness</a>
-        </div>
-      </section>
+        <div class="hr"></div>
 
-      <!-- Primary Paths -->
-      <section class="template-box" aria-label="Primary paths">
-        <h2>Primary paths</h2>
-        <ul>
-          <li><strong>Decision Trees</strong> — choose the branch that matches your situation</li>
-          <li><strong>Triage</strong> — “I don’t know what I’m dealing with; help me classify it”</li>
-          <li><strong>Resolve This Amicably</strong> — structured communication to reduce friction early</li>
-          <li><strong>Risk Awareness</strong> — neutral education on escalation patterns and ambiguity risk</li>
-          <li><strong>Status</strong> — what this is / what it is not</li>
-        </ul>
+        <div class="small soft">
+          If you want the site to route you automatically based on access level, use <span class="kbd">Log in</span> → <span class="kbd">Dashboard</span>.
+        </div>
       </section>
 
     </div>
