@@ -82,63 +82,70 @@
   </main>
 
   <script type="module">
-    import app from "/firebase-config.js";
-    import { getAuth, onAuthStateChanged, signOut }
-      from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import { getFirestore, doc, getDoc }
-      from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import app from "/firebase-config.js";
+  import { getAuth, onAuthStateChanged, signOut }
+    from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { getFirestore, doc, getDoc }
+    from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
 
-    const acctStatus = document.getElementById("acctStatus");
-    const logoutBtn = document.getElementById("logoutBtn");
+  const acctStatus = document.getElementById("acctStatus");
+  const logoutBtn = document.getElementById("logoutBtn");
 
-    function setStatus(html) {
-      if (acctStatus) acctStatus.innerHTML = html;
+  function setStatus(html) {
+    if (acctStatus) acctStatus.innerHTML = html;
+  }
+
+  function goLogin() {
+    // Always use .html targets (no pretty routes)
+    window.location.replace("/login.html?next=/app.html");
+  }
+
+  function goDashboard(msg = "") {
+    // optional message could be added later via query param if you want
+    window.location.replace("/dashboard.html");
+  }
+
+  function goTier1() {
+    window.location.replace("/tier1.html");
+  }
+
+  logoutBtn?.addEventListener("click", async () => {
+    try { await signOut(auth); }
+    finally { window.location.replace("/home.html"); }
+  });
+
+  onAuthStateChanged(auth, async (user) => {
+    try {
+      if (!user) return goLogin();
+
+      setStatus(`Signed in as <strong>${user.email || "(no email)"}</strong> • Checking access…`);
+
+      const snap = await getDoc(doc(db, "users", user.uid));
+
+      // If user doc doesn't exist yet, don't pretend they're "logged out".
+      // Send them to Dashboard (account hub) where you can show status and next steps.
+      if (!snap.exists()) return goDashboard();
+
+      const data = snap.data() || {};
+      const tier = String(data.tier || "");
+      const active = data.active === true;
+
+      // If not Tier 1 or not active, send to Tier 1 (upsell / subscribe / activate)
+      if (tier !== "tier1" || !active) return goTier1();
+
+      setStatus(
+        `Signed in as <strong>${user.email || "(no email)"}</strong> • Tier: <strong>${tier}</strong> • Active: <strong>${active}</strong>`
+      );
+
+    } catch (err) {
+      console.log(err);
+      // Fail to Dashboard (not Tier 1) so you can still navigate/diagnose.
+      return goDashboard();
     }
-
-    function redirectToLogin() {
-      window.location.replace("/login.html?next=/app.html");
-    }
-
-    logoutBtn?.addEventListener("click", async () => {
-      try { await signOut(auth); }
-      finally { window.location.replace("/home.html"); }
-    });
-
-    onAuthStateChanged(auth, async (user) => {
-      try {
-        if (!user) {
-          redirectToLogin();
-          return;
-        }
-
-        setStatus(`Signed in as <strong>${user.email || "(no email)"}</strong> • Checking access…`);
-
-        const snap = await getDoc(doc(db, "users", user.uid));
-
-        if (!snap.exists()) {
-          window.location.replace("/tier1.html");
-          return;
-        }
-
-        const data = snap.data() || {};
-
-        if (!data.tier) {
-          window.location.replace("/tier1.html");
-          return;
-        }
-
-        setStatus(
-          `Signed in as <strong>${user.email || "(no email)"}</strong> • Tier: <strong>${data.tier}</strong> • Active: <strong>${data.active === true}</strong>`
-        );
-
-      } catch (err) {
-        console.log(err);
-        window.location.replace("/tier1.html");
-      }
-    });
-  </script>
+  });
+</script>
 </body>
 </html>
