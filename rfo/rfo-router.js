@@ -110,11 +110,6 @@
       missing.push("Describe the 'Other' orders requested");
     }
 
-    // If Emergency is selected by itself, require otherText (so there is *some* order)
-    if (emergencyOnly(o) && !normalizeStr(o.otherText)) {
-      missing.push("Emergency selected by itself requires describing what order you want (use 'Other' description)");
-    }
-
     return missing;
   }
 
