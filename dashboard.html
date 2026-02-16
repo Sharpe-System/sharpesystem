@@ -14,11 +14,18 @@
   </style>
 </head>
 
-<body data-require-auth="1" data-require-tier="tier1">
+<!-- Canonical auth gating: ALWAYS use .html targets to avoid pretty-route loop -->
+<body
+  data-require-auth="1"
+  data-require-tier="tier1"
+  data-next="/dashboard.html"
+>
   <div id="site-header"></div>
   <script src="/header-loader.js" defer></script>
   <script src="/header.js" defer></script>
-  <script type="module" src="/header-auth.js"></script>
+
+  <!-- Defer to avoid racing DOM/header injection -->
+  <script type="module" src="/header-auth.js" defer></script>
   <script src="/i18n.js" defer></script>
 
   <main class="page">
@@ -38,19 +45,20 @@
         <h2 style="margin-top:0;">Tier 1 app</h2>
         <p class="muted">Use Start to route correctly based on tier + intake.</p>
         <div class="row">
-          <a class="button primary" href="/start">Start</a>
-          <a class="button" href="/intake">Intake</a>
-          <a class="button" href="/snapshot">Snapshot</a>
-          <a class="button" href="/timeline">Timeline</a>
-          <a class="button" href="/checklist">Checklist</a>
+          <!-- Use canonical .html links to eliminate rewrite/auth oscillation -->
+          <a class="button primary" href="/start.html">Start</a>
+          <a class="button" href="/intake.html">Intake</a>
+          <a class="button" href="/snapshot.html">Snapshot</a>
+          <a class="button" href="/timeline.html">Timeline</a>
+          <a class="button" href="/checklist.html">Checklist</a>
         </div>
       </div>
 
       <div class="card">
         <h2 style="margin-top:0;">Billing</h2>
         <div class="row">
-          <a class="button" href="/tier1">Tier 1 page</a>
-          <a class="button" href="/subscribe">Subscribe</a>
+          <a class="button" href="/tier1.html">Tier 1 page</a>
+          <a class="button" href="/subscribe.html">Subscribe</a>
         </div>
         <p class="muted" style="margin-top:10px;">
           If you already paid, activation should set Tier 1 on your user doc.
@@ -59,6 +67,7 @@
     </div>
   </main>
 
+  <!-- Gate first, then dashboard UI -->
   <script type="module" src="/gate.js"></script>
   <script type="module" src="/dashboard.js"></script>
 </body>
