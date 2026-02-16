@@ -55,21 +55,21 @@
       <div class="foot">
         <a class="link" href="/dashboard.html">Back to Dashboard</a>
       </div>
-    </div>
-  </main>
+   </div>
+</main>
 
-  <!-- Firebase (must load first) -->
-  <script type="module" src="/firebase-config.js"></script>
+<!-- Firebase (must load before gate) -->
+<script type="module" src="/firebase-config.js"></script>
 
+<!-- Auth Gate -->
+<script type="module" src="/gate.js"></script>
 
-  <!-- Gate first -->
-  <script type="module" src="/gate.js"></script>
+<!-- RFO Core (non-module scripts) -->
+<script src="/schema.js"></script>
+<script src="/rfo/rfo-state.js"></script>
+<script src="/rfo/rfo-router.js"></script>
+<script src="/rfo/rfo-locations.js"></script>
+<script src="/rfo/rfo-ui.js"></script>
 
-  <!-- RFO core -->
-  <script src="/schema.js"></script>
-  <script src="/rfo/rfo-state.js"></script>
-  <script src="/rfo/rfo-router.js"></script>
-  <script src="/rfo/rfo-locations.js"></script>
-  <script src="/rfo/rfo-ui.js"></script>
 </body>
 </html>
