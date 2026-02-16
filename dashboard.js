@@ -1,35 +1,43 @@
-import app from "/firebase-config.js";
-import { getAuth, onAuthStateChanged } 
-  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getFirestore, doc, getDoc } 
-  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+/* /dashboard.js
+   Dashboard session check (no getAuth() calls here).
+   Uses frozen firebase-config exports to avoid "getProvider" crash.
+*/
 
-const auth = getAuth(app);
-const db = getFirestore(app);
+import { getAuthStateOnce, getUserProfile } from "/firebase-config.js";
 
-const who = document.getElementById("who");
-const tierPill = document.getElementById("tierPill");
-const activePill = document.getElementById("activePill");
+function $(id) { return document.getElementById(id); }
 
-onAuthStateChanged(auth, async (user) => {
-  if (!user) return;
+const tierEl = $("tierValue") || $("tier");        // supports either id
+const activeEl = $("activeValue") || $("active");  // supports either id
+const statusEl = $("statusLine") || $("status");   // supports either id
 
-  who.textContent = `Signed in as ${user.email}`;
+function setText(el, text) { if (el) el.textContent = text; }
 
-  const snap = await getDoc(doc(db, "users", user.uid));
-  if (!snap.exists()) return;
+(async function init() {
+  try {
+    setText(statusEl, "Checking session…");
 
-  const data = snap.data() || {};
-  const tier = data.tier || "—";
-  const active = data.active === true;
+    const { user } = await getAuthStateOnce();
 
-  tierPill.textContent = `Tier: ${tier}`;
-  activePill.textContent = `Active: ${active}`;
+    if (!user) {
+      setText(statusEl, "Not logged in.");
+      setText(tierEl, "—");
+      setText(activeEl, "—");
+      return;
+    }
 
-  // 🔥 Subscription logic fix
-  const subscribeBtn = document.querySelector('a[href="/subscribe.html"]');
-  if (subscribeBtn && active) {
-    subscribeBtn.textContent = "Manage Subscription";
-    subscribeBtn.href = "/dashboard.html"; // change later to Stripe portal if desired
+    const profile = await getUserProfile(user.uid);
+
+    const tier = (profile && profile.tier) ? profile.tier : "free";
+    const active = (profile && typeof profile.active === "boolean") ? profile.active : false;
+
+    setText(statusEl, "Session active.");
+    setText(tierEl, tier);
+    setText(activeEl, active ? "Yes" : "No");
+  } catch (e) {
+    console.error(e);
+    setText(statusEl, "Session check failed. See console.");
+    setText(tierEl, "—");
+    setText(activeEl, "—");
   }
-});
+})();
