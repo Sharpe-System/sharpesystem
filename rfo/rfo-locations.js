@@ -1,9 +1,5 @@
 /* /rfo/rfo-locations.js
-   RFO v2 — State/County/Courthouse dropdown support with dead-end prevention.
-
-   Data source (optional):
-   - /data/us-courts.min.json
-   If missing or incomplete: UI falls back to manual text inputs.
+   State/County/Courthouse dropdown support with safe fallbacks.
 */
 
 (function () {
@@ -27,13 +23,8 @@
     ["VA","Virginia"],["WA","Washington"],["WV","West Virginia"],["WI","Wisconsin"],["WY","Wyoming"]
   ];
 
-  function safeArray(x) {
-    return Array.isArray(x) ? x : [];
-  }
-
-  function safeObj(x) {
-    return (x && typeof x === "object") ? x : {};
-  }
+  function safeArray(x) { return Array.isArray(x) ? x : []; }
+  function safeObj(x) { return (x && typeof x === "object") ? x : {}; }
 
   async function load() {
     if (_cache) return _cache;
@@ -61,17 +52,11 @@
     return STATES.map(([code, name]) => ({ code, name }));
   }
 
-  function getStateName(code) {
-    const m = STATES.find(x => x[0] === code);
-    return m ? m[1] : code;
-  }
-
   function getCountyOptions(data, stateCode) {
     const states = safeObj(data.states);
     const st = safeObj(states[stateCode]);
     const counties = safeObj(st.counties);
-    const names = Object.keys(counties).sort((a,b) => a.localeCompare(b));
-    return names;
+    return Object.keys(counties).sort((a, b) => a.localeCompare(b));
   }
 
   function getCourthouseOptions(data, stateCode, countyName) {
@@ -85,7 +70,6 @@
   window.RFO_LOCATIONS = {
     load,
     getStateOptions,
-    getStateName,
     getCountyOptions,
     getCourthouseOptions
   };
