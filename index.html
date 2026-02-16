@@ -1,17 +1,86 @@
 <!doctype html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta http-equiv="refresh" content="0; url=/home.html" />
+  <title>Home — SharpeSystem</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>SharpeSystem</title>
-  <link rel="canonical" href="/home.html" />
-  <script>
-    // JS fallback redirect
-    window.location.replace("/home.html");
-  </script>
+  <meta name="description" content="Procedural orientation and decision support for high-stakes situations. Informational only." />
+  <link rel="stylesheet" href="/styles.css" />
 </head>
+
 <body>
-  <p>Redirecting… <a href="/home.html">Go to Home</a></p>
+
+  <!-- Shared header -->
+  <div id="site-header"></div>
+  <script src="/header-loader.js" defer></script>
+  <script src="/header.js" defer></script>
+  <script src="/i18n.js" defer></script>
+
+  <main class="page">
+    <div class="container content">
+
+      <!-- Hero -->
+      <section class="page-hero" aria-label="Home hero">
+        <h1>SharpeSystem</h1>
+        <p class="lede">
+          Let’s start where you are.<br>
+          Where would you like to begin?
+        </p>
+
+        <div class="note" role="note">
+          <strong>Scope:</strong> This site is educational. It provides procedural
+          orientation and structured drafting support — not legal advice,
+          strategy, or jurisdiction-specific rules.
+          If you have immediate safety concerns, contact local emergency services.
+        </div>
+      </section>
+
+      <!-- Direct Intake -->
+      <section class="template-box" aria-label="Start here">
+        <h2>Start here</h2>
+        <p class="muted">
+          If you are dealing with a court matter, custody issue, modification request,
+          or need to prepare a structured filing, begin with the Request for Order pathway.
+        </p>
+
+        <div class="cta-row">
+          <a class="button primary" href="/rfo/">
+            Start Request for Order (RFO)
+          </a>
+          <a class="button" href="/triage.html">
+            I’m not sure what I need
+          </a>
+        </div>
+
+        <!-- Secondary links -->
+        <div class="link-row" aria-label="Secondary links">
+          <a id="authLink" href="/login.html?next=/dashboard.html">Log in</a>
+          <span class="sep">·</span>
+          <a href="/status.html">Status</a>
+          <span class="sep">·</span>
+          <a href="/high-conflict-risk-awareness.html">Risk Awareness</a>
+        </div>
+      </section>
+
+      <!-- Platform Context -->
+      <section class="template-box" aria-label="Platform context">
+        <h2>About SharpeSystem</h2>
+        <p>
+          SharpeSystem is a structured decision framework for navigating
+          complex systems. Legal processes are currently the most developed branch.
+          Additional branches — including healthcare, immigration, education,
+          and licensing pathways — are being built using the same orientation model.
+        </p>
+
+        <ul>
+          <li><strong>Request for Order (RFO)</strong> — structured preparation and drafting workflow</li>
+          <li><strong>Triage</strong> — classify what you’re dealing with before acting</li>
+          <li><strong>Decision Trees</strong> — guided pathways for defined procedural systems</li>
+        </ul>
+      </section>
+
+    </div>
+  </main>
+
 </body>
 </html>
