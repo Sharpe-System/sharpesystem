@@ -1,23 +1,25 @@
 /* /rfo/rfo-router.js
-   Defines active steps, routing, and validation for the RFO flow.
+   Routing + validation for RFO steps.
 
-   Step IDs:
-   - case_info
-   - orders_requested
-   - custody (conditional)
-   - visitation (conditional)
-   - support (conditional)
-   - emergency (conditional)
-   - review
+   Fix: Visitation validation now accepts preset selection as satisfying
+   "visitation description" requirement. Only requires typing when preset=custom.
 */
 
 (function () {
   "use strict";
 
-  function t(s) { return String(s || "").trim(); }
+  function toNum(x, defVal) {
+    const n = Number(x);
+    return Number.isFinite(n) ? n : (defVal || 0);
+  }
+
   function hasChildren(state) {
-    const n = Number((state.caseInfo && state.caseInfo.childrenCount) || 0);
+    const n = toNum(state?.caseInfo?.childrenCount, 0);
     return n > 0;
+  }
+
+  function normalizeStr(s) {
+    return String(s || "").trim();
   }
 
   function anyOrderSelected(o) {
@@ -25,140 +27,158 @@
     return !!(o.custody || o.visitation || o.support || o.attorneyFees || o.other);
   }
 
-  function emergencyAnchored(o) {
-    // Emergency alone is acceptable only if the user describes the relief sought.
-    // This avoids dead-ends and matches how emergency relief operates in practice:
-    // it's urgent relief tied to a request.
-    if (!o || !o.emergency) return false;
-    return t(o.otherText).length >= 5; // require something meaningful
+  function emergencyOnly(o) {
+    if (!o) return false;
+    // Emergency checked, and no other order type checked.
+    const anyOther = !!(o.custody || o.visitation || o.support || o.attorneyFees || o.other);
+    return !!o.emergency && !anyOther;
   }
 
-  function getActiveSteps(state) {
+  function buildSteps(state) {
     const steps = [
       { id: "case_info", title: "Case Information" },
       { id: "orders_requested", title: "Orders Requested" }
     ];
 
     const o = state.ordersRequested || {};
-    const kids = hasChildren(state);
 
-    // If emergency is the only thing checked, we still allow flow
-    // as long as the user anchors it with Other text.
-    const selectedOrEmergencyOnly = anyOrderSelected(o) || emergencyAnchored(o);
+    if (o.custody) steps.push({ id: "custody", title: "Custody" });
+    if (o.visitation) steps.push({ id: "visitation", title: "Visitation" });
 
-    if (selectedOrEmergencyOnly) {
-      if (o.custody) steps.push({ id: "custody", title: "Custody" });
-      if (o.visitation) steps.push({ id: "visitation", title: "Visitation" });
+    // Support should only be reachable if children exist
+    if (o.support && hasChildren(state)) steps.push({ id: "support", title: "Support" });
 
-      // Only include support if children exist; otherwise it’s effectively invalid.
-      if (o.support && kids) steps.push({ id: "support", title: "Support" });
-
-      if (o.emergency) steps.push({ id: "emergency", title: "Emergency Details" });
-    } else {
-      // Nothing selected yet: keep the user at Orders Requested until valid.
-    }
+    // Emergency detail step only if emergency checked
+    if (o.emergency) steps.push({ id: "emergency", title: "Emergency Details" });
 
     steps.push({ id: "review", title: "Review" });
     return steps;
   }
 
+  function getActiveSteps(state) {
+    return buildSteps(state);
+  }
+
+  function idxOf(steps, id) {
+    const i = steps.findIndex(s => s.id === id);
+    return i >= 0 ? i : 0;
+  }
+
   function nextStepId(state, currentId) {
-    const steps = getActiveSteps(state);
-    const idx = steps.findIndex(s => s.id === currentId);
-    if (idx < 0) return steps[0].id;
-    return steps[Math.min(idx + 1, steps.length - 1)].id;
+    const steps = buildSteps(state);
+    const i = idxOf(steps, currentId);
+    return steps[Math.min(i + 1, steps.length - 1)].id;
   }
 
   function prevStepId(state, currentId) {
-    const steps = getActiveSteps(state);
-    const idx = steps.findIndex(s => s.id === currentId);
-    if (idx <= 0) return steps[0].id;
-    return steps[idx - 1].id;
+    const steps = buildSteps(state);
+    const i = idxOf(steps, currentId);
+    return steps[Math.max(i - 1, 0)].id;
   }
 
-  function validateStep(state, stepId) {
+  // --- Validation ---------------------------------------------------------
+
+  function validateCaseInfo(state) {
     const missing = [];
+    const c = state.caseInfo || {};
+    if (!normalizeStr(c.state)) missing.push("Select a state");
+    if (!normalizeStr(c.county)) missing.push("Select or enter a county");
+    // Courthouse is optional
+    // Case number can be optional depending on user; keep optional for now
+    if (!normalizeStr(c.petitioner)) missing.push("Enter petitioner name");
+    if (!normalizeStr(c.respondent)) missing.push("Enter respondent name");
+    return missing;
+  }
 
-    if (stepId === "case_info") {
-      const c = state.caseInfo || {};
-      // Keep this light. You can tighten later.
-      if (!t(c.state)) missing.push("State is required");
-      if (!t(c.county)) missing.push("County is required");
-      if (!t(c.caseNumber)) missing.push("Case number is required");
+  function validateOrdersRequested(state) {
+    const missing = [];
+    const o = state.ordersRequested || {};
+
+    // Must select at least one order type OR choose emergency+other text
+    if (!anyOrderSelected(o) && !o.emergency) {
+      missing.push("Select at least one order requested");
       return missing;
     }
 
-    if (stepId === "orders_requested") {
-      const o = state.ordersRequested || {};
-      const kids = hasChildren(state);
-
-      // If user selected support but there are no children, treat as missing/invalid.
-      const supportValid = o.support && kids;
-
-      const anyValid =
-        o.custody ||
-        o.visitation ||
-        supportValid ||
-        o.attorneyFees ||
-        o.other;
-
-      // Emergency-only allowed IF anchored by Other text
-      if (!anyValid) {
-        if (o.emergency) {
-          if (t(o.otherText).length < 5) {
-            missing.push("Emergency selected — describe the emergency relief requested (Other)");
-          }
-          return missing;
-        }
-        missing.push("Select at least one order requested");
-        return missing;
-      }
-
-      // If Other checked, require Other text
-      if (o.other && t(o.otherText).length < 5) {
-        missing.push("Other selected — describe the orders requested");
-      }
-
-      // If emergency checked, require Other text only when no other boxes are checked.
-      if (o.emergency && !anyOrderSelected(o) && t(o.otherText).length < 5) {
-        missing.push("Emergency selected — describe the emergency relief requested (Other)");
-      }
-
-      return missing;
+    // Support cannot be selected when childrenCount=0
+    if (o.support && !hasChildren(state)) {
+      missing.push("Support cannot be selected when no children are entered");
     }
 
-    if (stepId === "custody") {
-      const c = state.custody || {};
-      if (!t(c.legalCustodyRequested)) missing.push("Select legal custody requested");
-      if (!t(c.physicalCustodyRequested)) missing.push("Select physical custody requested");
-      return missing;
+    // If Other is selected, require otherText
+    if (o.other && !normalizeStr(o.otherText)) {
+      missing.push("Describe the 'Other' orders requested");
     }
 
-    if (stepId === "visitation") {
-      const v = state.visitation || {};
-      if (t(v.scheduleText).length < 10) missing.push("Provide a visitation description");
-      return missing;
-    }
-
-    if (stepId === "support") {
-      if (!hasChildren(state)) return missing; // should not be reachable
-      const sp = state.support || {};
-      // At least one support type should be selected
-      if (!t(sp.childSupportRequested) && !t(sp.spousalSupportRequested)) {
-        missing.push("Select a support request");
-      }
-      return missing;
-    }
-
-    if (stepId === "emergency") {
-      const e = state.emergency || {};
-      if (!t(e.immediateHarmRisk)) missing.push("Select whether there is immediate harm risk");
-      if (t(e.recentIncidentDate).length < 8) missing.push("Most recent incident date is required");
-      if (t(e.harmDescription).length < 10) missing.push("Describe the emergency / harm");
-      return missing;
+    // If Emergency is selected by itself, require otherText (so there is *some* order)
+    if (emergencyOnly(o) && !normalizeStr(o.otherText)) {
+      missing.push("Emergency selected by itself requires describing what order you want (use 'Other' description)");
     }
 
     return missing;
+  }
+
+  function validateCustody(state) {
+    const missing = [];
+    const c = state.custody || {};
+    if (!normalizeStr(c.legalCustodyRequested) && !normalizeStr(c.physicalCustodyRequested)) {
+      missing.push("Select legal and/or physical custody requested");
+    }
+    return missing;
+  }
+
+  function validateVisitation(state) {
+    const missing = [];
+    const v = state.visitation || {};
+
+    // NEW RULE:
+    // - If preset is selected and not "custom", that satisfies the requirement.
+    // - If preset is "custom", require details (or scheduleText).
+    const preset = normalizeStr(v.preset);
+
+    if (!preset) {
+      missing.push("Select a visitation schedule preset");
+      return missing;
+    }
+
+    if (preset === "custom") {
+      const details = normalizeStr(v.details) || normalizeStr(v.scheduleText);
+      if (!details) missing.push("Provide a visitation description");
+    }
+
+    // exchangeLocation and notes are optional
+    return missing;
+  }
+
+  function validateSupport(state) {
+    const missing = [];
+    if (!hasChildren(state)) return missing; // support step shouldn’t exist; if it does, don’t block
+
+    const s = state.support || {};
+    if (!normalizeStr(s.childSupportRequested)) missing.push("Select child support request type");
+    // effective date optional
+    return missing;
+  }
+
+  function validateEmergency(state) {
+    const missing = [];
+    const e = state.emergency || {};
+    if (!normalizeStr(e.immediateHarmRisk)) missing.push("Select immediate harm risk");
+    if (!normalizeStr(e.harmDescription)) missing.push("Describe the emergency / harm");
+    // police agency + report number are optional (even if policeReportFiled=yes)
+    return missing;
+  }
+
+  function validateStep(state, stepId) {
+    switch (stepId) {
+      case "case_info": return validateCaseInfo(state);
+      case "orders_requested": return validateOrdersRequested(state);
+      case "custody": return validateCustody(state);
+      case "visitation": return validateVisitation(state);
+      case "support": return validateSupport(state);
+      case "emergency": return validateEmergency(state);
+      default: return [];
+    }
   }
 
   window.RFO_ROUTER = {
