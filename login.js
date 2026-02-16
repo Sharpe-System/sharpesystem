@@ -1,10 +1,15 @@
 /* /login.js
-   Minimal, known-good login using Firebase Auth modular SDK.
-   Depends only on named exports from /firebase-config.js
+   Login + post-login sync
+   - Signs in with email/password
+   - After successful login, syncs local RFO intake (if present) into Firestore:
+       /users/{uid}  (merge)
+       fields: rfoIntake, rfoLastStep, rfoSyncedAt
+   - Then redirects to /dashboard.html
 */
 
-import { auth } from "/firebase-config.js";
+import { auth, db } from "/firebase-config.js";
 import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
+import { doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 
 function $(id) { return document.getElementById(id); }
 
@@ -13,6 +18,9 @@ const passEl  = $("password");
 const btnLogin = $("btnLogin");
 const btnSignup = $("btnSignup");
 const msgEl = $("msg");
+
+const LS_STATE_KEY = "rfo_intake_state_v1";
+const LS_STEP_KEY  = "rfo_intake_step_v1";
 
 function setMsg(text) {
   if (msgEl) msgEl.textContent = text || "";
@@ -23,6 +31,36 @@ function disableUI(disabled) {
   if (btnSignup) btnSignup.disabled = disabled;
   if (emailEl) emailEl.disabled = disabled;
   if (passEl) passEl.disabled = disabled;
+}
+
+function readLocalIntake() {
+  try {
+    const raw = localStorage.getItem(LS_STATE_KEY);
+    const step = localStorage.getItem(LS_STEP_KEY);
+    if (!raw) return { intake: null, step: step || "" };
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object") return { intake: null, step: step || "" };
+    return { intake: parsed, step: step || "" };
+  } catch {
+    return { intake: null, step: "" };
+  }
+}
+
+async function syncLocalIntakeToUser(uid) {
+  const { intake, step } = readLocalIntake();
+  if (!intake) return false;
+
+  await setDoc(
+    doc(db, "users", uid),
+    {
+      rfoIntake: intake,
+      rfoLastStep: String(step || ""),
+      rfoSyncedAt: new Date().toISOString(),
+    },
+    { merge: true }
+  );
+
+  return true;
 }
 
 async function doLogin() {
@@ -36,7 +74,16 @@ async function doLogin() {
   disableUI(true);
 
   try {
-    await signInWithEmailAndPassword(auth, email, password);
+    const cred = await signInWithEmailAndPassword(auth, email, password);
+
+    // Sync local intake if present (non-fatal if it fails)
+    try {
+      setMsg("Signed in. Syncing intake…");
+      await syncLocalIntakeToUser(cred.user.uid);
+    } catch (e) {
+      console.warn("Intake sync failed (non-fatal):", e);
+    }
+
     setMsg("Success. Redirecting…");
     window.location.href = "/dashboard.html";
   } catch (err) {
@@ -62,7 +109,7 @@ btnSignup?.addEventListener("click", () => {
   window.location.href = "/signup.html";
 });
 
-// Enter key submits (but not in a way that interferes with other pages)
+// Enter key submits
 passEl?.addEventListener("keydown", (e) => {
   if (e.key === "Enter") doLogin();
 });
