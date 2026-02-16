@@ -4,71 +4,106 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Dashboard — SharpeSystem</title>
+  <meta name="description" content="Authenticated routing hub for SharpeSystem." />
   <link rel="stylesheet" href="/styles.css" />
-  <style>
-    .page{min-height:100vh;padding:26px 18px 60px;}
-    .card{margin-top:12px;padding:14px;border-radius:var(--radius);border:1px solid var(--border);background:rgba(255,255,255,.03);}
-    .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;}
-    .pill{display:inline-block;padding:6px 10px;border-radius:999px;border:1px solid var(--border);color:var(--muted);font-size:12px;}
-    .muted{color:var(--muted);}
-  </style>
 </head>
 
 <!-- Canonical auth gating -->
 <body
+  class="shell"
   data-require-auth="1"
   data-require-tier="tier1"
   data-next="/dashboard.html"
 >
+
   <div id="site-header"></div>
   <script src="/header-loader.js" defer></script>
   <script src="/header.js" defer></script>
 
+  <!-- AUTH LAYER (FROZEN) -->
   <script type="module" src="/header-auth.js" defer></script>
   <script src="/i18n.js" defer></script>
 
-  <main class="page">
-    <div class="container content">
-      <h1>Dashboard</h1>
-      <p class="sub">Account + routing hub.</p>
+  <!-- Optional UI hardening (recommended). Add /ui.js file if not already present. -->
+  <script src="/ui.js" defer></script>
 
-      <!-- Account Status -->
-      <div class="card">
-        <div id="who" class="muted">Checking session…</div>
-        <div class="row" style="margin-top:10px;">
-          <span class="pill" id="tierPill">Tier: —</span>
-          <span class="pill" id="activePill">Active: —</span>
-        </div>
+  <!-- Optional global loading overlay -->
+  <div id="globalLoading" class="no-print" style="display:none; position:fixed; inset:0; z-index:9998; background:rgba(11,15,20,.72); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);">
+    <div style="position:absolute; left:50%; top:16%; transform:translateX(-50%); width:min(560px, calc(100% - 32px)); border:1px solid rgba(27,42,63,.8); border-radius:22px; background:rgba(255,255,255,.04); box-shadow:0 18px 40px rgba(0,0,0,.35); padding:16px 16px;">
+      <div class="row" style="justify-content:space-between;">
+        <div style="font-weight:700; letter-spacing:.2px;">Loading…</div>
+        <div class="small soft">Checking access.</div>
       </div>
-
-      <!-- Tier 1 App Modules -->
-      <div class="card">
-        <h2 style="margin-top:0;">Tier 1 app</h2>
-        <p class="muted">Use Start to route correctly based on tier + intake.</p>
-
-        <div class="row">
-          <a class="button primary" href="/start.html">Start</a>
-          <a class="button" href="/intake.html">Intake</a>
-          <a class="button" href="/snapshot.html">Snapshot</a>
-          <a class="button" href="/timeline.html">Timeline</a>
-          <a class="button" href="/checklist.html">Checklist</a>
-
-          <!-- NEW MODULE -->
-          <a class="button" href="/rfo/index.html">Request for Order</a>
-        </div>
+      <div style="height:10px;"></div>
+      <div style="height:10px; border-radius:999px; border:1px solid rgba(27,42,63,.85); background:rgba(255,255,255,.02); overflow:hidden;">
+        <div style="height:100%; width:45%; background:linear-gradient(90deg, rgba(110,231,255,.18), rgba(167,139,250,.18)); border-right:1px solid rgba(110,231,255,.28); animation: shimmer 1.1s linear infinite;"></div>
       </div>
+      <style>
+        @keyframes shimmer { 0%{transform:translateX(-35%)} 100%{transform:translateX(145%)} }
+      </style>
+    </div>
+  </div>
 
-      <!-- Billing -->
-      <div class="card">
-        <h2 style="margin-top:0;">Billing</h2>
-        <div class="row">
-          <a class="button" href="/tier1.html">Tier 1 page</a>
-          <a class="button" href="/subscribe.html">Subscribe</a>
+  <main>
+    <div class="container">
+
+      <section class="panel" style="padding:var(--pad);">
+        <div class="row" style="justify-content:space-between; align-items:flex-start;">
+          <div>
+            <h1>Dashboard</h1>
+            <p class="muted" style="margin-top:6px;">Account + routing hub.</p>
+          </div>
+          <div class="badge">
+            <span aria-hidden="true" style="width:8px; height:8px; border-radius:50%; background:rgba(52,211,153,.8); display:inline-block;"></span>
+            Tier 1
+          </div>
         </div>
-        <p class="muted" style="margin-top:10px;">
-          If you already paid, activation should set Tier 1 on your user doc.
-        </p>
-      </div>
+
+        <div class="hr"></div>
+
+        <div class="card" style="padding:14px;">
+          <div id="who" class="muted">Checking session…</div>
+          <div class="row" style="margin-top:10px;">
+            <span class="badge" id="tierPill">Tier: —</span>
+            <span class="badge" id="activePill">Active: —</span>
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="grid-2">
+          <!-- Tier 1 Modules -->
+          <div class="card" style="padding:14px;">
+            <h2 style="margin-top:0;">Tier 1 app</h2>
+            <p class="muted">Use Start to route correctly based on tier + intake.</p>
+            <div class="row" style="margin-top:10px;">
+              <a class="btn primary" href="/start.html">Start</a>
+              <a class="btn" href="/intake.html">Intake</a>
+              <a class="btn" href="/snapshot.html">Snapshot</a>
+              <a class="btn" href="/timeline.html">Timeline</a>
+              <a class="btn" href="/checklist.html">Checklist</a>
+              <a class="btn" href="/rfo/index.html">Request for Order</a>
+            </div>
+          </div>
+
+          <!-- Billing -->
+          <div class="card" style="padding:14px;">
+            <h2 style="margin-top:0;">Billing</h2>
+            <p class="muted">If you already paid, activation should set Tier 1 on your user doc.</p>
+            <div class="row" style="margin-top:10px;">
+              <a class="btn" href="/tier1.html">Tier 1 page</a>
+              <a class="btn" href="/subscribe.html">Subscribe</a>
+            </div>
+
+            <div class="alert warn" style="margin-top:12px;">
+              If your Tier is not updating, your user document may not have been written/updated yet.
+              Use <span class="kbd">Status</span> to confirm services are up.
+            </div>
+          </div>
+        </div>
+
+      </section>
+
     </div>
   </main>
 
