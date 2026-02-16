@@ -1,3 +1,22 @@
-/home    /home.html    200
+# Pretty routes -> actual html files (serve with 200)
+# Auth core
 /login      /login.html      200
 /dashboard  /dashboard.html  200
+/app        /app.html        200
+/start      /start.html      200
+
+# Tier1 flow pages
+/intake     /intake.html     200
+/snapshot   /snapshot.html   200
+/timeline   /timeline.html   200
+/checklist  /checklist.html  200
+/subscribe  /subscribe.html  200
+/success    /success.html    200
+/tier1      /tier1.html      200
+
+# Public pages (optional but recommended for consistency)
+/home       /home.html       200
+/trees      /trees.html      200
+/status     /status.html     200
+/triage     /triage.html     200
+/amicable   /amicable.html   200
