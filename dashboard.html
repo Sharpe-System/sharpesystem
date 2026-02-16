@@ -14,7 +14,7 @@
   </style>
 </head>
 
-<!-- Canonical auth gating: ALWAYS use .html targets to avoid pretty-route loop -->
+<!-- Canonical auth gating -->
 <body
   data-require-auth="1"
   data-require-tier="tier1"
@@ -24,7 +24,6 @@
   <script src="/header-loader.js" defer></script>
   <script src="/header.js" defer></script>
 
-  <!-- Defer to avoid racing DOM/header injection -->
   <script type="module" src="/header-auth.js" defer></script>
   <script src="/i18n.js" defer></script>
 
@@ -33,6 +32,7 @@
       <h1>Dashboard</h1>
       <p class="sub">Account + routing hub.</p>
 
+      <!-- Account Status -->
       <div class="card">
         <div id="who" class="muted">Checking session…</div>
         <div class="row" style="margin-top:10px;">
@@ -41,19 +41,24 @@
         </div>
       </div>
 
+      <!-- Tier 1 App Modules -->
       <div class="card">
         <h2 style="margin-top:0;">Tier 1 app</h2>
         <p class="muted">Use Start to route correctly based on tier + intake.</p>
+
         <div class="row">
-          <!-- Use canonical .html links to eliminate rewrite/auth oscillation -->
           <a class="button primary" href="/start.html">Start</a>
           <a class="button" href="/intake.html">Intake</a>
           <a class="button" href="/snapshot.html">Snapshot</a>
           <a class="button" href="/timeline.html">Timeline</a>
           <a class="button" href="/checklist.html">Checklist</a>
+
+          <!-- NEW MODULE -->
+          <a class="button" href="/rfo/index.html">Request for Order</a>
         </div>
       </div>
 
+      <!-- Billing -->
       <div class="card">
         <h2 style="margin-top:0;">Billing</h2>
         <div class="row">
@@ -67,7 +72,6 @@
     </div>
   </main>
 
-  <!-- Gate first, then dashboard UI -->
   <script type="module" src="/gate.js"></script>
   <script type="module" src="/dashboard.js"></script>
 </body>
