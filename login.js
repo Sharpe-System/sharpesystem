@@ -1,55 +1,57 @@
 // /login.js
-import { auth } from "/auth.js";
+import app from "/firebase-config.js";
+import { safeNext } from "/safeNext.js";
+
 import {
+  getAuth,
+  onAuthStateChanged,
   signInWithEmailAndPassword,
-  onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+const auth = getAuth(app);
 
 const form = document.getElementById("loginForm");
 const emailEl = document.getElementById("email");
 const passEl = document.getElementById("password");
 const msgEl = document.getElementById("msg");
+const btn = document.getElementById("loginBtn");
 
-function setMsg(t) {
-  if (msgEl) msgEl.textContent = t || "";
+function setMsg(html) {
+  if (msgEl) msgEl.innerHTML = html || "";
 }
 
-function safeNext() {
+function disable(v) {
+  if (btn) btn.disabled = !!v;
+}
+
+function getNext() {
   const params = new URLSearchParams(window.location.search);
-  const next = (params.get("next") || "").trim();
-
-  if (!next) return "/dashboard.html";
-  if (!next.startsWith("/")) return "/dashboard.html";
-  if (next.startsWith("//")) return "/dashboard.html";
-  if (next.includes("://")) return "/dashboard.html";
-  if (next.includes("..")) return "/dashboard.html";
-
-  return next;
+  return safeNext(params.get("next"), "/dashboard.html");
 }
 
-// If already logged in, DO NOT show login page. Send them where they intended.
+function go(url) {
+  window.location.replace(url);
+}
+
+// If already logged in, don't show login form — route immediately.
 onAuthStateChanged(auth, (user) => {
-  if (user) {
-    window.location.replace(safeNext());
-  }
+  if (user) go(getNext());
 });
 
-async function doLogin() {
+form?.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  setMsg("");
+  disable(true);
+
   const email = (emailEl?.value || "").trim();
   const password = passEl?.value || "";
 
-  if (!email || !password) {
-    setMsg("Enter email and password.");
-    return;
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+    go(getNext());
+  } catch (err) {
+    console.log(err);
+    setMsg(`<strong>Login failed.</strong> ${err?.message ? `<span class="muted">${err.message}</span>` : ""}`);
+    disable(false);
   }
-
-  setMsg("Signing in…");
-  await signInWithEmailAndPassword(auth, email, password);
-
-  window.location.replace(safeNext());
-}
-
-form?.addEventListener("submit", (e) => {
-  e.preventDefault();
-  doLogin().catch((err) => setMsg(err?.message || "Login failed."));
 });
