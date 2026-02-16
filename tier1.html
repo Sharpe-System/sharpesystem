@@ -23,11 +23,12 @@
     .pill{display:inline-block;margin-top:8px;padding:6px 10px;border-radius:999px;border:1px solid var(--border);color:var(--muted);font-size:12px;}
   </style>
 </head>
-<body>
 
+<body>
   <div id="site-header"></div>
   <script src="/header-loader.js" defer></script>
   <script src="/header.js" defer></script>
+  <script type="module" src="/header-auth.js"></script>
   <script src="/i18n.js" defer></script>
 
   <main class="page">
@@ -54,23 +55,19 @@
           </ul>
 
           <div class="row">
-            <!-- 🔥 CORRECT ROUTING -->
-            <button class="btn primary"
-              onclick="location.href='/login.html?next=/dashboard.html'">
+            <button class="btn primary" type="button"
+              onclick="location.href='/login?next=%2Fdashboard'">
               Continue
             </button>
 
-            <button class="btn secondary"
-              onclick="location.href='/home.html'">
+            <button class="btn secondary" type="button"
+              onclick="location.href='/home'">
               Back to Home
             </button>
           </div>
 
-          <span class="pill">
-            Continue → Login → Dashboard
-          </span>
+          <span class="pill">Continue → Login → Dashboard</span>
         </div>
-
 
         <!-- RIGHT CARD -->
         <div class="card">
@@ -84,25 +81,22 @@
           </ul>
 
           <div class="row">
-            <button class="btn secondary"
-              onclick="location.href='/login.html?next=/dashboard.html'">
+            <button class="btn secondary" type="button"
+              onclick="location.href='/login?next=%2Fdashboard'">
               Log In
             </button>
 
-            <button class="btn secondary"
-              onclick="location.href='/subscribe.html'">
+            <button class="btn secondary" type="button"
+              onclick="location.href='/subscribe'">
               Subscribe
             </button>
           </div>
 
-          <span class="pill">
-            Dashboard is the only hub.
-          </span>
+          <span class="pill">Dashboard is the only hub.</span>
         </div>
 
       </div>
     </section>
   </main>
-
 </body>
 </html>
