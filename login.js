@@ -1,57 +1,74 @@
-// /login.js
-import app from "/firebase-config.js";
-import { safeNext } from "/safeNext.js";
+/* /login.js
+   Minimal, known-good login using Firebase Auth modular SDK.
+   Depends only on named exports from /firebase-config.js
+*/
 
-import {
-  getAuth,
-  onAuthStateChanged,
-  signInWithEmailAndPassword,
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { auth } from "/firebase-config.js";
+import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
 
-const auth = getAuth(app);
+function $(id) { return document.getElementById(id); }
 
-const form = document.getElementById("loginForm");
-const emailEl = document.getElementById("email");
-const passEl = document.getElementById("password");
-const msgEl = document.getElementById("msg");
-const btn = document.getElementById("loginBtn");
+const emailEl = $("email");
+const passEl  = $("password");
+const btnLogin = $("btnLogin");
+const btnSignup = $("btnSignup");
+const msgEl = $("msg");
 
-function setMsg(html) {
-  if (msgEl) msgEl.innerHTML = html || "";
+function setMsg(text) {
+  if (msgEl) msgEl.textContent = text || "";
 }
 
-function disable(v) {
-  if (btn) btn.disabled = !!v;
+function disableUI(disabled) {
+  if (btnLogin) btnLogin.disabled = disabled;
+  if (btnSignup) btnSignup.disabled = disabled;
+  if (emailEl) emailEl.disabled = disabled;
+  if (passEl) passEl.disabled = disabled;
 }
 
-function getNext() {
-  const params = new URLSearchParams(window.location.search);
-  return safeNext(params.get("next"), "/dashboard.html");
-}
+async function doLogin() {
+  const email = String(emailEl?.value || "").trim();
+  const password = String(passEl?.value || "");
 
-function go(url) {
-  window.location.replace(url);
-}
+  if (!email) { setMsg("Enter email."); emailEl?.focus(); return; }
+  if (!password) { setMsg("Enter password."); passEl?.focus(); return; }
 
-// If already logged in, don't show login form — route immediately.
-onAuthStateChanged(auth, (user) => {
-  if (user) go(getNext());
-});
-
-form?.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  setMsg("");
-  disable(true);
-
-  const email = (emailEl?.value || "").trim();
-  const password = passEl?.value || "";
+  setMsg("Signing in…");
+  disableUI(true);
 
   try {
     await signInWithEmailAndPassword(auth, email, password);
-    go(getNext());
+    setMsg("Success. Redirecting…");
+    window.location.href = "/dashboard.html";
   } catch (err) {
-    console.log(err);
-    setMsg(`<strong>Login failed.</strong> ${err?.message ? `<span class="muted">${err.message}</span>` : ""}`);
-    disable(false);
+    console.error(err);
+    const code = String(err?.code || "");
+    if (code.includes("auth/invalid-credential") || code.includes("auth/wrong-password")) {
+      setMsg("Invalid email or password.");
+    } else if (code.includes("auth/user-not-found")) {
+      setMsg("No account found for that email.");
+    } else if (code.includes("auth/too-many-requests")) {
+      setMsg("Too many attempts. Try again later.");
+    } else {
+      setMsg("Login failed. See console.");
+    }
+    disableUI(false);
   }
+}
+
+// Click handlers
+btnLogin?.addEventListener("click", doLogin);
+
+btnSignup?.addEventListener("click", () => {
+  window.location.href = "/signup.html";
 });
+
+// Enter key submits (but not in a way that interferes with other pages)
+passEl?.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") doLogin();
+});
+emailEl?.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") passEl?.focus();
+});
+
+// Initial
+setMsg("");
