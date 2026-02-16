@@ -1,10 +1,6 @@
 /* /rfo/rfo-ui.js
    RFO module — full UI (all steps) + v2 Case Information dropdowns.
-
-   Requires:
-   - /rfo/rfo-state.js
-   - /rfo/rfo-router.js
-   - /rfo/rfo-locations.js
+   Finish now saves and returns to /dashboard.html.
 */
 
 (function () {
@@ -210,7 +206,7 @@
         <h2>Case Information</h2>
 
         <p class="muted" style="margin-top:0;">
-          Use the dropdowns when available. If something is not listed, choose <strong>Other</strong> and type it in.
+          Use dropdowns when available. If something is not listed, choose <strong>Other</strong> and type it in.
         </p>
 
         <div class="rfoGrid">
@@ -303,12 +299,11 @@
         </div>
 
         <p class="muted" style="margin-top:10px;">
-          Keep names and locations accurate. This information is used to control later sections and exports.
+          This information is used to control later sections and exports.
         </p>
       </div>
     `;
 
-    // State change -> reset county/courthouse -> re-render
     const stSel = stepMount.querySelector("#ci_state");
     if (stSel) {
       stSel.addEventListener("change", () => {
@@ -321,7 +316,6 @@
       });
     }
 
-    // County bindings
     if (hasCountyData) {
       const cSel = stepMount.querySelector("#ci_countySelect");
       const cOther = stepMount.querySelector("#ci_countyOther");
@@ -336,7 +330,6 @@
             cOther.disabled = true;
             state.caseInfo.county = cSel.value || "";
           }
-          // County change affects courthouse list
           state.caseInfo.courthouse = "";
           setStatus("Saved.");
           persist();
@@ -358,7 +351,6 @@
       bindInput("#ci_countyManual", () => state.caseInfo, "county", v => v.trim());
     }
 
-    // Courthouse bindings
     if (hasCourthouseData) {
       const ctSel = stepMount.querySelector("#ci_courthouseSelect");
       const ctOther = stepMount.querySelector("#ci_courthouseOther");
@@ -392,7 +384,6 @@
       bindInput("#ci_courthouseManual", () => state.caseInfo, "courthouse", v => v.trim());
     }
 
-    // Other case info fields
     bindInput("#ci_caseNumber", () => state.caseInfo, "caseNumber", v => v.trim());
     bindInput("#ci_petitioner", () => state.caseInfo, "petitioner", v => v.trim());
     bindInput("#ci_respondent", () => state.caseInfo, "respondent", v => v.trim());
@@ -411,10 +402,7 @@
       cc.addEventListener("change", () => {
         const n = parseInt(cc.value || "0", 10);
         state.caseInfo.childrenCount = isNaN(n) ? 0 : Math.max(0, n);
-
-        // If no kids, clear child support selection
         if (!hasChildren() && state.support) state.support.childSupportRequested = "";
-
         setStatus("Saved.");
         persist();
       });
@@ -428,10 +416,18 @@
   // ---------------------------------------------------------
   function renderOrdersRequested() {
     const o = state.ordersRequested;
+    const kids = hasChildren();
 
     stepMount.innerHTML = `
       <div class="rfoSection">
         <h2>Orders Requested</h2>
+
+        <p class="muted" style="margin-top:0;">
+          Emergency relief is not a standalone order type — it is urgent relief tied to a specific request
+          (custody, visitation, support, fees, or another order you describe).
+          <br/><br/>
+          If you only want emergency relief, use <strong>Other</strong> and describe exactly what you want the court to order.
+        </p>
 
         <div class="rfoChecks">
           <label class="rfoCheck">
@@ -444,9 +440,9 @@
             <span>Visitation</span>
           </label>
 
-          <label class="rfoCheck">
-            <input id="or_support" type="checkbox" ${o.support ? "checked" : ""} />
-            <span>Support</span>
+          <label class="rfoCheck" style="${kids ? "" : "opacity:.6;"}">
+            <input id="or_support" type="checkbox" ${o.support ? "checked" : ""} ${kids ? "" : "disabled"} />
+            <span>Support ${kids ? "" : "(not available — no children entered)"}</span>
           </label>
 
           <label class="rfoCheck">
@@ -468,19 +464,16 @@
         <div class="rfoField" style="margin-top:12px;">
           <span>Other (describe)</span>
           <input id="or_otherText" type="text" value="${escapeHtml(o.otherText)}"
-                 placeholder="Describe the orders you want (required if 'Other' is selected, or if Emergency is selected by itself)"
+                 placeholder="Describe the specific orders you want (required if Other is selected, or if Emergency is selected by itself)"
                  ${ (o.other || o.emergency) ? "" : "disabled" } />
         </div>
-
-        <p class="muted" style="margin-top:10px;">
-          Emergency is an urgency flag. You still need to describe what orders you want.
-        </p>
       </div>
     `;
 
     bindRoutingCheckbox("#or_custody", () => state.ordersRequested, "custody");
     bindRoutingCheckbox("#or_visitation", () => state.ordersRequested, "visitation");
-    bindRoutingCheckbox("#or_support", () => state.ordersRequested, "support");
+    // support only if children exist
+    if (kids) bindRoutingCheckbox("#or_support", () => state.ordersRequested, "support");
     bindRoutingCheckbox("#or_attorneyFees", () => state.ordersRequested, "attorneyFees");
     bindRoutingCheckbox("#or_other", () => state.ordersRequested, "other");
     bindRoutingCheckbox("#or_emergency", () => state.ordersRequested, "emergency");
@@ -540,61 +533,22 @@
               <option value="sole" ${c.physicalCustodyRequested==="sole" ? "selected" : ""}>Sole</option>
             </select>
           </label>
-
-          <label class="rfoField">
-            <span>Primary timeshare requested</span>
-            <select id="cu_timeshare">
-              <option value="" ${c.primaryTimeshareRequested==="" ? "selected" : ""}>Select…</option>
-              <option value="me" ${c.primaryTimeshareRequested==="me" ? "selected" : ""}>Me</option>
-              <option value="other" ${c.primaryTimeshareRequested==="other" ? "selected" : ""}>Other party</option>
-              <option value="equal" ${c.primaryTimeshareRequested==="equal" ? "selected" : ""}>Equal</option>
-            </select>
-          </label>
-
-          <label class="rfoField">
-            <span>Exchange location</span>
-            <select id="cu_exchange">
-              <option value="" ${c.exchangeLocation==="" ? "selected" : ""}>Select…</option>
-              <option value="school" ${c.exchangeLocation==="school" ? "selected" : ""}>School</option>
-              <option value="police_station" ${c.exchangeLocation==="police_station" ? "selected" : ""}>Police station</option>
-              <option value="other" ${c.exchangeLocation==="other" ? "selected" : ""}>Other</option>
-            </select>
-          </label>
         </div>
 
         <div class="rfoField" style="margin-top:12px;">
-          <span>Exchange location (other)</span>
-          <input id="cu_exchangeOther" type="text" value="${escapeHtml(c.exchangeLocationOther)}" placeholder="Describe location" ${c.exchangeLocation==="other" ? "" : "disabled"} />
-        </div>
-
-        <div class="rfoField" style="margin-top:12px;">
-          <span>Notes</span>
-          <textarea id="cu_notes" rows="5" placeholder="Brief notes (optional)">${escapeHtml(c.notes)}</textarea>
+          <span>Notes (optional)</span>
+          <textarea id="cu_notes" rows="5" placeholder="Brief notes">${escapeHtml(c.notes)}</textarea>
         </div>
       </div>
     `;
 
     const legal = stepMount.querySelector("#cu_legal");
     const physical = stepMount.querySelector("#cu_physical");
-    const timeshare = stepMount.querySelector("#cu_timeshare");
-    const exchange = stepMount.querySelector("#cu_exchange");
-    const exchangeOther = stepMount.querySelector("#cu_exchangeOther");
 
     if (legal) legal.addEventListener("change", () => { state.custody.legalCustodyRequested = legal.value; setStatus("Saved."); persist(); });
     if (physical) physical.addEventListener("change", () => { state.custody.physicalCustodyRequested = physical.value; setStatus("Saved."); persist(); });
-    if (timeshare) timeshare.addEventListener("change", () => { state.custody.primaryTimeshareRequested = timeshare.value; setStatus("Saved."); persist(); });
 
-    if (exchange && exchangeOther) {
-      exchange.addEventListener("change", () => {
-        state.custody.exchangeLocation = exchange.value;
-        exchangeOther.disabled = (exchange.value !== "other");
-        setStatus("Saved.");
-        persist();
-      });
-    }
-
-    bindInput("#cu_exchangeOther", () => state.custody, "exchangeLocationOther", v => v.trim());
-    bindInput("#cu_notes", () => state.custody, "notes", v => v);
+    bindInput("#cu_notes", () => state.custody, "notes", t => t);
 
     installTabTrap();
   }
@@ -613,40 +567,10 @@
           <span>Visitation description</span>
           <textarea id="vi_schedule" rows="7" placeholder="Describe the schedule in plain language.">${escapeHtml(v.scheduleText)}</textarea>
         </div>
-
-        <div class="rfoGrid" style="margin-top:12px;">
-          <label class="rfoField">
-            <span>Supervision</span>
-            <select id="vi_supervision">
-              <option value="" ${v.supervisionRequested==="" ? "selected" : ""}>Select…</option>
-              <option value="none" ${v.supervisionRequested==="none" ? "selected" : ""}>None</option>
-              <option value="supervised" ${v.supervisionRequested==="supervised" ? "selected" : ""}>Supervised</option>
-            </select>
-          </label>
-        </div>
-
-        <div class="rfoField" style="margin-top:12px;">
-          <span>Supervision details</span>
-          <input id="vi_supervisionDetails" type="text" value="${escapeHtml(v.supervisionDetails)}" placeholder="If supervised, describe who / where / how." ${v.supervisionRequested==="supervised" ? "" : "disabled"} />
-        </div>
       </div>
     `;
 
     bindInput("#vi_schedule", () => state.visitation, "scheduleText", t => t);
-
-    const sup = stepMount.querySelector("#vi_supervision");
-    const supDetails = stepMount.querySelector("#vi_supervisionDetails");
-
-    if (sup && supDetails) {
-      sup.addEventListener("change", () => {
-        state.visitation.supervisionRequested = sup.value;
-        supDetails.disabled = (sup.value !== "supervised");
-        setStatus("Saved.");
-        persist();
-      });
-    }
-
-    bindInput("#vi_supervisionDetails", () => state.visitation, "supervisionDetails", t => t.trim());
 
     installTabTrap();
   }
@@ -658,29 +582,30 @@
     const sp = state.support;
     const kids = hasChildren();
 
+    if (!kids) {
+      // safety: should not be routed here
+      stepMount.innerHTML = `
+        <div class="rfoSection">
+          <h2>Support</h2>
+          <p class="muted">Support is not available because no children were entered.</p>
+        </div>
+      `;
+      installTabTrap();
+      return;
+    }
+
     stepMount.innerHTML = `
       <div class="rfoSection">
         <h2>Support</h2>
 
         <div class="rfoGrid">
-          <label class="rfoField" ${kids ? "" : 'style="opacity:.6;"'}>
-            <span>Child support ${kids ? "" : "(not available — no children entered)"}</span>
-            <select id="sp_child" ${kids ? "" : "disabled"}>
+          <label class="rfoField">
+            <span>Child support</span>
+            <select id="sp_child">
               <option value="" ${sp.childSupportRequested==="" ? "selected" : ""}>Select…</option>
               <option value="establish" ${sp.childSupportRequested==="establish" ? "selected" : ""}>Establish</option>
               <option value="modify" ${sp.childSupportRequested==="modify" ? "selected" : ""}>Modify</option>
               <option value="terminate" ${sp.childSupportRequested==="terminate" ? "selected" : ""}>Terminate</option>
-            </select>
-          </label>
-
-          <label class="rfoField">
-            <span>Spousal support</span>
-            <select id="sp_spousal">
-              <option value="" ${sp.spousalSupportRequested==="" ? "selected" : ""}>Select…</option>
-              <option value="n_a" ${sp.spousalSupportRequested==="n_a" ? "selected" : ""}>Not applicable</option>
-              <option value="establish" ${sp.spousalSupportRequested==="establish" ? "selected" : ""}>Establish</option>
-              <option value="modify" ${sp.spousalSupportRequested==="modify" ? "selected" : ""}>Modify</option>
-              <option value="terminate" ${sp.spousalSupportRequested==="terminate" ? "selected" : ""}>Terminate</option>
             </select>
           </label>
 
@@ -696,19 +621,14 @@
         </label>
 
         <div class="rfoField" style="margin-top:12px;">
-          <span>Notes</span>
-          <textarea id="sp_notes" rows="6" placeholder="Brief notes (optional)">${escapeHtml(sp.notes)}</textarea>
+          <span>Notes (optional)</span>
+          <textarea id="sp_notes" rows="6" placeholder="Brief notes">${escapeHtml(sp.notes)}</textarea>
         </div>
       </div>
     `;
 
     const child = stepMount.querySelector("#sp_child");
-    const spousal = stepMount.querySelector("#sp_spousal");
-
-    if (!kids) state.support.childSupportRequested = "";
-
     if (child) child.addEventListener("change", () => { state.support.childSupportRequested = child.value; setStatus("Saved."); persist(); });
-    if (spousal) spousal.addEventListener("change", () => { state.support.spousalSupportRequested = spousal.value; setStatus("Saved."); persist(); });
 
     bindDateText("#sp_date", () => state.support, "requestedEffectiveDate");
     bindCheckboxBasic("#sp_guideline", () => state.support, "guidelineRequested");
@@ -811,6 +731,9 @@
         <div class="rfoReview">
           <pre>${escapeHtml(JSON.stringify(state, null, 2))}</pre>
         </div>
+        <p class="muted" style="margin-top:10px;">
+          Next: export / filing packet generation (coming next). For now, this saves your structured intake.
+        </p>
       </div>
     `;
     installTabTrap();
@@ -897,7 +820,12 @@
       const idx = steps.findIndex(s => s.id === currentStepId);
 
       if (idx >= steps.length - 1) {
-        setStatus("Completed. (Review)");
+        // Finish behavior: save + return to dashboard
+        window.RFO_STATE.save(state);
+        setStatus("Saved. Returning to dashboard…");
+        setTimeout(() => {
+          window.location.href = "/dashboard.html";
+        }, 250);
         return;
       }
 
