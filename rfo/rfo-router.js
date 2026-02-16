@@ -78,17 +78,28 @@
 
   // --- Validation ---------------------------------------------------------
 
-  function validateCaseInfo(state) {
-    const missing = [];
-    const c = state.caseInfo || {};
-    if (!normalizeStr(c.state)) missing.push("Select a state");
-    if (!normalizeStr(c.county)) missing.push("Select or enter a county");
-    // Courthouse is optional
-    // Case number can be optional depending on user; keep optional for now
-    if (!normalizeStr(c.petitioner)) missing.push("Enter petitioner name");
-    if (!normalizeStr(c.respondent)) missing.push("Enter respondent name");
+  function validateOrdersRequested(state) {
+  const missing = [];
+  const o = state.ordersRequested || {};
+
+  // Must select at least one order type OR emergency
+  if (!anyOrderSelected(o) && !o.emergency) {
+    missing.push("Select at least one order requested");
     return missing;
   }
+
+  // Support cannot be selected when childrenCount=0
+  if (o.support && !hasChildren(state)) {
+    missing.push("Support cannot be selected when no children are entered");
+  }
+
+  // If Other is selected, require otherText
+  if (o.other && !normalizeStr(o.otherText)) {
+    missing.push("Describe the 'Other' orders requested");
+  }
+
+  return missing;
+}
 
   function validateOrdersRequested(state) {
     const missing = [];
