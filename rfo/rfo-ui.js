@@ -23,7 +23,12 @@
   const progressFill = $("progressFill");
   const progressText = $("progressText");
 
-  let state = window.RFO_STATE.load();
+  let state;
+
+(async function init() {
+  state = await window.RFO_STATE.load();
+  renderStep();
+})();
   state.meta = state.meta || {};
   let currentStepId = state.meta.lastStepId ? state.meta.lastStepId : "case_info";
 
