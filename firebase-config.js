@@ -3,21 +3,14 @@
 // a shared auth state promise + helper to read the user doc.
 
 import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
-import {
-  getAuth,
-  onAuthStateChanged,
-} from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
-import {
-  getFirestore,
-  doc,
-  getDoc,
-} from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 
 /**
  * ✅ Replace with your actual Firebase config.
  * Keep it here only; do not duplicate init elsewhere.
  */
-const firebaseConfig = {
+export const firebaseConfig = {
   apiKey: "AIzaSyDhpiApUlhDz-hADnBfGE5Q9FLCGgkk9d4",
   authDomain: "sharpe-legal.firebaseapp.com",
   projectId: "sharpe-legal",
@@ -69,3 +62,13 @@ export async function getUserProfile(uid) {
     return null;
   }
 }
+
+// ✅ Compatibility default export (fixes: "does not provide an export named 'default'")
+export default {
+  firebaseConfig,
+  app,
+  auth,
+  db,
+  getAuthStateOnce,
+  getUserProfile,
+};
