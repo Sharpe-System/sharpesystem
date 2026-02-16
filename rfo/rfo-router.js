@@ -27,7 +27,7 @@
     return !!(o.custody || o.visitation || o.support || o.attorneyFees || o.other);
   }
 
-  function emergencyOnly(o) {
+  
     if (!o) return false;
     // Emergency checked, and no other order type checked.
     const anyOther = !!(o.custody || o.visitation || o.support || o.attorneyFees || o.other);
