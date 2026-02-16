@@ -1,7 +1,10 @@
 // /header.js
 // Theme only. Language handled by i18n.js
+// Hardened: idempotent init + supports missing elements gracefully.
 
 (function () {
+  "use strict";
+
   const STORAGE_KEY = "sharpe_theme";
 
   function getSaved() {
@@ -22,12 +25,10 @@
     setSaved(m);
 
     const btn = document.getElementById("themeToggle");
-    if (btn) btn.textContent = m === "light" ? "Light" : "Dark";
+    if (btn) btn.textContent = (m === "light" ? "Light" : "Dark");
   }
 
-  function initTheme() {
-    applyTheme(getSaved());
-
+  function bindThemeToggle() {
     const btn = document.getElementById("themeToggle");
     if (!btn) return;
 
@@ -35,15 +36,21 @@
     btn.dataset.bound = "1";
 
     btn.addEventListener("click", () => {
-      const current =
-        document.documentElement.getAttribute("data-theme") || "dark";
+      const current = document.documentElement.getAttribute("data-theme") || "dark";
       applyTheme(current === "dark" ? "light" : "dark");
     });
   }
 
+  function initTheme() {
+    applyTheme(getSaved());
+    bindThemeToggle();
+  }
+
+  // Called after header partial is injected
   window.initHeaderControls = function () {
     initTheme();
   };
 
+  // Also run once on DOM ready in case header is not loaded via partials
   document.addEventListener("DOMContentLoaded", initTheme);
 })();
