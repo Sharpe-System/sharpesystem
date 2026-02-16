@@ -1,6 +1,12 @@
 /* /rfo/rfo-ui.js
-   RFO module — full UI (all steps) + v2 Case Information dropdowns.
-   Finish now saves and returns to /dashboard.html.
+   RFO module — full UI (all steps) + state/county/courthouse dropdowns.
+
+   Fixes:
+   - Courthouse dropdown showing [object Object] (supports strings OR objects)
+   - Hide "Other" inputs unless "Other" selected (no pointless placeholders)
+   - Visitation uses presets (minimal typing) + optional details
+   - Add optional grievances/feelings field (captured but not required)
+   - Finish saves + returns to /dashboard.html
 */
 
 (function () {
@@ -18,7 +24,10 @@
   const progressText = $("progressText");
 
   let state = window.RFO_STATE.load();
-  let currentStepId = (state.meta && state.meta.lastStepId) ? state.meta.lastStepId : "case_info";
+  state.meta = state.meta || {};
+  let currentStepId = state.meta.lastStepId ? state.meta.lastStepId : "case_info";
+
+  function t(s) { return String(s || "").trim(); }
 
   function hasChildren() {
     const n = Number((state.caseInfo && state.caseInfo.childrenCount) || 0);
@@ -175,8 +184,15 @@
     });
   }
 
+  // Helpers: accept strings OR objects in courthouse arrays
+  function courthouseName(item) {
+    if (typeof item === "string") return item;
+    if (item && typeof item === "object") return String(item.name || "").trim();
+    return "";
+  }
+
   // ---------------------------------------------------------
-  // STEP: Case Information (v2 dropdowns)
+  // STEP: Case Information (dropdowns)
   // ---------------------------------------------------------
   async function renderCaseInfo() {
     const c = state.caseInfo;
@@ -190,23 +206,37 @@
     const counties = window.RFO_LOCATIONS.getCountyOptions(data, selectedState);
     const hasCountyData = counties.length > 0;
 
-    const countyVal = String(c.county || "").trim();
-    const countyIsOther = hasCountyData ? (!!countyVal && !counties.includes(countyVal)) : true;
+    const countyVal = t(c.county);
+    const countyInList = hasCountyData && counties.includes(countyVal);
+    const countyMode = countyInList ? "list" : (countyVal ? "other" : "list"); // default list
 
-    const courthouseList = (hasCountyData && counties.includes(countyVal))
-      ? window.RFO_LOCATIONS.getCourthouseOptions(data, selectedState, countyVal)
-      : [];
+    // Courthouse list can come back as strings or objects depending on dataset evolution.
+    let courthouseList = [];
+    if (countyInList) {
+      const raw = window.RFO_LOCATIONS.getCourthouseOptions(data, selectedState, countyVal);
+      // raw may be array of strings; keep safe anyway
+      courthouseList = Array.isArray(raw) ? raw : [];
+    }
 
-    const hasCourthouseData = courthouseList.length > 0;
-    const courthouseVal = String(c.courthouse || "").trim();
-    const courthouseIsOther = hasCourthouseData ? (!!courthouseVal && !courthouseList.includes(courthouseVal)) : true;
+    // If your dataset later evolves to provide objects, support that too:
+    // Try to also pull records for display if needed.
+    // (We only need names for dropdown values.)
+    const courthouseNames = courthouseList
+      .map(courthouseName)
+      .filter(Boolean);
+
+    const hasCourthouseData = courthouseNames.length > 0;
+
+    const courthouseVal = t(c.courthouse);
+    const courthouseInList = hasCourthouseData && courthouseNames.includes(courthouseVal);
+    const courthouseMode = courthouseInList ? "list" : (courthouseVal ? "other" : "list");
 
     stepMount.innerHTML = `
       <div class="rfoSection">
         <h2>Case Information</h2>
 
         <p class="muted" style="margin-top:0;">
-          Use dropdowns when available. If something is not listed, choose <strong>Other</strong> and type it in.
+          Choose from dropdowns when available. Use <strong>Other</strong> only if you do not see the right option.
         </p>
 
         <div class="rfoGrid">
@@ -214,7 +244,7 @@
             <span>State</span>
             <select id="ci_state">
               ${stateOptions.map(o =>
-                `<option value="${o.code}" ${o.code === selectedState ? "selected" : ""}>${escapeHtml(o.name)}</option>`
+                `<option value="${escapeHtml(o.code)}" ${o.code === selectedState ? "selected" : ""}>${escapeHtml(o.name)}</option>`
               ).join("")}
             </select>
           </label>
@@ -226,16 +256,20 @@
                 ? `
                   <select id="ci_countySelect">
                     <option value="">Select…</option>
-                    ${counties.map(name => `<option value="${escapeHtml(name)}" ${name === countyVal ? "selected" : ""}>${escapeHtml(name)}</option>`).join("")}
-                    <option value="__OTHER__" ${countyIsOther ? "selected" : ""}>Other</option>
+                    ${counties.map(name =>
+                      `<option value="${escapeHtml(name)}" ${name === countyVal ? "selected" : ""}>${escapeHtml(name)}</option>`
+                    ).join("")}
+                    <option value="__OTHER__" ${(!countyInList && countyVal) ? "selected" : ""}>Other</option>
                   </select>
-                  <input id="ci_countyOther" type="text"
-                    value="${countyIsOther ? escapeHtml(countyVal) : ""}"
-                    placeholder="Type county name"
-                    ${countyIsOther ? "" : "disabled"} />
+
+                  <div id="ci_countyOtherWrap" style="${(!countyInList && countyVal) ? "" : "display:none;"}">
+                    <input id="ci_countyOther" type="text"
+                      value="${(!countyInList && countyVal) ? escapeHtml(countyVal) : ""}"
+                      placeholder="County name" />
+                  </div>
                 `
                 : `
-                  <input id="ci_countyManual" type="text" value="${escapeHtml(countyVal)}" placeholder="Type county name" />
+                  <input id="ci_countyManual" type="text" value="${escapeHtml(countyVal)}" placeholder="County name" />
                   <div class="muted" style="font-size:12px;margin-top:6px;">
                     County dropdowns are not loaded for this state yet. Manual entry is fine.
                   </div>
@@ -250,18 +284,22 @@
                 ? `
                   <select id="ci_courthouseSelect">
                     <option value="">Select…</option>
-                    ${courthouseList.map(name => `<option value="${escapeHtml(name)}" ${name === courthouseVal ? "selected" : ""}>${escapeHtml(name)}</option>`).join("")}
-                    <option value="__OTHER__" ${courthouseIsOther ? "selected" : ""}>Other</option>
+                    ${courthouseNames.map(name =>
+                      `<option value="${escapeHtml(name)}" ${name === courthouseVal ? "selected" : ""}>${escapeHtml(name)}</option>`
+                    ).join("")}
+                    <option value="__OTHER__" ${(!courthouseInList && courthouseVal) ? "selected" : ""}>Other</option>
                   </select>
-                  <input id="ci_courthouseOther" type="text"
-                    value="${courthouseIsOther ? escapeHtml(courthouseVal) : ""}"
-                    placeholder="Type courthouse name (optional)"
-                    ${courthouseIsOther ? "" : "disabled"} />
+
+                  <div id="ci_courthouseOtherWrap" style="${(!courthouseInList && courthouseVal) ? "" : "display:none;"}">
+                    <input id="ci_courthouseOther" type="text"
+                      value="${(!courthouseInList && courthouseVal) ? escapeHtml(courthouseVal) : ""}"
+                      placeholder="Courthouse name (optional)" />
+                  </div>
                 `
                 : `
-                  <input id="ci_courthouseManual" type="text" value="${escapeHtml(courthouseVal)}" placeholder="Type courthouse name (optional)" />
+                  <input id="ci_courthouseManual" type="text" value="${escapeHtml(courthouseVal)}" placeholder="Courthouse name (optional)" />
                   <div class="muted" style="font-size:12px;margin-top:6px;">
-                    Courthouse dropdowns are not loaded here yet. Manual entry is fine.
+                    No courthouse list found for this county yet. Manual entry is fine.
                   </div>
                 `
             }
@@ -298,12 +336,18 @@
           </label>
         </div>
 
+        <div class="rfoField" style="margin-top:12px;">
+          <span>Let us know how you feel about this situation (optional)</span>
+          <textarea id="meta_grievances" rows="4" placeholder="Optional. This does not change the orders requested.">${escapeHtml(state.meta.grievances || "")}</textarea>
+        </div>
+
         <p class="muted" style="margin-top:10px;">
           This information is used to control later sections and exports.
         </p>
       </div>
     `;
 
+    // State change
     const stSel = stepMount.querySelector("#ci_state");
     if (stSel) {
       stSel.addEventListener("change", () => {
@@ -316,77 +360,72 @@
       });
     }
 
+    // County
     if (hasCountyData) {
       const cSel = stepMount.querySelector("#ci_countySelect");
+      const otherWrap = stepMount.querySelector("#ci_countyOtherWrap");
       const cOther = stepMount.querySelector("#ci_countyOther");
 
-      if (cSel && cOther) {
+      if (cSel) {
         cSel.addEventListener("change", () => {
           if (cSel.value === "__OTHER__") {
-            cOther.disabled = false;
-            cOther.value = "";
             state.caseInfo.county = "";
+            if (otherWrap) otherWrap.style.display = "";
+            if (cOther) cOther.value = "";
           } else {
-            cOther.disabled = true;
             state.caseInfo.county = cSel.value || "";
+            if (otherWrap) otherWrap.style.display = "none";
           }
           state.caseInfo.courthouse = "";
           setStatus("Saved.");
           persist();
-          renderStep();
+          renderStep(); // re-render courthouse list
         });
+      }
 
+      if (cOther) {
         cOther.addEventListener("input", () => {
-          state.caseInfo.county = cOther.value.trim();
+          state.caseInfo.county = t(cOther.value);
           setStatus("Editing…");
           persist();
         });
         cOther.addEventListener("change", () => {
-          state.caseInfo.county = cOther.value.trim();
+          state.caseInfo.county = t(cOther.value);
           setStatus("Saved.");
           persist();
         });
       }
     } else {
-      bindInput("#ci_countyManual", () => state.caseInfo, "county", v => v.trim());
+      bindInput("#ci_countyManual", () => state.caseInfo, "county", v => t(v));
     }
 
-    if (hasCourthouseData) {
-      const ctSel = stepMount.querySelector("#ci_courthouseSelect");
-      const ctOther = stepMount.querySelector("#ci_courthouseOther");
+    // Courthouse
+    const ctSel = stepMount.querySelector("#ci_courthouseSelect");
+    const ctOtherWrap = stepMount.querySelector("#ci_courthouseOtherWrap");
+    const ctOther = stepMount.querySelector("#ci_courthouseOther");
+    const ctManual = stepMount.querySelector("#ci_courthouseManual");
 
-      if (ctSel && ctOther) {
-        ctSel.addEventListener("change", () => {
-          if (ctSel.value === "__OTHER__") {
-            ctOther.disabled = false;
-            ctOther.value = "";
-            state.caseInfo.courthouse = "";
-          } else {
-            ctOther.disabled = true;
-            state.caseInfo.courthouse = ctSel.value || "";
-          }
-          setStatus("Saved.");
-          persist();
-        });
-
-        ctOther.addEventListener("input", () => {
-          state.caseInfo.courthouse = ctOther.value.trim();
-          setStatus("Editing…");
-          persist();
-        });
-        ctOther.addEventListener("change", () => {
-          state.caseInfo.courthouse = ctOther.value.trim();
-          setStatus("Saved.");
-          persist();
-        });
-      }
-    } else {
-      bindInput("#ci_courthouseManual", () => state.caseInfo, "courthouse", v => v.trim());
+    if (ctSel) {
+      ctSel.addEventListener("change", () => {
+        if (ctSel.value === "__OTHER__") {
+          state.caseInfo.courthouse = "";
+          if (ctOtherWrap) ctOtherWrap.style.display = "";
+          if (ctOther) ctOther.value = "";
+        } else {
+          state.caseInfo.courthouse = ctSel.value || "";
+          if (ctOtherWrap) ctOtherWrap.style.display = "none";
+        }
+        setStatus("Saved.");
+        persist();
+      });
     }
+    if (ctOther) bindInput("#ci_courthouseOther", () => state.caseInfo, "courthouse", v => t(v));
+    if (ctManual) bindInput("#ci_courthouseManual", () => state.caseInfo, "courthouse", v => t(v));
 
-    bindInput("#ci_caseNumber", () => state.caseInfo, "caseNumber", v => v.trim());
-    bindInput("#ci_petitioner", () => state.caseInfo, "petitioner", v => v.trim());
-    bindInput("#ci_respondent", () => state.caseInfo, "respondent", v => v.trim());
+    // Other fields
+    bindInput("#ci_caseNumber", () => state.caseInfo, "caseNumber", v => t(v));
+    bindInput("#ci_petitioner", () => state.caseInfo, "petitioner", v => t(v));
+    bindInput("#ci_respondent", () => state.caseInfo, "respondent", v => t(v));
 
     const rel = stepMount.querySelector("#ci_relationship");
     if (rel) {
@@ -408,6 +447,8 @@
       });
     }
 
+    bindInput("#meta_grievances", () => state.meta, "grievances", v => v);
+
     installTabTrap();
   }
 
@@ -423,10 +464,8 @@
         <h2>Orders Requested</h2>
 
         <p class="muted" style="margin-top:0;">
-          Emergency relief is not a standalone order type — it is urgent relief tied to a specific request
-          (custody, visitation, support, fees, or another order you describe).
-          <br/><br/>
-          If you only want emergency relief, use <strong>Other</strong> and describe exactly what you want the court to order.
+          Choose the orders you want the court to make. Emergency is an urgency flag tied to your request.
+          If you only want emergency relief, choose <strong>Other</strong> and describe what you want ordered.
         </p>
 
         <div class="rfoChecks">
@@ -472,7 +511,6 @@
 
     bindRoutingCheckbox("#or_custody", () => state.ordersRequested, "custody");
     bindRoutingCheckbox("#or_visitation", () => state.ordersRequested, "visitation");
-    // support only if children exist
     if (kids) bindRoutingCheckbox("#or_support", () => state.ordersRequested, "support");
     bindRoutingCheckbox("#or_attorneyFees", () => state.ordersRequested, "attorneyFees");
     bindRoutingCheckbox("#or_other", () => state.ordersRequested, "other");
@@ -537,7 +575,7 @@
 
         <div class="rfoField" style="margin-top:12px;">
           <span>Notes (optional)</span>
-          <textarea id="cu_notes" rows="5" placeholder="Brief notes">${escapeHtml(c.notes)}</textarea>
+          <textarea id="cu_notes" rows="5" placeholder="Optional notes">${escapeHtml(c.notes)}</textarea>
         </div>
       </div>
     `;
@@ -548,29 +586,83 @@
     if (legal) legal.addEventListener("change", () => { state.custody.legalCustodyRequested = legal.value; setStatus("Saved."); persist(); });
     if (physical) physical.addEventListener("change", () => { state.custody.physicalCustodyRequested = physical.value; setStatus("Saved."); persist(); });
 
-    bindInput("#cu_notes", () => state.custody, "notes", t => t);
+    bindInput("#cu_notes", () => state.custody, "notes", v => v);
 
     installTabTrap();
   }
 
   // ---------------------------------------------------------
-  // STEP: Visitation
+  // STEP: Visitation (preset dropdown)
   // ---------------------------------------------------------
   function renderVisitation() {
     const v = state.visitation;
+    v.preset = v.preset || "";
+    v.details = v.details || "";
+    v.scheduleText = v.scheduleText || ""; // backward compatibility if older data exists
+
+    const presets = [
+      { value: "", label: "Select…" },
+      { value: "alt_weekends", label: "Alternating weekends" },
+      { value: "2255", label: "2-2-5-5 (common 50/50)" },
+      { value: "223", label: "2-2-3 (alternating)" },
+      { value: "77", label: "Week on / week off (7-7)" },
+      { value: "6040", label: "60/40 split (common)" },
+      { value: "7030", label: "70/30 split (common)" },
+      { value: "supervised", label: "Supervised visitation" },
+      { value: "custom", label: "Custom (type it)" }
+    ];
 
     stepMount.innerHTML = `
       <div class="rfoSection">
         <h2>Visitation</h2>
 
-        <div class="rfoField">
-          <span>Visitation description</span>
-          <textarea id="vi_schedule" rows="7" placeholder="Describe the schedule in plain language.">${escapeHtml(v.scheduleText)}</textarea>
+        <p class="muted" style="margin-top:0;">
+          Choose a common schedule. Only use typing if needed.
+        </p>
+
+        <div class="rfoGrid">
+          <label class="rfoField">
+            <span>Schedule preset</span>
+            <select id="vi_preset">
+              ${presets.map(p =>
+                `<option value="${escapeHtml(p.value)}" ${p.value === v.preset ? "selected" : ""}>${escapeHtml(p.label)}</option>`
+              ).join("")}
+            </select>
+          </label>
+
+          <label class="rfoField">
+            <span>Exchange location (optional)</span>
+            <input id="vi_exchange" type="text" value="${escapeHtml(v.exchangeLocation || "")}" placeholder="Optional" />
+          </label>
+        </div>
+
+        <div id="vi_customWrap" class="rfoField" style="margin-top:12px; ${v.preset === "custom" ? "" : "display:none;"}">
+          <span>Custom schedule (plain language)</span>
+          <textarea id="vi_custom" rows="5" placeholder="Type the schedule.">${escapeHtml(v.details || v.scheduleText || "")}</textarea>
+        </div>
+
+        <div class="rfoField" style="margin-top:12px;">
+          <span>Notes (optional)</span>
+          <textarea id="vi_notes" rows="4" placeholder="Optional notes">${escapeHtml(v.notes || "")}</textarea>
         </div>
       </div>
     `;
 
-    bindInput("#vi_schedule", () => state.visitation, "scheduleText", t => t);
+    const presetSel = stepMount.querySelector("#vi_preset");
+    const customWrap = stepMount.querySelector("#vi_customWrap");
+
+    if (presetSel) {
+      presetSel.addEventListener("change", () => {
+        state.visitation.preset = presetSel.value;
+        if (customWrap) customWrap.style.display = (presetSel.value === "custom") ? "" : "none";
+        setStatus("Saved.");
+        persist();
+      });
+    }
+
+    bindInput("#vi_exchange", () => state.visitation, "exchangeLocation", v => t(v));
+    bindInput("#vi_custom", () => state.visitation, "details", v => v);
+    bindInput("#vi_notes", () => state.visitation, "notes", v => v);
 
     installTabTrap();
   }
@@ -583,7 +675,6 @@
     const kids = hasChildren();
 
     if (!kids) {
-      // safety: should not be routed here
       stepMount.innerHTML = `
         <div class="rfoSection">
           <h2>Support</h2>
@@ -622,7 +713,7 @@
 
         <div class="rfoField" style="margin-top:12px;">
           <span>Notes (optional)</span>
-          <textarea id="sp_notes" rows="6" placeholder="Brief notes">${escapeHtml(sp.notes)}</textarea>
+          <textarea id="sp_notes" rows="6" placeholder="Optional notes">${escapeHtml(sp.notes)}</textarea>
         </div>
       </div>
     `;
@@ -632,7 +723,7 @@
 
     bindDateText("#sp_date", () => state.support, "requestedEffectiveDate");
     bindCheckboxBasic("#sp_guideline", () => state.support, "guidelineRequested");
-    bindInput("#sp_notes", () => state.support, "notes", t => t);
+    bindInput("#sp_notes", () => state.support, "notes", v => v);
 
     installTabTrap();
   }
@@ -700,7 +791,7 @@
     if (risk) risk.addEventListener("change", () => { state.emergency.immediateHarmRisk = risk.value; setStatus("Saved."); persist(); });
 
     bindDateText("#em_date", () => state.emergency, "recentIncidentDate");
-    bindInput("#em_desc", () => state.emergency, "harmDescription", t => t);
+    bindInput("#em_desc", () => state.emergency, "harmDescription", v => v);
 
     if (policeFiled && agency && reportNo) {
       policeFiled.addEventListener("change", () => {
@@ -713,8 +804,8 @@
       });
     }
 
-    bindInput("#em_agency", () => state.emergency, "policeAgency", t => t.trim());
-    bindInput("#em_reportNo", () => state.emergency, "policeReportNumber", t => t.trim());
+    bindInput("#em_agency", () => state.emergency, "policeAgency", v => t(v));
+    bindInput("#em_reportNo", () => state.emergency, "policeReportNumber", v => t(v));
 
     installTabTrap();
   }
@@ -728,11 +819,13 @@
       <div class="rfoSection">
         <h2>Review</h2>
         <p class="muted">Active flow: ${escapeHtml(steps)}</p>
+
         <div class="rfoReview">
           <pre>${escapeHtml(JSON.stringify(state, null, 2))}</pre>
         </div>
+
         <p class="muted" style="margin-top:10px;">
-          Next: export / filing packet generation (coming next). For now, this saves your structured intake.
+          Next step later: export / filing packet generation. For now, this saves your structured intake.
         </p>
       </div>
     `;
@@ -794,6 +887,7 @@
       const sure = confirm("Reset Request for Order data? This clears your saved answers.");
       if (!sure) return;
       state = window.RFO_STATE.reset();
+      state.meta = state.meta || {};
       currentStepId = "case_info";
       setStatus("Reset.");
       renderStep();
@@ -820,7 +914,6 @@
       const idx = steps.findIndex(s => s.id === currentStepId);
 
       if (idx >= steps.length - 1) {
-        // Finish behavior: save + return to dashboard
         window.RFO_STATE.save(state);
         setStatus("Saved. Returning to dashboard…");
         setTimeout(() => {
