@@ -23,19 +23,13 @@
   const progressFill = $("progressFill");
   const progressText = $("progressText");
 
-  let state;
-
-(async function init() {
-  state = await window.RFO_STATE.load();
-  renderStep();
-})();
-  state.meta = state.meta || {};
-  let currentStepId = state.meta.lastStepId ? state.meta.lastStepId : "case_info";
+  let state = null;
+  let currentStepId = "case_info";
 
   function t(s) { return String(s || "").trim(); }
 
   function hasChildren() {
-    const n = Number((state.caseInfo && state.caseInfo.childrenCount) || 0);
+    const n = Number((state && state.caseInfo && state.caseInfo.childrenCount) || 0);
     return n > 0;
   }
 
@@ -45,6 +39,8 @@
   }
 
   function persist() {
+    if (!state) return;
+    state.meta = state.meta || {};
     state.meta.lastStepId = currentStepId;
     window.RFO_STATE.save(state);
   }
@@ -213,28 +209,18 @@
 
     const countyVal = t(c.county);
     const countyInList = hasCountyData && counties.includes(countyVal);
-    const countyMode = countyInList ? "list" : (countyVal ? "other" : "list"); // default list
 
-    // Courthouse list can come back as strings or objects depending on dataset evolution.
     let courthouseList = [];
     if (countyInList) {
       const raw = window.RFO_LOCATIONS.getCourthouseOptions(data, selectedState, countyVal);
-      // raw may be array of strings; keep safe anyway
       courthouseList = Array.isArray(raw) ? raw : [];
     }
 
-    // If your dataset later evolves to provide objects, support that too:
-    // Try to also pull records for display if needed.
-    // (We only need names for dropdown values.)
-    const courthouseNames = courthouseList
-      .map(courthouseName)
-      .filter(Boolean);
-
+    const courthouseNames = courthouseList.map(courthouseName).filter(Boolean);
     const hasCourthouseData = courthouseNames.length > 0;
 
     const courthouseVal = t(c.courthouse);
     const courthouseInList = hasCourthouseData && courthouseNames.includes(courthouseVal);
-    const courthouseMode = courthouseInList ? "list" : (courthouseVal ? "other" : "list");
 
     stepMount.innerHTML = `
       <div class="rfoSection">
@@ -343,7 +329,7 @@
 
         <div class="rfoField" style="margin-top:12px;">
           <span>Let us know how you feel about this situation (optional)</span>
-          <textarea id="meta_grievances" rows="4" placeholder="Optional. This does not change the orders requested.">${escapeHtml(state.meta.grievances || "")}</textarea>
+          <textarea id="meta_grievances" rows="4" placeholder="Optional. This does not change the orders requested.">${escapeHtml((state.meta && state.meta.grievances) || "")}</textarea>
         </div>
 
         <p class="muted" style="margin-top:10px;">
@@ -384,7 +370,7 @@
           state.caseInfo.courthouse = "";
           setStatus("Saved.");
           persist();
-          renderStep(); // re-render courthouse list
+          renderStep();
         });
       }
 
@@ -508,8 +494,8 @@
         <div class="rfoField" style="margin-top:12px;">
           <span>Other (describe)</span>
           <input id="or_otherText" type="text" value="${escapeHtml(o.otherText)}"
-                 placeholder="Describe the specific orders you want (required if Other is selected, or if Emergency is selected by itself)"
-                 ${ (o.other || o.emergency) ? "" : "disabled" } />
+                 placeholder="Describe the specific orders you want (required if Other is selected)"
+                 ${ (o.other) ? "" : "disabled" } />
         </div>
       </div>
     `;
@@ -523,15 +509,11 @@
 
     const otherText = stepMount.querySelector("#or_otherText");
     const otherToggle = stepMount.querySelector("#or_other");
-    const emergencyToggle = stepMount.querySelector("#or_emergency");
 
-    if (otherText && otherToggle && emergencyToggle) {
-      const updateEnabled = () => {
-        otherText.disabled = !(otherToggle.checked || emergencyToggle.checked);
-      };
+    if (otherText && otherToggle) {
+      const updateEnabled = () => { otherText.disabled = !otherToggle.checked; };
       updateEnabled();
       otherToggle.addEventListener("change", updateEnabled);
-      emergencyToggle.addEventListener("change", updateEnabled);
 
       otherText.addEventListener("input", () => {
         state.ordersRequested.otherText = otherText.value;
@@ -603,7 +585,7 @@
     const v = state.visitation;
     v.preset = v.preset || "";
     v.details = v.details || "";
-    v.scheduleText = v.scheduleText || ""; // backward compatibility if older data exists
+    v.scheduleText = v.scheduleText || "";
 
     const presets = [
       { value: "", label: "Select…" },
@@ -841,6 +823,11 @@
   // Step dispatcher + navigation
   // ---------------------------------------------------------
   function renderStep() {
+    if (!state) return;
+
+    state.meta = state.meta || {};
+    if (!currentStepId) currentStepId = state.meta.lastStepId || "case_info";
+
     const steps = window.RFO_ROUTER.getActiveSteps(state);
     const exists = steps.some(s => s.id === currentStepId);
     if (!exists) currentStepId = steps[0].id;
@@ -932,6 +919,20 @@
     });
   }
 
-  // Init
-  renderStep();
+  // Init (supports sync or async load)
+  (function init() {
+    setStatus("Loading…");
+    Promise.resolve(window.RFO_STATE.load())
+      .then((loaded) => {
+        state = loaded;
+        state.meta = state.meta || {};
+        currentStepId = state.meta.lastStepId ? state.meta.lastStepId : "case_info";
+        renderStep();
+      })
+      .catch((err) => {
+        console.error(err);
+        setStatus("Load failed. Try refresh.");
+      });
+  })();
+
 })();
