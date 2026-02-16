@@ -4,148 +4,22 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Sharpe Legal — App</title>
-
+  <title>Redirecting…</title>
+  <meta http-equiv="refresh" content="0;url=/dashboard.html" />
   <link rel="stylesheet" href="/styles.css" />
 </head>
-
 <body>
-  <!-- Shared header -->
-  <div id="site-header"></div>
-  <script src="/header-loader.js" defer></script>
-  <script src="/header.js" defer></script>
-  <script src="/i18n.js" defer></script>
-
-  <main class="page">
+  <div class="page">
     <div class="container content">
-
-      <section>
-        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
-          <div>
-            <h1>Sharpe Legal — App</h1>
-            <p class="lede">Tier hub. Intake → next steps → outputs.</p>
-            <div id="acctStatus" class="muted">Checking session…</div>
-          </div>
-
-          <div style="display:flex;gap:10px;flex-wrap:wrap;">
-            <a class="button" href="/home.html">Home</a>
-            <a class="button" href="/tier1.html">Tier 1</a>
-            <a class="button" href="/dashboard.html">Account</a>
-            <a class="button" href="/subscribe.html">Billing</a>
-            <button id="logoutBtn" class="button" type="button">Log out</button>
-          </div>
-        </div>
-      </section>
-
-      <div class="hr"></div>
-
-      <section class="grid" style="margin-top:18px; display:grid; gap:16px;">
-
-        <div class="template-box">
-          <h2>Start Here</h2>
-          <ul>
-            <li><a href="/start.html">Start / Orientation</a></li>
-            <li><a href="/intake.html">Guided Intake</a></li>
-            <li><a href="/notes.html">Case Notes</a></li>
-          </ul>
-        </div>
-
-        <div class="template-box">
-          <h2>Risk & Scenarios</h2>
-          <ul>
-            <li><a href="/high-conflict-risk-awareness.html">High-Conflict Risk Awareness</a></li>
-            <li><a href="/amicable.html">Amicable / Low-Conflict</a></li>
-            <li><a href="/insurance-claims.html">Insurance / Claims</a></li>
-          </ul>
-        </div>
-
-        <div class="template-box">
-          <h2>Admin</h2>
-          <ul>
-            <li><a href="/status.html">Status</a></li>
-            <li><a href="/success.html">Success</a></li>
-            <li><a href="/home.html">Home</a></li>
-          </ul>
-        </div>
-
-        <div class="template-box">
-          <h2>Coming Next</h2>
-          <ul>
-            <li><a href="/binder/attorney-portal.html">Attorney Portal</a></li>
-            <li><a href="/subscribe.html">Billing</a></li>
-          </ul>
-        </div>
-
-      </section>
-
+      <h1>Redirecting…</h1>
+      <p class="sub">Taking you to your dashboard.</p>
+      <p><a class="button primary" href="/dashboard.html">Go to Dashboard</a></p>
     </div>
-  </main>
+  </div>
 
-  <script type="module">
-  import app from "/firebase-config.js";
-  import { getAuth, onAuthStateChanged, signOut }
-    from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-  import { getFirestore, doc, getDoc }
-    from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-  const auth = getAuth(app);
-  const db = getFirestore(app);
-
-  const acctStatus = document.getElementById("acctStatus");
-  const logoutBtn = document.getElementById("logoutBtn");
-
-  function setStatus(html) {
-    if (acctStatus) acctStatus.innerHTML = html;
-  }
-
-  function goLogin() {
-    // Always use .html targets (no pretty routes)
-    window.location.replace("/login.html?next=/app.html");
-  }
-
-  function goDashboard(msg = "") {
-    // optional message could be added later via query param if you want
+  <script>
+    // JS redirect in case meta refresh is blocked
     window.location.replace("/dashboard.html");
-  }
-
-  function goTier1() {
-    window.location.replace("/tier1.html");
-  }
-
-  logoutBtn?.addEventListener("click", async () => {
-    try { await signOut(auth); }
-    finally { window.location.replace("/home.html"); }
-  });
-
-  onAuthStateChanged(auth, async (user) => {
-    try {
-      if (!user) return goLogin();
-
-      setStatus(`Signed in as <strong>${user.email || "(no email)"}</strong> • Checking access…`);
-
-      const snap = await getDoc(doc(db, "users", user.uid));
-
-      // If user doc doesn't exist yet, don't pretend they're "logged out".
-      // Send them to Dashboard (account hub) where you can show status and next steps.
-      if (!snap.exists()) return goDashboard();
-
-      const data = snap.data() || {};
-      const tier = String(data.tier || "");
-      const active = data.active === true;
-
-      // If not Tier 1 or not active, send to Tier 1 (upsell / subscribe / activate)
-      if (tier !== "tier1" || !active) return goTier1();
-
-      setStatus(
-        `Signed in as <strong>${user.email || "(no email)"}</strong> • Tier: <strong>${tier}</strong> • Active: <strong>${active}</strong>`
-      );
-
-    } catch (err) {
-      console.log(err);
-      // Fail to Dashboard (not Tier 1) so you can still navigate/diagnose.
-      return goDashboard();
-    }
-  });
-</script>
+  </script>
 </body>
 </html>
