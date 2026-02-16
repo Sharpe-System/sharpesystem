@@ -1,5 +1,5 @@
 // /partials/header.js
-// Header controls: theme only. Language handled by /i18n.js
+// Theme only. Language handled by i18n.js
 // Hardened: idempotent init + supports missing elements gracefully.
 
 (function () {
@@ -20,7 +20,7 @@
   }
 
   function applyTheme(mode) {
-    const m = (mode === "light") ? "light" : "dark";
+    const m = mode === "light" ? "light" : "dark";
     document.documentElement.setAttribute("data-theme", m);
     setSaved(m);
 
@@ -46,8 +46,8 @@
     bindThemeToggle();
   }
 
-  // Called after header partial is injected (by header-loader.js)
-  window.initHeaderControls = function initHeaderControls() {
+  // Called after header partial is injected
+  window.initHeaderControls = function () {
     initTheme();
   };
 
