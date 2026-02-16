@@ -77,29 +77,36 @@
   }
 
   function installTabTrap() {
-    if (!stepMount) return;
+  if (!stepMount) return;
 
-    stepMount.addEventListener("keydown", function (e) {
-      if (e.key !== "Tab") return;
+  stepMount.addEventListener("keydown", function (e) {
+    if (e.key !== "Tab") return;
 
-      const focusables = getFocusableWithinStep();
-      if (!focusables.length) return;
+    const focusables = Array.from(
+      stepMount.querySelectorAll(
+        'input:not([disabled]), select:not([disabled]), textarea:not([disabled])'
+      )
+    ).filter(el => el.offsetParent !== null);
 
-      const active = document.activeElement;
-      const idx = focusables.indexOf(active);
+    if (!focusables.length) return;
 
-      if (idx === -1) {
-        e.preventDefault();
-        (e.shiftKey ? focusables[focusables.length - 1] : focusables[0]).focus();
-        return;
-      }
+    const active = document.activeElement;
+    const idx = focusables.indexOf(active);
 
+    if (idx === -1) return; // allow natural tab
+
+    // Let browser handle natural forward tab unless we're at edges
+    if (!e.shiftKey && idx === focusables.length - 1) {
       e.preventDefault();
-      const nextIdx = e.shiftKey ? (idx - 1 + focusables.length) % focusables.length
-                                : (idx + 1) % focusables.length;
-      focusables[nextIdx].focus();
-    }, true);
-  }
+      focusables[0].focus();
+    }
+
+    if (e.shiftKey && idx === 0) {
+      e.preventDefault();
+      focusables[focusables.length - 1].focus();
+    }
+  }, true);
+}
 
   // ---- Date formatting (MM/DD/YYYY) ----
   function formatMMDDYYYY(raw) {
