@@ -1,144 +1,167 @@
 /* /rfo/rfo-router.js
-   RFO module — conditional step sequence + validation rules
+   Defines active steps, routing, and validation for the RFO flow.
+
+   Step IDs:
+   - case_info
+   - orders_requested
+   - custody (conditional)
+   - visitation (conditional)
+   - support (conditional)
+   - emergency (conditional)
+   - review
 */
 
 (function () {
   "use strict";
 
-  const STEP_DEFS = [
-    { id: "case_info", title: "Case Information" },
-    { id: "orders_requested", title: "Orders Requested" },
-    { id: "custody", title: "Custody" },
-    { id: "visitation", title: "Visitation" },
-    { id: "support", title: "Support" },
-    { id: "emergency", title: "Emergency Details" },
-    { id: "review", title: "Review" }
-  ];
+  function t(s) { return String(s || "").trim(); }
+  function hasChildren(state) {
+    const n = Number((state.caseInfo && state.caseInfo.childrenCount) || 0);
+    return n > 0;
+  }
 
-  function shouldIncludeStep(stepId, state) {
-    const o = state.ordersRequested || {};
+  function anyOrderSelected(o) {
+    if (!o) return false;
+    return !!(o.custody || o.visitation || o.support || o.attorneyFees || o.other);
+  }
 
-    if (stepId === "custody") return !!o.custody;
-    if (stepId === "visitation") return !!o.visitation;
-    if (stepId === "support") return !!o.support;
-    if (stepId === "emergency") return !!o.emergency;
-
-    // Always present:
-    if (stepId === "case_info") return true;
-    if (stepId === "orders_requested") return true;
-    if (stepId === "review") return true;
-
-    return false;
+  function emergencyAnchored(o) {
+    // Emergency alone is acceptable only if the user describes the relief sought.
+    // This avoids dead-ends and matches how emergency relief operates in practice:
+    // it's urgent relief tied to a request.
+    if (!o || !o.emergency) return false;
+    return t(o.otherText).length >= 5; // require something meaningful
   }
 
   function getActiveSteps(state) {
-    return STEP_DEFS.filter(s => shouldIncludeStep(s.id, state));
-  }
+    const steps = [
+      { id: "case_info", title: "Case Information" },
+      { id: "orders_requested", title: "Orders Requested" }
+    ];
 
-  function findStepIndex(steps, stepId) {
-    for (let i = 0; i < steps.length; i++) {
-      if (steps[i].id === stepId) return i;
+    const o = state.ordersRequested || {};
+    const kids = hasChildren(state);
+
+    // If emergency is the only thing checked, we still allow flow
+    // as long as the user anchors it with Other text.
+    const selectedOrEmergencyOnly = anyOrderSelected(o) || emergencyAnchored(o);
+
+    if (selectedOrEmergencyOnly) {
+      if (o.custody) steps.push({ id: "custody", title: "Custody" });
+      if (o.visitation) steps.push({ id: "visitation", title: "Visitation" });
+
+      // Only include support if children exist; otherwise it’s effectively invalid.
+      if (o.support && kids) steps.push({ id: "support", title: "Support" });
+
+      if (o.emergency) steps.push({ id: "emergency", title: "Emergency Details" });
+    } else {
+      // Nothing selected yet: keep the user at Orders Requested until valid.
     }
-    return 0;
+
+    steps.push({ id: "review", title: "Review" });
+    return steps;
   }
 
-  function nextStepId(state, currentStepId) {
+  function nextStepId(state, currentId) {
     const steps = getActiveSteps(state);
-    const idx = findStepIndex(steps, currentStepId);
-    const next = steps[Math.min(idx + 1, steps.length - 1)];
-    return next.id;
+    const idx = steps.findIndex(s => s.id === currentId);
+    if (idx < 0) return steps[0].id;
+    return steps[Math.min(idx + 1, steps.length - 1)].id;
   }
 
-  function prevStepId(state, currentStepId) {
+  function prevStepId(state, currentId) {
     const steps = getActiveSteps(state);
-    const idx = findStepIndex(steps, currentStepId);
-    const prev = steps[Math.max(idx - 1, 0)];
-    return prev.id;
-  }
-
-  function requiredMissingCaseInfo(s) {
-    const c = s.caseInfo || {};
-    const missing = [];
-    if (!String(c.state || "").trim()) missing.push("State");
-    if (!String(c.county || "").trim()) missing.push("County");
-    if (!String(c.caseNumber || "").trim()) missing.push("Case number");
-    if (!String(c.petitioner || "").trim()) missing.push("Petitioner");
-    if (!String(c.respondent || "").trim()) missing.push("Respondent");
-    return missing;
-  }
-
-  function requiredMissingOrdersRequested(s) {
-    const o = s.ordersRequested || {};
-    const any =
-      !!o.custody ||
-      !!o.visitation ||
-      !!o.support ||
-      !!o.attorneyFees ||
-      !!o.other;
-
-    const missing = [];
-    if (!any) missing.push("Select at least one order requested.");
-
-    if (!!o.other && !String(o.otherText || "").trim()) {
-      missing.push("Other — describe what you are requesting.");
-    }
-
-    return missing;
-  }
-
-  function requiredMissingCustody(s) {
-    const c = s.custody || {};
-    const missing = [];
-    if (!String(c.legalCustodyRequested || "").trim()) missing.push("Legal custody requested");
-    if (!String(c.physicalCustodyRequested || "").trim()) missing.push("Physical custody requested");
-    if (!String(c.primaryTimeshareRequested || "").trim()) missing.push("Primary timeshare requested");
-    if (!String(c.exchangeLocation || "").trim()) missing.push("Exchange location");
-
-    if (c.exchangeLocation === "other" && !String(c.exchangeLocationOther || "").trim()) {
-      missing.push("Exchange location — other (describe)");
-    }
-    return missing;
-  }
-
-  function requiredMissingVisitation(s) {
-    const v = s.visitation || {};
-    const missing = [];
-    if (!String(v.scheduleText || "").trim()) missing.push("Visitation schedule description");
-    return missing;
-  }
-
-  function requiredMissingSupport(s) {
-    const sp = s.support || {};
-    const missing = [];
-    if (!String(sp.childSupportRequested || "").trim()) missing.push("Child support request");
-    if (!String(sp.spousalSupportRequested || "").trim()) missing.push("Spousal support request");
-    return missing;
-  }
-
-  function requiredMissingEmergency(s) {
-    const e = s.emergency || {};
-    const missing = [];
-    if (!String(e.immediateHarmRisk || "").trim()) missing.push("Immediate harm risk");
-    if (!String(e.harmDescription || "").trim()) missing.push("Describe the emergency / harm");
-    if (!String(e.recentIncidentDate || "").trim()) missing.push("Most recent incident date");
-    if (!String(e.policeReportFiled || "").trim()) missing.push("Police report filed");
-    if (e.policeReportFiled === "yes" && !String(e.policeAgency || "").trim()) missing.push("Police agency");
-    if (e.policeReportFiled === "yes" && !String(e.policeReportNumber || "").trim()) missing.push("Police report number");
-    return missing;
+    const idx = steps.findIndex(s => s.id === currentId);
+    if (idx <= 0) return steps[0].id;
+    return steps[idx - 1].id;
   }
 
   function validateStep(state, stepId) {
-    if (stepId === "case_info") return requiredMissingCaseInfo(state);
-    if (stepId === "orders_requested") return requiredMissingOrdersRequested(state);
-    if (stepId === "custody") return requiredMissingCustody(state);
-    if (stepId === "visitation") return requiredMissingVisitation(state);
-    if (stepId === "support") return requiredMissingSupport(state);
-    if (stepId === "emergency") return requiredMissingEmergency(state);
-    return []; // review has no required fields for v1
+    const missing = [];
+
+    if (stepId === "case_info") {
+      const c = state.caseInfo || {};
+      // Keep this light. You can tighten later.
+      if (!t(c.state)) missing.push("State is required");
+      if (!t(c.county)) missing.push("County is required");
+      if (!t(c.caseNumber)) missing.push("Case number is required");
+      return missing;
+    }
+
+    if (stepId === "orders_requested") {
+      const o = state.ordersRequested || {};
+      const kids = hasChildren(state);
+
+      // If user selected support but there are no children, treat as missing/invalid.
+      const supportValid = o.support && kids;
+
+      const anyValid =
+        o.custody ||
+        o.visitation ||
+        supportValid ||
+        o.attorneyFees ||
+        o.other;
+
+      // Emergency-only allowed IF anchored by Other text
+      if (!anyValid) {
+        if (o.emergency) {
+          if (t(o.otherText).length < 5) {
+            missing.push("Emergency selected — describe the emergency relief requested (Other)");
+          }
+          return missing;
+        }
+        missing.push("Select at least one order requested");
+        return missing;
+      }
+
+      // If Other checked, require Other text
+      if (o.other && t(o.otherText).length < 5) {
+        missing.push("Other selected — describe the orders requested");
+      }
+
+      // If emergency checked, require Other text only when no other boxes are checked.
+      if (o.emergency && !anyOrderSelected(o) && t(o.otherText).length < 5) {
+        missing.push("Emergency selected — describe the emergency relief requested (Other)");
+      }
+
+      return missing;
+    }
+
+    if (stepId === "custody") {
+      const c = state.custody || {};
+      if (!t(c.legalCustodyRequested)) missing.push("Select legal custody requested");
+      if (!t(c.physicalCustodyRequested)) missing.push("Select physical custody requested");
+      return missing;
+    }
+
+    if (stepId === "visitation") {
+      const v = state.visitation || {};
+      if (t(v.scheduleText).length < 10) missing.push("Provide a visitation description");
+      return missing;
+    }
+
+    if (stepId === "support") {
+      if (!hasChildren(state)) return missing; // should not be reachable
+      const sp = state.support || {};
+      // At least one support type should be selected
+      if (!t(sp.childSupportRequested) && !t(sp.spousalSupportRequested)) {
+        missing.push("Select a support request");
+      }
+      return missing;
+    }
+
+    if (stepId === "emergency") {
+      const e = state.emergency || {};
+      if (!t(e.immediateHarmRisk)) missing.push("Select whether there is immediate harm risk");
+      if (t(e.recentIncidentDate).length < 8) missing.push("Most recent incident date is required");
+      if (t(e.harmDescription).length < 10) missing.push("Describe the emergency / harm");
+      return missing;
+    }
+
+    return missing;
   }
 
   window.RFO_ROUTER = {
-    STEP_DEFS,
     getActiveSteps,
     nextStepId,
     prevStepId,
