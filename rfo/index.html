@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Sharpe Legal — Request for Order</title>
+
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="stylesheet" href="/rfo/rfo.css" />
+
+  <script src="/header-loader.js"></script>
+</head>
+
+<body>
+  <!-- Centralized header -->
+  <div id="headerMount"></div>
+
+  <main class="page">
+    <div class="wrap">
+      <div class="topbar">
+        <div>
+          <h1 class="h1">Request for Order</h1>
+          <p class="muted">Step-by-step intake for custody, visitation, and support requests.</p>
+        </div>
+        <div class="topbarActions">
+          <button id="btnSave" class="btn secondary" type="button">Save</button>
+          <button id="btnReset" class="btn danger" type="button">Reset</button>
+        </div>
+      </div>
+
+      <div id="status" class="status" role="status"></div>
+
+      <div class="card">
+        <div class="progress">
+          <div class="progressBar"><div id="progressFill" class="progressFill"></div></div>
+          <div id="progressText" class="progressText"></div>
+        </div>
+
+        <div id="stepMount"></div>
+
+        <div class="nav">
+          <button id="btnBack" class="btn secondary" type="button">Back</button>
+          <button id="btnNext" class="btn primary" type="button">Next</button>
+        </div>
+      </div>
+
+      <div class="foot">
+        <a class="link" href="/dashboard.html">Back to Dashboard</a>
+      </div>
+    </div>
+  </main>
+
+  <!-- Core: state → router → ui -->
+  <script src="/rfo/rfo-state.js"></script>
+  <script src="/rfo/rfo-router.js"></script>
+  <script src="/rfo/rfo-ui.js"></script>
+</body>
+</html>
