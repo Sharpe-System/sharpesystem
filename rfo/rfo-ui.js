@@ -1,12 +1,12 @@
 /* /rfo/rfo-ui.js
    RFO module — full UI (all steps) + state/county/courthouse dropdowns.
 
-   Fixes:
-   - Courthouse dropdown showing [object Object] (supports strings OR objects)
-   - Hide "Other" inputs unless "Other" selected (no pointless placeholders)
-   - Visitation uses presets (minimal typing) + optional details
-   - Add optional grievances/feelings field (captured but not required)
-   - Finish saves + returns to /dashboard.html
+   Fixes included in THIS version:
+   ✅ Next/Back reliability: single init path, state always loaded before renderStep
+   ✅ Tab behavior: preserves natural browser tab order (left-to-right as laid out),
+      but prevents focus from escaping the current step (wrap only at edges)
+   ✅ Support gating: if childrenCount becomes 0, support is auto-unchecked and cannot appear later
+   ✅ Orders->Other text: enabled when Other OR Emergency is checked (prevents dead-ends)
 */
 
 (function () {
@@ -67,46 +67,39 @@
     }
   }
 
-  // ---- Tab stability: keep focus inside current step ----
-  function getFocusableWithinStep() {
-    if (!stepMount) return [];
-    const nodes = Array.from(stepMount.querySelectorAll(
-      'input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), a[href]'
-    ));
-    return nodes.filter(el => !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length));
-  }
-
+  // ---- Tab behavior: preserve natural order; only trap at edges so focus stays in step ----
   function installTabTrap() {
-  if (!stepMount) return;
+    if (!stepMount) return;
+    if (stepMount.__tabTrapInstalled) return;
+    stepMount.__tabTrapInstalled = true;
 
-  stepMount.addEventListener("keydown", function (e) {
-    if (e.key !== "Tab") return;
+    stepMount.addEventListener("keydown", function (e) {
+      if (e.key !== "Tab") return;
 
-    const focusables = Array.from(
-      stepMount.querySelectorAll(
-        'input:not([disabled]), select:not([disabled]), textarea:not([disabled])'
-      )
-    ).filter(el => el.offsetParent !== null);
+      const focusables = Array.from(
+        stepMount.querySelectorAll(
+          'input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled])'
+        )
+      ).filter(el => el.offsetParent !== null);
 
-    if (!focusables.length) return;
+      if (!focusables.length) return;
 
-    const active = document.activeElement;
-    const idx = focusables.indexOf(active);
+      const active = document.activeElement;
+      const idx = focusables.indexOf(active);
 
-    if (idx === -1) return; // allow natural tab
+      // If focus is outside, let browser decide (don’t fight it)
+      if (idx === -1) return;
 
-    // Let browser handle natural forward tab unless we're at edges
-    if (!e.shiftKey && idx === focusables.length - 1) {
-      e.preventDefault();
-      focusables[0].focus();
-    }
-
-    if (e.shiftKey && idx === 0) {
-      e.preventDefault();
-      focusables[focusables.length - 1].focus();
-    }
-  }, true);
-}
+      // Only intervene at edges to keep focus inside current step
+      if (!e.shiftKey && idx === focusables.length - 1) {
+        e.preventDefault();
+        focusables[0].focus();
+      } else if (e.shiftKey && idx === 0) {
+        e.preventDefault();
+        focusables[focusables.length - 1].focus();
+      }
+    }, true);
+  }
 
   // ---- Date formatting (MM/DD/YYYY) ----
   function formatMMDDYYYY(raw) {
@@ -128,8 +121,9 @@
     el.addEventListener("input", function () {
       const formatted = formatMMDDYYYY(el.value);
       if (el.value !== formatted) {
+        const pos = formatted.length;
         el.value = formatted;
-        try { el.setSelectionRange(formatted.length, formatted.length); } catch (e) {}
+        try { el.setSelectionRange(pos, pos); } catch (e) {}
       }
       getObj()[key] = el.value;
       setStatus("Editing…");
@@ -439,9 +433,16 @@
       cc.addEventListener("change", () => {
         const n = parseInt(cc.value || "0", 10);
         state.caseInfo.childrenCount = isNaN(n) ? 0 : Math.max(0, n);
-        if (!hasChildren() && state.support) state.support.childSupportRequested = "";
+
+        // ✅ If no children, remove support path everywhere
+        if (!hasChildren()) {
+          if (state.ordersRequested) state.ordersRequested.support = false;
+          if (state.support) state.support.childSupportRequested = "";
+        }
+
         setStatus("Saved.");
         persist();
+        renderStep(); // rerender Orders Requested support checkbox state if needed
       });
     }
 
@@ -463,7 +464,7 @@
 
         <p class="muted" style="margin-top:0;">
           Choose the orders you want the court to make. Emergency is an urgency flag tied to your request.
-          If you only want emergency relief, choose <strong>Other</strong> and describe what you want ordered.
+          Selecting Emergency will add required questions on a later page.
         </p>
 
         <div class="rfoChecks">
@@ -494,15 +495,15 @@
 
           <label class="rfoCheck">
             <input id="or_emergency" type="checkbox" ${o.emergency ? "checked" : ""} />
-            <span>Emergency (adds required questions on the next page)</span>
+            <span>Emergency (adds required questions later)</span>
           </label>
         </div>
 
         <div class="rfoField" style="margin-top:12px;">
           <span>Other (describe)</span>
           <input id="or_otherText" type="text" value="${escapeHtml(o.otherText)}"
-                 placeholder="Describe the specific orders you want (required if Other is selected)"
-                 ${ (o.other) ? "" : "disabled" } />
+                 placeholder="Describe the specific orders you want (required if Other is selected, or if Emergency is selected by itself)"
+                 ${(o.other || o.emergency) ? "" : "disabled"} />
         </div>
       </div>
     `;
@@ -516,11 +517,15 @@
 
     const otherText = stepMount.querySelector("#or_otherText");
     const otherToggle = stepMount.querySelector("#or_other");
+    const emergencyToggle = stepMount.querySelector("#or_emergency");
 
-    if (otherText && otherToggle) {
-      const updateEnabled = () => { otherText.disabled = !otherToggle.checked; };
+    if (otherText && otherToggle && emergencyToggle) {
+      const updateEnabled = () => {
+        otherText.disabled = !(otherToggle.checked || emergencyToggle.checked);
+      };
       updateEnabled();
       otherToggle.addEventListener("change", updateEnabled);
+      emergencyToggle.addEventListener("change", updateEnabled);
 
       otherText.addEventListener("input", () => {
         state.ordersRequested.otherText = otherText.value;
@@ -864,6 +869,7 @@
     renderProgress();
     setStatus("Ready.");
     persist();
+    installTabTrap(); // ensure installed once
   }
 
   function showValidation(missing) {
@@ -926,7 +932,7 @@
     });
   }
 
-  // Init (supports sync or async load)
+  // ✅ Single init (this replaces any prior duplicate init blocks)
   (function init() {
     setStatus("Loading…");
     Promise.resolve(window.RFO_STATE.load())
@@ -934,6 +940,7 @@
         state = loaded;
         state.meta = state.meta || {};
         currentStepId = state.meta.lastStepId ? state.meta.lastStepId : "case_info";
+        setStatus("Ready.");
         renderStep();
       })
       .catch((err) => {
