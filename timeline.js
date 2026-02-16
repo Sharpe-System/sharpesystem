@@ -1,66 +1,83 @@
-// /timeline.js
-import { requireTier1, readUserDoc, updateUserDoc } from "/gate.js";
+/* /timeline.js
+   Frontend thread: Timeline page logic.
+   Fix: stop importing readUserDoc from gate.js (frozen, not exported).
+   Use firebase-config.js helpers instead.
+*/
 
-function $(id){ return document.getElementById(id); }
-function setMsg(t){ const el = $("msg"); if (el) el.textContent = t || ""; }
-function nowIso(){ return new Date().toISOString(); }
+import { getAuthStateOnce, getUserProfile, db } from "/firebase-config.js";
+import {
+  doc,
+  getDoc,
+  setDoc
+} from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 
-function parseLines(raw){
-  const out = [];
+function $(id) { return document.getElementById(id); }
+
+const textarea = $("timelineInput") || document.querySelector("textarea");
+const btnSave = $("btnSaveTimeline") || document.querySelector("button");
+const msgEl = $("msg") || $("status") || null;
+
+function setMsg(t) { if (msgEl) msgEl.textContent = t || ""; }
+
+function normalizeLines(raw) {
   const lines = String(raw || "")
     .split("\n")
     .map(s => s.trim())
     .filter(Boolean);
 
-  for (const line0 of lines) {
-    const line = line0.replace(/^[•\-*\u2022]\s*/, "");
-    const m = line.match(/^(\d{4}-\d{2}-\d{2})\s*(?:—|--|-|:|\|)\s*(.+)$/);
-    if (!m) {
-      out.push({ date: "", label: line, note: "" });
-      continue;
-    }
-    out.push({ date: m[1], label: (m[2] || "").trim(), note: "" });
-  }
-
-  out.sort((a,b) => {
-    if (!a.date && !b.date) return 0;
-    if (!a.date) return 1;
-    if (!b.date) return -1;
-    return a.date.localeCompare(b.date);
+  // Accept: YYYY-MM-DD — Label  OR  YYYY/MM/DD - Label  OR free text
+  const out = lines.map(line => {
+    const m = line.match(/^(\d{4})[-\/](\d{2})[-\/](\d{2})\s*[—-]\s*(.+)$/);
+    if (m) return `${m[1]}-${m[2]}-${m[3]} — ${m[4].trim()}`;
+    return line;
   });
 
-  return out;
+  return out.join("\n");
 }
 
-(async function main(){
-  const { user } = await requireTier1();
-
-  // Prefill
+(async function init() {
   try {
-    const d = await readUserDoc(user.uid);
-    const events = d?.timeline?.events || [];
-    const raw = events
-      .map(ev => ev.date ? `${ev.date} — ${ev.label || ""}` : `${ev.label || ""}`)
-      .join("\n");
-    if ($("raw") && raw) $("raw").value = raw;
+    setMsg("Checking session…");
+    const { user } = await getAuthStateOnce();
+
+    if (!user) {
+      setMsg("Not logged in. Go to Log In.");
+      return;
+    }
+
+    // Optional: profile check (tier gating later if you want)
+    await getUserProfile(user.uid);
+
+    // Load existing timeline if present
+    const ref = doc(db, "users", user.uid, "rfo", "timeline");
+    const snap = await getDoc(ref);
+    if (snap.exists() && textarea) {
+      textarea.value = String(snap.data()?.text || "");
+    }
+
+    setMsg("Ready.");
   } catch (e) {
-    console.log(e);
+    console.error(e);
+    setMsg("Timeline load failed. See console.");
   }
+})();
 
-  $("saveBtn")?.addEventListener("click", async () => {
+if (btnSave) {
+  btnSave.addEventListener("click", async () => {
     try {
-      setMsg("Saving…");
-      const raw = $("raw")?.value || "";
-      const events = parseLines(raw);
+      const { user } = await getAuthStateOnce();
+      if (!user) { setMsg("Not logged in."); return; }
 
-      await updateUserDoc(user.uid, {
-        timeline: { events, updatedAt: nowIso() }
-      });
+      const text = normalizeLines(textarea ? textarea.value : "");
+      if (textarea) textarea.value = text;
+
+      const ref = doc(db, "users", user.uid, "rfo", "timeline");
+      await setDoc(ref, { text, updatedAt: new Date().toISOString() }, { merge: true });
 
       setMsg("Saved.");
     } catch (e) {
-      console.log(e);
-      setMsg("Save failed. Check console.");
+      console.error(e);
+      setMsg("Save failed. See console.");
     }
   });
-})();
+}
