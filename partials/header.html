@@ -1,32 +1,28 @@
-<header>
-  <div class="header-inner">
-    <a href="/home.html" class="brand" aria-label="SharpeSystem Home">
-      <span class="dot" aria-hidden="true"></span>
-      <span data-i18n="brand">SharpeSystem</span>
-    </a>
+<header class="site-header">
+  <nav class="main-nav" aria-label="Primary">
+    <!-- Absolute path so it works from /binder/* pages too -->
+    <a href="/home.html" class="brand" data-i18n="brand">SharpeSystem</a>
 
-    <nav class="nav" aria-label="Primary">
+    <div class="nav-links">
       <a href="/home.html" data-i18n="nav.home">Home</a>
       <a href="/trees.html" data-i18n="nav.trees">Decision Trees</a>
       <a href="/status.html" data-i18n="nav.status">Status</a>
-
-      <!-- Attorney path: ONLY "For Attorneys" in header -->
       <a href="/binder/attorney-invite.html" data-i18n="nav.attorneys">For Attorneys</a>
+      <a href="/high-conflict-risk-awareness.html" class="nav-emphasis" data-i18n="nav.risk">Risk Awareness</a>
 
-      <!-- Keep Risk emphasized -->
-      <a href="/high-conflict-risk-awareness.html" data-i18n="nav.risk" style="border-color: rgba(110,231,255,.25); background: rgba(255,255,255,.03);">
-        Risk Awareness
-      </a>
+      <!-- Theme toggle (controlled by /partials/header.js) -->
+      <button id="themeToggle" class="theme-toggle" type="button" aria-label="Toggle theme">
+        <span data-i18n="toggle.theme">Theme</span>
+      </button>
 
-      <!-- Account (dynamic; controlled by frozen header-auth.js) -->
-      <a id="navAccount" href="/login.html?next=/dashboard.html">Log in</a>
+      <!-- Language toggle (controlled by /i18n.js) -->
+      <button id="langToggle" class="lang-toggle" type="button" aria-label="Toggle language">
+        <span id="langLabel">ES</span>
+      </button>
+
+      <!-- Account controls (controlled by frozen /header-auth.js) -->
+      <a id="navAccount" href="/login.html?next=/dashboard.html" data-i18n="nav.login">Log in</a>
       <button id="navLogout" class="btn" type="button" style="display:none;">Log out</button>
-
-      <!-- Theme toggle (controlled by /header.js) -->
-      <button id="themeToggle" class="btn" type="button">Dark</button>
-
-      <!-- Language toggle (controlled by i18n.js) -->
-      <button id="langToggle" class="btn" type="button" data-i18n="toggle.lang">ES</button>
-    </nav>
-  </div>
+    </div>
+  </nav>
 </header>
