@@ -1,14 +1,13 @@
 // /header-auth.js
 // Header account link behavior (NO redirects, just swaps links/buttons)
+// Uses shared auth export from firebase-config.js
+// No re-init. No duplicate listeners.
 
-import app from "/firebase-config.js";
+import { auth } from "/firebase-config.js";
 import {
-  getAuth,
   onAuthStateChanged,
   signOut
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-
-const auth = getAuth(app);
+} from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
 
 function setEl(id, fn) {
   const el = document.getElementById(id);
@@ -18,7 +17,7 @@ function setEl(id, fn) {
 function setLoggedOutUI() {
   setEl("navAccount", (a) => {
     a.textContent = "Log in";
-    a.setAttribute("href", "/login?next=/dashboard");
+    a.setAttribute("href", "/login.html?next=/dashboard.html");
     a.style.display = "";
   });
 
@@ -31,7 +30,7 @@ function setLoggedOutUI() {
 function setLoggedInUI() {
   setEl("navAccount", (a) => {
     a.textContent = "Dashboard";
-    a.setAttribute("href", "/dashboard");
+    a.setAttribute("href", "/dashboard.html");
     a.style.display = "";
   });
 
@@ -45,11 +44,11 @@ function bindLogoutOnce() {
   setEl("navLogout", (b) => {
     if (b.dataset.bound === "1") return;
     b.dataset.bound = "1";
+
     b.addEventListener("click", async () => {
       try {
         await signOut(auth);
-        // go home after logout; no loops
-        window.location.href = "/home";
+        window.location.href = "/home.html";
       } catch (e) {
         console.error(e);
       }
@@ -61,7 +60,7 @@ function bindLogoutOnce() {
 window.initHeaderAuth = function initHeaderAuth() {
   bindLogoutOnce();
 
-  // Default to logged out UI until auth resolves
+  // Default state before resolution
   setLoggedOutUI();
 
   onAuthStateChanged(auth, (user) => {
