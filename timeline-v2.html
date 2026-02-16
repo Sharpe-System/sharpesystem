@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Timeline v2 — SharpeSystem</title>
+
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="stylesheet" href="/timeline-v2.css" />
+
+  <script src="/header-loader.js"></script>
+</head>
+
+<body
+  data-require-auth="1"
+  data-require-tier="tier1"
+  data-next="/timeline-v2.html"
+>
+  <div id="site-header"></div>
+  <script src="/header-loader.js" defer></script>
+  <script src="/header.js" defer></script>
+  <script type="module" src="/header-auth.js" defer></script>
+  <script src="/i18n.js" defer></script>
+
+  <main class="page">
+    <div class="wrap">
+      <div class="topbar">
+        <div>
+          <h1 class="h1">Timeline v2</h1>
+          <p class="muted">Structured intake + court-ready output. Private notes are kept out of exports.</p>
+        </div>
+        <div class="topbarActions">
+          <button id="btnSave" class="btn secondary" type="button">Save</button>
+          <button id="btnReset" class="btn danger" type="button">Reset</button>
+        </div>
+      </div>
+
+      <div id="status" class="status" role="status"></div>
+
+      <div class="grid">
+        <section class="card">
+          <h2 class="h2">Add event</h2>
+
+          <div class="row">
+            <label class="field">
+              <span>Date qualifier</span>
+              <select id="qualifier">
+                <option value="exact">Exact</option>
+                <option value="on_or_about">On or about</option>
+                <option value="between">Between</option>
+              </select>
+            </label>
+
+            <label class="field">
+              <span>Date (MM/DD/YYYY)</span>
+              <input id="date1" type="text" inputmode="numeric" placeholder="MM/DD/YYYY" />
+            </label>
+
+            <label class="field" id="date2Wrap" style="display:none;">
+              <span>End date (MM/DD/YYYY)</span>
+              <input id="date2" type="text" inputmode="numeric" placeholder="MM/DD/YYYY" />
+            </label>
+          </div>
+
+          <div class="row">
+            <label class="field">
+              <span>Category</span>
+              <select id="category"></select>
+            </label>
+
+            <label class="field">
+              <span>Event type</span>
+              <select id="subtype"></select>
+            </label>
+          </div>
+
+          <div class="row">
+            <label class="field grow">
+              <span>Fact 1 (short)</span>
+              <input id="fact1" type="text" maxlength="240" placeholder="Plain facts. No adjectives." />
+            </label>
+          </div>
+
+          <div class="row">
+            <label class="field grow">
+              <span>Fact 2 (optional)</span>
+              <input id="fact2" type="text" maxlength="240" placeholder="Optional." />
+            </label>
+          </div>
+
+          <div class="row">
+            <label class="field grow">
+              <span>Fact 3 (optional)</span>
+              <input id="fact3" type="text" maxlength="240" placeholder="Optional." />
+            </label>
+          </div>
+
+          <details class="details">
+            <summary>Private notes (allowed; not included in court export)</summary>
+            <label class="field grow">
+              <span>Private notes</span>
+              <textarea id="privateNotes" rows="5" placeholder="Vent here if needed. This will be excluded from court-ready export."></textarea>
+            </label>
+
+            <label class="field grow">
+              <span>Raw paragraph (optional)</span>
+              <textarea id="rawFacts" rows="5" placeholder="If you paste messy text here, the system will sanitize it into neutral bullets for export."></textarea>
+            </label>
+          </details>
+
+          <div class="actions">
+            <button id="btnAdd" class="btn primary" type="button">Add to timeline</button>
+            <button id="btnClear" class="btn secondary" type="button">Clear form</button>
+          </div>
+
+          <p class="muted small">
+            Court export uses category + event type + facts + sanitized bullets. Private notes never export.
+          </p>
+        </section>
+
+        <section class="card">
+          <h2 class="h2">Timeline</h2>
+
+          <div class="row">
+            <label class="field">
+              <span>View</span>
+              <select id="viewMode">
+                <option value="court">Court-ready (default)</option>
+                <option value="private">Private (includes notes)</option>
+              </select>
+            </label>
+
+            <label class="field grow">
+              <span>Search</span>
+              <input id="search" type="text" placeholder="Filter by text…" />
+            </label>
+          </div>
+
+          <div id="list" class="list"></div>
+
+          <hr class="sep" />
+
+          <h3 class="h3">Export</h3>
+          <div class="row">
+            <button id="btnCopy" class="btn secondary" type="button">Copy export text</button>
+            <button id="btnDownload" class="btn secondary" type="button">Download .txt</button>
+          </div>
+
+          <pre id="exportBox" class="export"></pre>
+
+          <div class="foot">
+            <a class="link" href="/dashboard.html">Back to Dashboard</a>
+            <span class="muted">•</span>
+            <a class="link" href="/timeline.html">Back to Timeline v1</a>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <script type="module" src="/gate.js"></script>
+  <script src="/timeline-v2.js"></script>
+</body>
+</html>
