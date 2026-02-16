@@ -7,8 +7,6 @@
 
   <link rel="stylesheet" href="/styles.css" />
   <link rel="stylesheet" href="/rfo/rfo.css" />
-
-  <script src="/header-loader.js"></script>
 </head>
 
 <body
@@ -16,8 +14,12 @@
   data-require-tier="tier1"
   data-next="/rfo/index.html"
 >
-  <!-- Centralized header -->
-  <div id="headerMount"></div>
+  <!-- Standardized header mount -->
+  <div id="site-header"></div>
+  <script src="/header-loader.js" defer></script>
+  <script src="/header.js" defer></script>
+  <script type="module" src="/header-auth.js"></script>
+  <script src="/i18n.js" defer></script>
 
   <main class="page">
     <div class="wrap">
@@ -36,7 +38,9 @@
 
       <div class="card">
         <div class="progress">
-          <div class="progressBar"><div id="progressFill" class="progressFill"></div></div>
+          <div class="progressBar">
+            <div id="progressFill" class="progressFill"></div>
+          </div>
           <div id="progressText" class="progressText"></div>
         </div>
 
