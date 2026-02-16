@@ -1,6 +1,7 @@
 /* /rfo/rfo-ui.js
    RFO module — rendering + navigation + persistence
-   Goal: full flow navigable start to finish without crashing.
+   Fix: Do NOT re-render on normal input typing / change events (prevents Tab focus reset).
+   Emergency: keep as its own step; wording explains it appears on the next page.
 */
 
 (function () {
@@ -52,6 +53,8 @@
     }
   }
 
+  // ----- Binding helpers (NO re-render inside these) -----
+
   function bindInput(selector, getObj, key, transform) {
     const el = stepMount.querySelector(selector);
     if (!el) return;
@@ -59,37 +62,58 @@
     el.addEventListener("input", function () {
       const obj = getObj();
       let val = el.value;
-
       if (transform) val = transform(val);
-
       obj[key] = val;
       setStatus("Editing…");
       persist();
     });
 
+    // On change (blur), save but do NOT re-render (preserves Tab focus)
     el.addEventListener("change", function () {
+      const obj = getObj();
+      let val = el.value;
+      if (transform) val = transform(val);
+      obj[key] = val;
       setStatus("Saved.");
       persist();
-      renderProgress();
-      renderStep(); // re-render for conditional visibility
     });
   }
 
-  function bindCheckbox(selector, getObj, key) {
+  function bindCheckboxBasic(selector, getObj, key) {
     const el = stepMount.querySelector(selector);
     if (!el) return;
 
     el.addEventListener("change", function () {
       const obj = getObj();
       obj[key] = !!el.checked;
-
-      // If emergency toggled off, we keep details but routing will skip
       setStatus("Saved.");
       persist();
-      renderProgress();
-      renderStep(); // re-render to show/hide conditional blocks
     });
   }
+
+  function bindRoutingCheckbox(selector, getObj, key) {
+    // For routing-affecting toggles only (orders requested checkboxes)
+    const el = stepMount.querySelector(selector);
+    if (!el) return;
+
+    el.addEventListener("change", function () {
+      const obj = getObj();
+      obj[key] = !!el.checked;
+      setStatus("Saved.");
+      persist();
+      // Routing changed: update progress + re-render step (acceptable here)
+      renderProgress();
+      renderStep();
+    });
+  }
+
+  function setDisabled(selector, disabled) {
+    const el = stepMount.querySelector(selector);
+    if (!el) return;
+    el.disabled = !!disabled;
+  }
+
+  // ----- Step renderers -----
 
   function renderCaseInfo() {
     const c = state.caseInfo;
@@ -101,22 +125,22 @@
         <div class="rfoGrid">
           <label class="rfoField">
             <span>State</span>
-            <input id="ci_state" type="text" value="${escapeHtml(c.state)}" placeholder="CA" />
+            <input id="ci_state" type="text" value="${escapeHtml(c.state)}" placeholder="Enter state (example: CA)" />
           </label>
 
           <label class="rfoField">
             <span>County</span>
-            <input id="ci_county" type="text" value="${escapeHtml(c.county)}" placeholder="Orange" />
+            <input id="ci_county" type="text" value="${escapeHtml(c.county)}" placeholder="Enter county" />
           </label>
 
           <label class="rfoField">
             <span>Courthouse</span>
-            <input id="ci_courthouse" type="text" value="${escapeHtml(c.courthouse)}" placeholder="Lamoreaux Justice Center" />
+            <input id="ci_courthouse" type="text" value="${escapeHtml(c.courthouse)}" placeholder="Enter courthouse (optional)" />
           </label>
 
           <label class="rfoField">
             <span>Case number</span>
-            <input id="ci_caseNumber" type="text" value="${escapeHtml(c.caseNumber)}" placeholder="17D009277" />
+            <input id="ci_caseNumber" type="text" value="${escapeHtml(c.caseNumber)}" placeholder="Enter case number" />
           </label>
 
           <label class="rfoField">
@@ -213,7 +237,7 @@
 
           <label class="rfoCheck">
             <input id="or_emergency" type="checkbox" ${o.emergency ? "checked" : ""} />
-            <span>Emergency (adds required questions)</span>
+            <span>Emergency (adds required questions on the next page)</span>
           </label>
         </div>
 
@@ -228,21 +252,29 @@
       </div>
     `;
 
-    bindCheckbox("#or_custody", () => state.ordersRequested, "custody");
-    bindCheckbox("#or_visitation", () => state.ordersRequested, "visitation");
-    bindCheckbox("#or_support", () => state.ordersRequested, "support");
-    bindCheckbox("#or_attorneyFees", () => state.ordersRequested, "attorneyFees");
-    bindCheckbox("#or_other", () => state.ordersRequested, "other");
-    bindCheckbox("#or_emergency", () => state.ordersRequested, "emergency");
+    // Routing-affecting toggles: re-render is okay here
+    bindRoutingCheckbox("#or_custody", () => state.ordersRequested, "custody");
+    bindRoutingCheckbox("#or_visitation", () => state.ordersRequested, "visitation");
+    bindRoutingCheckbox("#or_support", () => state.ordersRequested, "support");
+    bindRoutingCheckbox("#or_attorneyFees", () => state.ordersRequested, "attorneyFees");
+    bindRoutingCheckbox("#or_other", () => state.ordersRequested, "other");
+    bindRoutingCheckbox("#or_emergency", () => state.ordersRequested, "emergency");
 
     const otherText = stepMount.querySelector("#or_otherText");
-    if (otherText) {
+    const otherToggle = stepMount.querySelector("#or_other");
+
+    if (otherToggle && otherText) {
+      // Keep enabled/disabled without re-render loops
+      otherText.disabled = !otherToggle.checked;
+
       otherText.addEventListener("input", function () {
         state.ordersRequested.otherText = otherText.value;
         setStatus("Editing…");
         persist();
       });
+
       otherText.addEventListener("change", function () {
+        state.ordersRequested.otherText = otherText.value;
         setStatus("Saved.");
         persist();
       });
@@ -312,11 +344,24 @@
     const physical = stepMount.querySelector("#cu_physical");
     const timeshare = stepMount.querySelector("#cu_timeshare");
     const exchange = stepMount.querySelector("#cu_exchange");
+    const exchangeOther = stepMount.querySelector("#cu_exchangeOther");
 
     if (legal) legal.addEventListener("change", () => { state.custody.legalCustodyRequested = legal.value; setStatus("Saved."); persist(); });
     if (physical) physical.addEventListener("change", () => { state.custody.physicalCustodyRequested = physical.value; setStatus("Saved."); persist(); });
     if (timeshare) timeshare.addEventListener("change", () => { state.custody.primaryTimeshareRequested = timeshare.value; setStatus("Saved."); persist(); });
-    if (exchange) exchange.addEventListener("change", () => { state.custody.exchangeLocation = exchange.value; setStatus("Saved."); persist(); renderStep(); });
+
+    if (exchange && exchangeOther) {
+      exchange.addEventListener("change", () => {
+        state.custody.exchangeLocation = exchange.value;
+        // Enable/disable without re-render (preserves Tab flow)
+        exchangeOther.disabled = (exchange.value !== "other");
+        if (exchange.value !== "other") {
+          // Keep value but do not force-clear (user might toggle back)
+        }
+        setStatus("Saved.");
+        persist();
+      });
+    }
 
     bindInput("#cu_exchangeOther", () => state.custody, "exchangeLocationOther", v => v.trim());
     bindInput("#cu_notes", () => state.custody, "notes", v => v);
@@ -355,12 +400,15 @@
     bindInput("#vi_schedule", () => state.visitation, "scheduleText", v2 => v2);
 
     const sup = stepMount.querySelector("#vi_supervision");
-    if (sup) {
+    const supDetails = stepMount.querySelector("#vi_supervisionDetails");
+
+    if (sup && supDetails) {
       sup.addEventListener("change", function () {
         state.visitation.supervisionRequested = sup.value;
+        // Enable/disable without re-render
+        supDetails.disabled = (sup.value !== "supervised");
         setStatus("Saved.");
         persist();
-        renderStep();
       });
     }
 
@@ -421,17 +469,18 @@
     if (spousal) spousal.addEventListener("change", () => { state.support.spousalSupportRequested = spousal.value; setStatus("Saved."); persist(); });
 
     bindInput("#sp_date", () => state.support, "requestedEffectiveDate", v => v);
-    bindCheckbox("#sp_guideline", () => state.support, "guidelineRequested");
+    bindCheckboxBasic("#sp_guideline", () => state.support, "guidelineRequested");
     bindInput("#sp_notes", () => state.support, "notes", v => v);
   }
 
   function renderEmergency() {
+    // Emergency behavior unchanged (separate step). Tab fix applies here too.
     const e = state.emergency;
 
     stepMount.innerHTML = `
       <div class="rfoSection">
         <h2>Emergency Details</h2>
-        <p class="muted">These questions become required when Emergency is selected.</p>
+        <p class="muted">These questions are required when Emergency is selected on the prior step.</p>
 
         <div class="rfoGrid">
           <label class="rfoField">
@@ -496,10 +545,32 @@
     const risk = stepMount.querySelector("#em_risk");
     const policeFiled = stepMount.querySelector("#em_policeFiled");
     const prior = stepMount.querySelector("#em_prior");
+    const agency = stepMount.querySelector("#em_agency");
+    const reportNo = stepMount.querySelector("#em_reportNo");
+    const priorDesc = stepMount.querySelector("#em_priorDesc");
 
     if (risk) risk.addEventListener("change", () => { state.emergency.immediateHarmRisk = risk.value; setStatus("Saved."); persist(); });
-    if (policeFiled) policeFiled.addEventListener("change", () => { state.emergency.policeReportFiled = policeFiled.value; setStatus("Saved."); persist(); renderStep(); });
-    if (prior) prior.addEventListener("change", () => { state.emergency.priorOrdersExist = prior.value; setStatus("Saved."); persist(); renderStep(); });
+
+    if (policeFiled && agency && reportNo) {
+      policeFiled.addEventListener("change", () => {
+        state.emergency.policeReportFiled = policeFiled.value;
+        // Enable/disable without re-render
+        const on = (policeFiled.value === "yes");
+        agency.disabled = !on;
+        reportNo.disabled = !on;
+        setStatus("Saved.");
+        persist();
+      });
+    }
+
+    if (prior && priorDesc) {
+      prior.addEventListener("change", () => {
+        state.emergency.priorOrdersExist = prior.value;
+        priorDesc.disabled = (prior.value !== "yes");
+        setStatus("Saved.");
+        persist();
+      });
+    }
 
     bindInput("#em_date", () => state.emergency, "recentIncidentDate", v => v);
     bindInput("#em_desc", () => state.emergency, "harmDescription", v => v);
@@ -535,7 +606,6 @@
     const exists = steps.some(s => s.id === currentStepId);
     if (!exists) currentStepId = steps[0].id;
 
-    // Render by step
     if (currentStepId === "case_info") renderCaseInfo();
     else if (currentStepId === "orders_requested") renderOrdersRequested();
     else if (currentStepId === "custody") renderCustody();
@@ -544,10 +614,9 @@
     else if (currentStepId === "emergency") renderEmergency();
     else renderReview();
 
-    // Button states
     const idx = steps.findIndex(s => s.id === currentStepId);
-    btnBack.disabled = idx <= 0;
-    btnNext.textContent = (idx >= steps.length - 1) ? "Finish" : "Next";
+    if (btnBack) btnBack.disabled = idx <= 0;
+    if (btnNext) btnNext.textContent = (idx >= steps.length - 1) ? "Finish" : "Next";
 
     renderProgress();
     setStatus("Ready.");
@@ -561,7 +630,7 @@
     alert(msg);
   }
 
-  // Wire buttons
+  // Buttons
   if (btnSave) {
     btnSave.addEventListener("click", function () {
       const ok = window.RFO_STATE.save(state);
