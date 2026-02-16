@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Sharpe Legal — Tier 1</title>
   <link rel="stylesheet" href="/styles.css" />
+
   <style>
     .page{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:40px 16px;}
-    .box{max-width:920px;width:100%;background:var(--panel);border:1px solid var(--border);border-radius:18px;
-      padding:26px;box-shadow:var(--shadow);}
+    .box{max-width:920px;width:100%;background:var(--panel);border:1px solid var(--border);border-radius:18px;padding:26px;box-shadow:var(--shadow);}
     h1{margin:0 0 8px;font-size:30px;}
     .sub{color:var(--muted);margin:0 0 14px;line-height:1.45;}
     .grid{display:grid;grid-template-columns:1fr;gap:14px;margin-top:14px;}
@@ -24,50 +24,85 @@
   </style>
 </head>
 <body>
+
+  <div id="site-header"></div>
+  <script src="/header-loader.js" defer></script>
+  <script src="/header.js" defer></script>
+  <script src="/i18n.js" defer></script>
+
   <main class="page">
     <section class="box">
-      <h1>Sharpe Legal</h1>
+      <h1>Sharpe Legal — Tier 1</h1>
       <p class="sub">
-        Tier 1 is the “stop drowning” tier: structured intake + checklists + launchable templates.
-        Payment is $10/month (Square). Tonight we’re shipping the healthy user flow.
+        Tier 1 is structured intake + checklist routing + clean procedural scaffolding.
+        This is your stabilization tier.
       </p>
 
       <div class="grid">
+
+        <!-- LEFT CARD -->
         <div class="card">
-          <div class="price">$10<span style="font-size:14px;color:var(--muted);font-weight:800;"> / month</span></div>
+          <div class="price">
+            $10<span style="font-size:14px;color:var(--muted);font-weight:800;"> / month</span>
+          </div>
+
           <ul>
-            <li>Guided intake that turns chaos into structured facts</li>
-            <li>Task list: what to do next, in order</li>
-            <li>Template starter pages (draft-ready scaffolds)</li>
-            <li>Binder roadmap for judge-speed verification</li>
+            <li>Guided intake</li>
+            <li>Structured timeline builder</li>
+            <li>Next-step checklist</li>
+            <li>Binder roadmap framework</li>
           </ul>
 
           <div class="row">
-            <!-- FIX: send users through login with next=/app.html (prevents bounce loops) -->
-            <button class="btn primary" onclick="location.href='/login.html?next=/app.html'">Continue</button>
-            <button class="btn secondary" onclick="location.href='/home.html'">Back to landing</button>
+            <!-- 🔥 CORRECT ROUTING -->
+            <button class="btn primary"
+              onclick="location.href='/login.html?next=/dashboard.html'">
+              Continue
+            </button>
+
+            <button class="btn secondary"
+              onclick="location.href='/home.html'">
+              Back to Home
+            </button>
           </div>
 
-          <span class="pill">Continue → Login → App (tier gate enforced)</span>
+          <span class="pill">
+            Continue → Login → Dashboard
+          </span>
         </div>
 
+
+        <!-- RIGHT CARD -->
         <div class="card">
-          <div style="font-weight:900;margin-bottom:6px;">First-time user path</div>
-          <ul>
-            <li>Landing page explains what this is</li>
-            <li>Tier 1 page explains what they get</li>
-            <li>Login routes to App (via next=)</li>
-            <li>App enforces tier access</li>
-          </ul>
-          <div class="row">
-            <button class="btn secondary" onclick="location.href='/login.html?next=/dashboard.html'">Log in (Dashboard)</button>
-            <button class="btn secondary" onclick="location.href='/subscribe.html'">Subscribe</button>
+          <div style="font-weight:900;margin-bottom:6px;">
+            Already subscribed?
           </div>
-          <span class="pill">If you’re already paid, Login → App should just work.</span>
+
+          <ul>
+            <li>Login will route you to your dashboard</li>
+            <li>Dashboard routes to Start → Intake → Snapshot → Timeline</li>
+          </ul>
+
+          <div class="row">
+            <button class="btn secondary"
+              onclick="location.href='/login.html?next=/dashboard.html'">
+              Log In
+            </button>
+
+            <button class="btn secondary"
+              onclick="location.href='/subscribe.html'">
+              Subscribe
+            </button>
+          </div>
+
+          <span class="pill">
+            Dashboard is the only hub.
+          </span>
         </div>
+
       </div>
     </section>
   </main>
-  <script src="i18n.js"></script>
+
 </body>
 </html>
