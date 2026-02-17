@@ -1,21 +1,16 @@
 /* /timeline.js
-   Frontend thread: Timeline page logic.
-   Fix: stop importing readUserDoc from gate.js (frozen, not exported).
-   Use firebase-config.js helpers instead.
+   Timeline page logic (v1 text blob)
+   AUTH-COMPLIANT: no gate exports, no firebase re-init.
 */
 
-import { getAuthStateOnce, getUserProfile, db } from "/firebase-config.js";
-import {
-  doc,
-  getDoc,
-  setDoc
-} from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
+import { getAuthStateOnce, getUserProfile } from "/firebase-config.js";
+import { readUserDoc, writeTimeline } from "/db.js";
 
 function $(id) { return document.getElementById(id); }
 
-const textarea = $("timelineInput") || document.querySelector("textarea");
-const btnSave = $("btnSaveTimeline") || document.querySelector("button");
-const msgEl = $("msg") || $("status") || null;
+const textarea = $("raw");
+const btnSave = $("saveBtn");
+const msgEl = $("msg");
 
 function setMsg(t) { if (msgEl) msgEl.textContent = t || ""; }
 
@@ -39,21 +34,18 @@ function normalizeLines(raw) {
   try {
     setMsg("Checking session…");
     const { user } = await getAuthStateOnce();
-
     if (!user) {
-      setMsg("Not logged in. Go to Log In.");
+      setMsg("Not logged in. Please log in.");
       return;
     }
 
-    // Optional: profile check (tier gating later if you want)
-    await getUserProfile(user.uid);
+    // Touch profile so tier enforcement remains centralized in gate.js
+    await getUserProfile(user.uid).catch(() => ({}));
 
-    // Load existing timeline if present
-    const ref = doc(db, "users", user.uid, "rfo", "timeline");
-    const snap = await getDoc(ref);
-    if (snap.exists() && textarea) {
-      textarea.value = String(snap.data()?.text || "");
-    }
+    // Load existing timeline text if present
+    const doc = await readUserDoc(user.uid);
+    const existing = doc?.timeline?.text || "";
+    if (textarea) textarea.value = String(existing);
 
     setMsg("Ready.");
   } catch (e) {
@@ -71,8 +63,8 @@ if (btnSave) {
       const text = normalizeLines(textarea ? textarea.value : "");
       if (textarea) textarea.value = text;
 
-      const ref = doc(db, "users", user.uid, "rfo", "timeline");
-      await setDoc(ref, { text, updatedAt: new Date().toISOString() }, { merge: true });
+      // Store inside /users/{uid}.timeline (consistent with /db.js pattern)
+      await writeTimeline(user.uid, { text });
 
       setMsg("Saved.");
     } catch (e) {
