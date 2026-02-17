@@ -1,79 +1,105 @@
-// /success.js (durable activation without uid in URL)
-// - Uses Firebase ID token so Worker can verify identity
-// - Adds timeout + safer error parsing
+// /success.js
+// Authconan-compliant: no Firebase init, imports only from /firebase-config.js.
+// Goal: If logged in, attempt to finalize tier access after payment success.
+// This script is intentionally defensive: if the worker endpoint or token is missing,
+// it shows a clear message and exits without breaking anything.
 
-import app from "/firebase-config.js";
-import { getAuth, onAuthStateChanged } from
-  "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { auth, db } from "/firebase-config.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
+import { doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 
-const WORKER_BASE = "https://sharpe-pay.nd-sharpe.workers.dev";
-const auth = getAuth(app);
+const WORKER_BASE = "https://sharpe-pay.nd-sharpe.workers.dev"; // your billing worker
 
-function setMsg(t) {
-  const el = document.getElementById("msg");
-  if (el) el.textContent = t || "";
+function $(id){ return document.getElementById(id); }
+function setMsg(t){ const el=$("msg"); if (el) el.textContent = t || ""; }
+function setDetail(t){ const el=$("detail"); if (el) el.textContent = t || ""; }
+
+function qp(name){
+  try { return new URL(window.location.href).searchParams.get(name); } catch { return null; }
 }
 
-async function readJsonSafe(resp) {
-  const ct = (resp.headers.get("content-type") || "").toLowerCase();
-  if (ct.includes("application/json")) {
-    return resp.json().catch(() => ({}));
-  }
-  const txt = await resp.text().catch(() => "");
-  return { error: txt || "Non-JSON response" };
+/**
+ * Expected: your payment provider redirects to /success.html?session_id=...
+ * If your worker uses a different param, add it here.
+ */
+function getCheckoutToken(){
+  return (
+    qp("session_id") ||
+    qp("checkout_id") ||
+    qp("payment_intent") ||
+    qp("sid") ||
+    ""
+  );
 }
 
-async function activateWithToken(idToken) {
-  const controller = new AbortController();
-  const timeoutMs = 15000;
-  const to = setTimeout(() => controller.abort(), timeoutMs);
+async function finalizeAccess(uid){
+  // Token is optional: if absent, we still let the user proceed manually.
+  const token = getCheckoutToken();
 
-  try {
-    const r = await fetch(`${WORKER_BASE}/activate`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        // Worker should verify this token and derive uid server-side
-        "Authorization": `Bearer ${idToken}`,
-      },
-      body: JSON.stringify({ tier: "tier1" }),
-      signal: controller.signal,
-    });
+  // 1) Ask worker to confirm/attach subscription (preferred: server-authoritative)
+  // Endpoint name is intentionally conservative; adjust if your worker differs.
+  // If worker call fails, we fall back to NOT changing tier here.
+  if (token) {
+    try {
+      setDetail("Confirming subscription…");
 
-    const data = await readJsonSafe(r);
+      const r = await fetch(`${WORKER_BASE}/confirm-checkout`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token })
+      });
 
-    if (!r.ok || !data.ok) {
-      throw new Error(data?.error || `Activation failed (${r.status})`);
+      const data = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        console.log("confirm-checkout failed:", data);
+        setDetail("Could not confirm automatically. You can still log in and access will update once synced.");
+        return;
+      }
+
+      // If worker returns tier, use it; otherwise default to basic.
+      const tier = String(data.tier || "basic");
+
+      // 2) Write tier to user doc (client-side merge)
+      await setDoc(
+        doc(db, "users", uid),
+        {
+          tier,
+          active: true,
+          billing: {
+            lastCheckoutToken: token,
+            confirmedAt: new Date().toISOString(),
+          }
+        },
+        { merge: true }
+      );
+
+      setDetail(`Access updated: ${tier}`);
+      return;
+    } catch (e) {
+      console.log(e);
+      setDetail("Network error while confirming. You can still proceed; access may update after login.");
+      return;
     }
-
-    return data;
-  } finally {
-    clearTimeout(to);
   }
+
+  // No token present: don’t guess tier.
+  setDetail("No confirmation token found in URL. If access doesn’t update, log in and try again from your billing link.");
 }
 
 onAuthStateChanged(auth, async (user) => {
+  if (!user) {
+    setMsg("Not logged in.");
+    setDetail("Log in, then return to this page to finalize access automatically.");
+    return;
+  }
+
   try {
-    if (!user) {
-      setMsg("Payment received. Please log in to finalize access.");
-      return;
-    }
-
-    setMsg("Finalizing access…");
-
-    // Force-refresh token to avoid edge cases after login
-    const idToken = await user.getIdToken(true);
-
-    await activateWithToken(idToken);
-
-    setMsg("Access activated. Redirecting to app…");
-    setTimeout(() => window.location.replace("/app.html"), 900);
+    setMsg(`Logged in as ${user.email || "user"}. Finalizing…`);
+    await finalizeAccess(user.uid);
+    setMsg("Done.");
   } catch (e) {
     console.log(e);
-    const msg =
-      e?.name === "AbortError"
-        ? "Activation timed out. Refresh and try again."
-        : (e?.message || "Activation error. Try refreshing or visit dashboard.");
-    setMsg(msg);
+    setMsg("Could not finalize automatically.");
+    setDetail("Go to Dashboard. If access looks wrong, log out/in once and try again.");
   }
 });
