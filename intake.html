@@ -3,41 +3,199 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Intake — Sharpe Legal</title>
+  <meta name="color-scheme" content="dark light" />
+  <meta name="theme-color" content="#0b0f14" />
+  <title>SharpeSystem — Insurance Claim Navigator</title>
+  <meta name="description" content="Calm, plain navigation for insurance claims when you’re not sure what to do next." />
   <link rel="stylesheet" href="/styles.css" />
+
+  <style>
+    .two-col{display:grid;grid-template-columns:1.15fr .85fr;gap:14px;margin-top:12px;}
+    @media (max-width:920px){.two-col{grid-template-columns:1fr;}}
+    .chip{display:inline-block;padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.08);
+      background:rgba(255,255,255,.03);color:var(--soft);font-size:12px;font-weight:760;margin-bottom:10px;}
+    .btn-row{display:flex;gap:12px;flex-wrap:wrap;margin-top:12px;}
+    .mini{font-size:13px;color:var(--soft);}
+    .hidden{display:none!important;}
+    .panel{border:1px solid var(--border);background:rgba(255,255,255,.03);
+      border-radius:var(--radius);padding:14px;}
+  </style>
 </head>
 
-<body data-require-auth="1" data-require-tier="tier1">
-  <!-- Shared header mount -->
+<body>
   <div id="site-header"></div>
 
-  <main class="page">
-    <div class="container content">
-      <h1>Guided Intake</h1>
-      <p class="sub">Short, structured inputs. No narrative sprawl.</p>
+  <main class="page" id="start">
+    <div class="container">
+      <section class="content">
+        <div class="chip">Insurance Claim Navigator</div>
+        <h1>Tell me what happened.</h1>
+        <p class="lede">
+          If you received a denial, document request, or confusing message, start here.
+          You don’t need the right words. Just explain it plainly.
+        </p>
 
-      <div class="cta-row">
-        <a class="button" href="/dashboard.html">Back to Dashboard</a>
-      </div>
+        <label class="label" for="story">What happened? (2–8 sentences)</label>
+        <textarea class="input" id="story" rows="6"
+          placeholder="Example: My car was hit and the insurer keeps delaying. They asked for photos and an estimate. I don’t know what they really need or what happens next."></textarea>
+
+        <div class="two-col">
+          <div>
+            <label class="label" for="event">Best guess (optional)</label>
+            <select class="input" id="event">
+              <option value="other" selected>Not sure</option>
+              <option value="auto">Car accident / vehicle damage</option>
+              <option value="property">Home / renters / property damage</option>
+              <option value="medical">Medical bills / claim denial</option>
+              <option value="life">Life insurance / death claim</option>
+              <option value="other">Other</option>
+            </select>
+
+            <label class="label" for="deadline">Any deadline? (optional)</label>
+            <input class="input" id="deadline" type="text" placeholder="e.g., March 2 / 10 days / none" />
+
+            <div class="btn-row">
+              <button class="button primary" id="btnGo" type="button">Find my next step</button>
+              <button class="button" id="btnWizard" type="button">I’m not sure what this is</button>
+            </div>
+
+            <p class="mini">Informational only. This does not replace your insurer or a lawyer.</p>
+          </div>
+
+          <aside class="panel">
+            <h2 style="margin-top:0;">What you’ll get</h2>
+            <ul class="mini">
+              <li><strong>What this is</strong></li>
+              <li><strong>What matters now</strong></li>
+              <li><strong>Next steps</strong></li>
+              <li><strong>Do not do yet</strong></li>
+            </ul>
+          </aside>
+        </div>
+
+        <div class="hr hidden" id="resHr"></div>
+
+        <section class="hidden" id="result">
+          <div class="chip" id="resChip">Result</div>
+          <h2 id="resH2">Here’s the path that fits best.</h2>
+          <p class="mini" id="resLead"></p>
+
+          <div class="two-col">
+            <div class="panel">
+              <h3>Today list</h3>
+              <ul id="todayList"></ul>
+
+              <div class="hr"></div>
+
+              <h3>Do not do yet</h3>
+              <ul id="stopList"></ul>
+
+              <div class="btn-row">
+                <button class="button" id="btnReset" type="button">Back</button>
+              </div>
+            </div>
+
+            <aside class="panel">
+              <h3>What matters now</h3>
+              <div id="matters"></div>
+
+              <div class="hr"></div>
+
+              <div class="note">
+                <strong>Deadline note:</strong>
+                <span id="deadlineEcho">No deadline provided.</span>
+              </div>
+            </aside>
+          </div>
+        </section>
+
+      </section>
     </div>
   </main>
 
-  <!-- Shared header injection -->
   <script src="/header-loader.js" defer></script>
-
-  <!-- Header controls (theme) -->
   <script src="/partials/header.js" defer></script>
-
-  <!-- Header auth UI swap -->
-  <script type="module" src="/header-auth.js" defer></script>
-
-  <!-- i18n -->
   <script src="/i18n.js" defer></script>
 
-  <!-- AUTH gate -->
-  <script type="module" src="/gate.js" defer></script>
+  <script>
+    const $ = (id) => document.getElementById(id);
 
-  <!-- Page module -->
-  <script type="module" src="/intake.js" defer></script>
+    const templates = {
+      auto:{
+        chip:"Auto claim",
+        lead:"Vehicle damage claim.",
+        matters:"Photos, claim number, timeline.",
+        today:["Get claim number.","Take wide + close photos.","Document date + location.","Ask for exact checklist."],
+        stop:["Don’t guess fault details.","Don’t repair before approval."]
+      },
+      property:{
+        chip:"Property claim",
+        lead:"Property damage claim.",
+        matters:"Photos, list of items, receipts.",
+        today:["Photograph damage.","List damaged items.","Keep invoices."],
+        stop:["Don’t discard damaged items.","Don’t rely on phone calls only."]
+      },
+      medical:{
+        chip:"Medical denial or billing issue.",
+        matters:"Denial reason + deadline.",
+        today:["Get denial in writing.","Ask appeal deadline.","Collect EOB + bill."],
+        stop:["Don’t ignore deadline.","Don’t over-explain."]
+      },
+      life:{
+        chip:"Life claim",
+        lead:"Life insurance claim.",
+        matters:"Checklist + confirmation file is complete.",
+        today:["Confirm policy number.","Request checklist.","Send organized documents."],
+        stop:["Don’t send originals unless required."]
+      },
+      other:{
+        chip:"General claim",
+        lead:"General insurance issue.",
+        matters:"Exact wording of insurer request.",
+        today:["Copy request.","Ask for next step + deadline.","Send organized email."],
+        stop:["Don’t guess.","Don’t miss deadline."]
+      }
+    };
+
+    function showResult(type){
+      const t = templates[type] || templates.other;
+
+      $("result").classList.remove("hidden");
+      $("resHr").classList.remove("hidden");
+
+      $("resChip").textContent = t.chip;
+      $("resLead").textContent = t.lead;
+      $("matters").textContent = t.matters;
+
+      const dl = ($("deadline").value || "").trim();
+      $("deadlineEcho").textContent = dl ? ("Deadline: " + dl) : "No deadline provided.";
+
+      $("todayList").innerHTML = "";
+      t.today.forEach((x) => {
+        const li = document.createElement("li");
+        li.textContent = x;
+        $("todayList").appendChild(li);
+      });
+
+      $("stopList").innerHTML = "";
+      t.stop.forEach((x) => {
+        const li = document.createElement("li");
+        li.textContent = x;
+        $("stopList").appendChild(li);
+      });
+
+      $("result").scrollIntoView({ behavior:"smooth" });
+    }
+
+    $("btnGo").addEventListener("click", () => showResult($("event").value));
+    $("btnReset").addEventListener("click", () => {
+      $("result").classList.add("hidden");
+      $("resHr").classList.add("hidden");
+      window.location.hash = "#start";
+    });
+
+    // Prevent dead button: treat Wizard as “other”
+    $("btnWizard").addEventListener("click", () => showResult("other"));
+  </script>
 </body>
 </html>
