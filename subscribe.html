@@ -1,9 +1,10 @@
+<!-- /subscribe.html  (Billing — Basic) -->
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Billing — Tier 1</title>
+  <title>Billing — Basic</title>
   <link rel="stylesheet" href="/styles.css" />
   <style>
     .page{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:40px 16px;}
@@ -21,14 +22,14 @@
 <body>
   <main class="page">
     <section class="box">
-      <h1>Tier 1 — $10 / month</h1>
+      <h1>Basic — $10 / month</h1>
       <p class="sub">
         Checkout takes ~30 seconds. You’ll be returned to SharpeSystem after payment.
       </p>
 
       <div class="row">
         <button id="payBtn" class="btn primary" type="button">Continue to Checkout</button>
-        <button class="btn secondary" type="button" onclick="location.href='/app.html'">Back to App</button>
+        <button class="btn secondary" type="button" onclick="location.href='/dashboard.html'">Back to Dashboard</button>
       </div>
 
       <div id="msg" class="msg"></div>
@@ -37,6 +38,6 @@
   </main>
 
   <script type="module" src="/subscribe.js"></script>
-  <script src="/i18n.js"></script>
+  <script src="/i18n.js" defer></script>
 </body>
 </html>
