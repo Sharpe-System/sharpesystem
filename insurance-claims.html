@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
@@ -7,7 +7,6 @@
   <meta name="theme-color" content="#0b0f14" />
   <title>SharpeSystem — Insurance Claim Navigator</title>
   <meta name="description" content="Calm, plain navigation for insurance claims when you’re not sure what to do next." />
-
   <link rel="stylesheet" href="/styles.css" />
 
   <style>
@@ -24,15 +23,11 @@
 </head>
 
 <body>
-
-  <!-- Shared header -->
+  <!-- Shared header mount -->
   <div id="site-header"></div>
-  <script src="/header-loader.js" defer></script>
-  <script src="/i18n.js" defer></script>
 
   <main class="page" id="start">
     <div class="container">
-
       <section class="content">
         <div class="chip">Insurance Claim Navigator</div>
         <h1>Tell me what happened.</h1>
@@ -49,7 +44,7 @@
           <div>
             <label class="label" for="event">Best guess (optional)</label>
             <select class="input" id="event">
-              <option value="not_sure" selected>Not sure</option>
+              <option value="other" selected>Not sure</option>
               <option value="auto">Car accident / vehicle damage</option>
               <option value="property">Home / renters / property damage</option>
               <option value="medical">Medical bills / claim denial</option>
@@ -65,9 +60,7 @@
               <button class="button" id="btnWizard" type="button">I’m not sure what this is</button>
             </div>
 
-            <p class="mini">
-              Informational only. This does not replace your insurer or a lawyer.
-            </p>
+            <p class="mini">Informational only. This does not replace your insurer or a lawyer.</p>
           </div>
 
           <aside class="panel">
@@ -82,6 +75,7 @@
         </div>
 
         <div class="hr hidden" id="resHr"></div>
+
         <section class="hidden" id="result">
           <div class="chip" id="resChip">Result</div>
           <h2 id="resH2">Here’s the path that fits best.</h2>
@@ -115,92 +109,104 @@
             </aside>
           </div>
         </section>
-
       </section>
     </div>
   </main>
 
-<script>
-const $ = id => document.getElementById(id);
+  <!-- Shared header injection -->
+  <script src="/header-loader.js" defer></script>
 
-const templates = {
-  auto:{
-    chip:"Auto claim",
-    lead:"Vehicle damage claim.",
-    matters:"Photos, claim number, timeline.",
-    today:["Get claim number.","Take wide + close photos.","Document date + location.","Ask for exact checklist."],
-    stop:["Don’t guess fault details.","Don’t repair before approval."]
-  },
-  property:{
-    chip:"Property claim",
-    lead:"Property damage claim.",
-    matters:"Photos, list of items, receipts.",
-    today:["Photograph damage.","List damaged items.","Keep invoices."],
-    stop:["Don’t discard damaged items.","Don’t rely on phone calls only."]
-  },
-  medical:{
-    chip:"Medical claim",
-    lead:"Medical denial or billing issue.",
-    matters:"Denial reason + deadline.",
-    today:["Get denial in writing.","Ask appeal deadline.","Collect EOB + bill."],
-    stop:["Don’t ignore deadline.","Don’t over-explain."]
-  },
-  life:{
-    chip:"Life claim",
-    lead:"Life insurance claim.",
-    matters:"Checklist + confirmation file is complete.",
-    today:["Confirm policy number.","Request checklist.","Send organized documents."],
-    stop:["Don’t send originals unless required."]
-  },
-  other:{
-    chip:"General claim",
-    lead:"General insurance issue.",
-    matters:"Exact wording of insurer request.",
-    today:["Copy request.","Ask for next step + deadline.","Send organized email."],
-    stop:["Don’t guess.","Don’t miss deadline."]
-  }
-};
+  <!-- Header controls (theme) -->
+  <script src="/partials/header.js" defer></script>
 
-function showResult(type){
-  const t = templates[type] || templates.other;
-  $("result").classList.remove("hidden");
-  $("resHr").classList.remove("hidden");
+  <!-- i18n -->
+  <script src="/i18n.js" defer></script>
 
-  $("resChip").textContent = t.chip;
-  $("resLead").textContent = t.lead;
-  $("matters").textContent = t.matters;
+  <script>
+    const $ = (id) => document.getElementById(id);
 
-  const dl = ($("deadline").value || "").trim();
-  $("deadlineEcho").textContent = dl ? "Deadline: "+dl : "No deadline provided.";
+    const templates = {
+      auto:{
+        chip:"Auto claim",
+        lead:"Vehicle damage claim.",
+        matters:"Photos, claim number, timeline.",
+        today:["Get claim number.","Take wide + close photos.","Document date + location.","Ask for exact checklist."],
+        stop:["Don’t guess fault details.","Don’t repair before approval."]
+      },
+      property:{
+        chip:"Property claim",
+        lead:"Property damage claim.",
+        matters:"Photos, list of items, receipts.",
+        today:["Photograph damage.","List damaged items.","Keep invoices."],
+        stop:["Don’t discard damaged items.","Don’t rely on phone calls only."]
+      },
+      medical:{
+        chip:"Medical claim",
+        lead:"Medical denial or billing issue.",
+        matters:"Denial reason + deadline.",
+        today:["Get denial in writing.","Ask appeal deadline.","Collect EOB + bill."],
+        stop:["Don’t ignore deadline.","Don’t over-explain."]
+      },
+      life:{
+        chip:"Life claim",
+        lead:"Life insurance claim.",
+        matters:"Checklist + confirmation file is complete.",
+        today:["Confirm policy number.","Request checklist.","Send organized documents."],
+        stop:["Don’t send originals unless required."]
+      },
+      other:{
+        chip:"General claim",
+        lead:"General insurance issue.",
+        matters:"Exact wording of insurer request.",
+        today:["Copy request.","Ask for next step + deadline.","Send organized email."],
+        stop:["Don’t guess.","Don’t miss deadline."]
+      }
+    };
 
-  $("todayList").innerHTML="";
-  t.today.forEach(x=>{
-    const li=document.createElement("li");
-    li.textContent=x;
-    $("todayList").appendChild(li);
-  });
+    function showResult(type){
+      const t = templates[type] || templates.other;
 
-  $("stopList").innerHTML="";
-  t.stop.forEach(x=>{
-    const li=document.createElement("li");
-    li.textContent=x;
-    $("stopList").appendChild(li);
-  });
+      $("result").classList.remove("hidden");
+      $("resHr").classList.remove("hidden");
 
-  $("result").scrollIntoView({behavior:"smooth"});
-}
+      $("resChip").textContent = t.chip;
+      $("resLead").textContent = t.lead;
+      $("matters").textContent = t.matters;
 
-$("btnGo").addEventListener("click",()=>{
-  const event = $("event").value;
-  showResult(event);
-});
+      const dl = ($("deadline").value || "").trim();
+      $("deadlineEcho").textContent = dl ? ("Deadline: " + dl) : "No deadline provided.";
 
-$("btnReset").addEventListener("click",()=>{
-  $("result").classList.add("hidden");
-  $("resHr").classList.add("hidden");
-  window.location.hash="#start";
-});
-</script>
+      $("todayList").innerHTML = "";
+      t.today.forEach(x => {
+        const li = document.createElement("li");
+        li.textContent = x;
+        $("todayList").appendChild(li);
+      });
 
+      $("stopList").innerHTML = "";
+      t.stop.forEach(x => {
+        const li = document.createElement("li");
+        li.textContent = x;
+        $("stopList").appendChild(li);
+      });
+
+      $("result").scrollIntoView({ behavior:"smooth" });
+    }
+
+    $("btnGo").addEventListener("click", () => {
+      showResult($("event").value);
+    });
+
+    $("btnReset").addEventListener("click", () => {
+      $("result").classList.add("hidden");
+      $("resHr").classList.add("hidden");
+      window.location.hash = "#start";
+    });
+
+    // “Wizard” placeholder (no-op for now; prevents dead button)
+    $("btnWizard").addEventListener("click", () => {
+      showResult("other");
+    });
+  </script>
 </body>
 </html>
