@@ -1,14 +1,22 @@
 // /header-loader.js
 // Hardened: fast header paint + safe caching + post-injection init calls.
-// Does NOT modify auth layer. Just loads /partials/header.html efficiently.
+// Loads /partials/header.html efficiently.
+// After injection, dispatches "sharpe:header:loaded" for i18n re-apply.
 
 (async function () {
+  "use strict";
+
   const mount = document.getElementById("site-header");
   if (!mount) return;
 
   const CACHE_KEY = "sharpe_header_html_v1";
   const CACHE_TIME_KEY = "sharpe_header_html_t_v1";
   const MAX_AGE_MS = 1000 * 60 * 30; // 30 minutes
+  const HEADER_EVENT = "sharpe:header:loaded";
+
+  function dispatchHeaderLoaded() {
+    try { document.dispatchEvent(new Event(HEADER_EVENT)); } catch (_) {}
+  }
 
   function getCached() {
     try {
@@ -30,24 +38,22 @@
   }
 
   function initAll() {
-    // after injection, initialize header controls
     queueMicrotask(() => {
       try { window.initHeaderControls?.(); } catch (_) {}
       try { window.initHeaderAuth?.(); } catch (_) {}
       try { window.initI18n?.(); } catch (_) {}
+      dispatchHeaderLoaded();
     });
   }
 
-  // 1) Paint cached header immediately (fast perceived performance)
+  // 1) Paint cached header immediately
   const cached = getCached();
   if (cached) {
     mount.innerHTML = cached;
     initAll();
   }
 
-  // 2) Fetch header with caching enabled (no "no-store")
-  // force-cache lets the browser reuse cache when available.
-  // If the file changes, the server should serve a new version or revalidate.
+  // 2) Fetch latest header
   try {
     const res = await fetch("/partials/header.html", {
       cache: "force-cache",
@@ -58,15 +64,12 @@
 
     const html = await res.text();
 
-    // Only update DOM if content changed (reduces layout thrash)
     if (!cached || html !== cached) {
       mount.innerHTML = html;
       setCached(html);
       initAll();
     }
   } catch (e) {
-    // If fetch fails and we had cached header, we already rendered it.
-    // Otherwise, fail silently (but log for debugging).
     console.error("Header load failed:", e);
   }
 })();
