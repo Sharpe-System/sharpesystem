@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Peace Path — Thread</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Compose messages with cooldown, business-hours delivery, and an evidence-grade archive." />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+
+<body class="shell"
+  data-require-auth="1"
+  data-require-tier="basic"
+  data-require-active="1"
+>
+  <div id="site-header"></div>
+
+  <main>
+    <div class="container">
+
+      <section class="panel" style="padding:var(--pad);">
+        <div class="row" style="justify-content:space-between; align-items:flex-start;">
+          <div style="max-width:860px;">
+            <h1 id="threadTitle">Thread</h1>
+            <p class="muted" style="margin-top:6px;">
+              You can write anytime. Delivery is scheduled for business hours. Every message gets a cooldown window with unsend.
+            </p>
+          </div>
+          <div class="row">
+            <a class="btn" href="/peace/index.html">All Threads</a>
+            <a class="btn" href="/dashboard.html">Dashboard</a>
+          </div>
+        </div>
+
+        <div id="policyBox" class="alert warn" role="note" style="margin-top:14px;">
+          <strong>Protective design:</strong> Cooldown (2 hours) + business-hours delivery (Mon–Fri 8–18).
+          If the system flags risk, you’ll see a warning before scheduling.
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="grid-2">
+          <div class="card" style="padding:14px;">
+            <h3 style="margin-top:0;">Compose</h3>
+
+            <div class="field" style="margin-top:10px;">
+              <label for="msgText">Message</label>
+              <textarea id="msgText" placeholder="Write what you need to say. The system will help you keep it clear and court-safe."></textarea>
+              <div class="help">If you’re angry, write it. Then let the cooldown protect you before anything is delivered.</div>
+            </div>
+
+            <div id="riskBox" class="alert" style="display:none; margin-top:12px;"></div>
+
+            <div class="row" style="margin-top:12px;">
+              <button class="btn primary" id="sendBtn" type="button">Start Cooldown</button>
+              <button class="btn" id="rewriteBtn" type="button" style="display:none;">Suggest calmer rewrite</button>
+              <button class="btn danger" id="clearBtn" type="button">Clear</button>
+            </div>
+
+            <div id="composeMsg" class="small soft" style="margin-top:10px;"></div>
+          </div>
+
+          <div class="card" style="padding:14px;">
+            <h3 style="margin-top:0;">What happens next</h3>
+            <ol class="muted" style="margin:0; padding-left:18px;">
+              <li>Message is saved as <strong>cooldown</strong> for 2 hours.</li>
+              <li>You may <strong>unsend</strong> during cooldown.</li>
+              <li>After cooldown, it becomes <strong>scheduled</strong> for the next business window.</li>
+              <li>When the scheduled time arrives, it becomes <strong>delivered</strong>.</li>
+            </ol>
+            <div class="small soft" style="margin-top:10px;">
+              v1 delivery is deterministic and client-driven (page load finalizes due scheduled messages).
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div style="height:14px;"></div>
+
+      <section class="card" style="padding:var(--pad);">
+        <div class="row" style="justify-content:space-between; align-items:center;">
+          <h2 style="margin:0;">Message log</h2>
+          <div class="small soft" id="who"></div>
+        </div>
+
+        <div id="messagesList" class="stack" style="margin-top:12px;"></div>
+
+        <div id="emptyState" class="alert" style="display:none; margin-top:12px;">
+          <strong>No messages yet.</strong> Draft a message above — the cooldown exists to protect you.
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Canonical Footer Stack (gate BEFORE page module) -->
+  <script src="/ui.js" defer></script>
+  <script src="/header-loader.js" defer></script>
+  <script src="/partials/header.js" defer></script>
+  <script src="/i18n.js" defer></script>
+  <script type="module" src="/gate.js"></script>
+  <script type="module" src="/peace/peace.js"></script>
+</body>
+</html>
