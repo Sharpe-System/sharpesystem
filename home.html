@@ -10,15 +10,10 @@
 
 <body class="shell">
 
-  <!-- Shared header -->
+  <!-- Standardized header mount (injected) -->
   <div id="site-header"></div>
-  <script src="/header.js" defer></script>
-  <script src="/i18n.js" defer></script>
 
-  <!-- Optional UI hardening (recommended). Add /ui.js file if not already present. -->
-  <script src="/ui.js" defer></script>
-
-  <!-- Optional global loading overlay (UI.js will use it if present) -->
+  <!-- Optional global loading overlay (ui.js may use it if present) -->
   <div id="globalLoading" class="no-print" style="display:none; position:fixed; inset:0; z-index:9998; background:rgba(11,15,20,.72); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);">
     <div style="position:absolute; left:50%; top:16%; transform:translateX(-50%); width:min(560px, calc(100% - 32px)); border:1px solid rgba(27,42,63,.8); border-radius:22px; background:rgba(255,255,255,.04); box-shadow:0 18px 40px rgba(0,0,0,.35); padding:16px 16px;">
       <div class="row" style="justify-content:space-between;">
@@ -128,5 +123,15 @@
     </div>
   </main>
 
+  <!-- UI hardening (safe on every page) -->
+  <script src="/ui.js" defer></script>
+
+  <!-- Header + controls (canonical: /partials only) -->
+  <script src="/header-loader.js" defer></script>
+  <script src="/partials/header.js" defer></script>
+  <script src="/i18n.js" defer></script>
+
+  <!-- AUTH CORE (required on all pages) -->
+  <script type="module" src="/gate.js"></script>
 </body>
 </html>
