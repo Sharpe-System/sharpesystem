@@ -1,36 +1,21 @@
-/* /gate.js
-   Frozen AUTH CORE gate
-   - Reads requirements from <body data-*>
-   - Checks auth + user profile
-   - Redirects only if necessary
-   - Never mutates UI
-*/
+// /gate.js
+// Frozen AUTH CORE gate:
+// - Reads requirements from <body data-*> attributes
+// - Checks auth + user profile (tier/active)
+// - Redirects only when requirements not satisfied
+// - Never hides/re-hides content, never mutates UI state
 
 import { getAuthStateOnce, getUserProfile } from "/firebase-config.js";
-
-const TIER_RANK = {
-  free: 0,
-  basic: 1,     // Tier 1
-  pro: 2,
-  attorney: 3,
-};
-
-function normalizeTier(tier) {
-  const t = (tier || "").toString().toLowerCase();
-  return TIER_RANK.hasOwnProperty(t) ? t : "free";
-}
+import { normalizeTier, meetsTier } from "/tiers.js";
 
 function requires(body) {
-  return {
-    reqAuth: body?.dataset?.requireAuth === "1",
-    reqActive: body?.dataset?.requireActive === "1",
-    reqTier: body?.dataset?.requireTier
-      ? normalizeTier(body.dataset.requireTier)
-      : null,
-  };
+  const reqAuth = body?.dataset?.requireAuth === "1";
+  const reqActive = body?.dataset?.requireActive === "1";
+  const reqTier = body?.dataset?.requireTier ? normalizeTier(body.dataset.requireTier) : null;
+  return { reqAuth, reqActive, reqTier };
 }
 
-function currentPath() {
+function currentPathWithQuery() {
   return window.location.pathname + window.location.search + window.location.hash;
 }
 
@@ -39,19 +24,20 @@ function redirectTo(url) {
 }
 
 function buildLoginUrl() {
-  const next = encodeURIComponent(currentPath());
-  return `/login.html?next=${next}`;
+  const next = encodeURIComponent(currentPathWithQuery());
+  return `/login.html?reason=login_required&next=${next}`;
+}
+
+function buildTierUrl(reason) {
+  const next = encodeURIComponent(currentPathWithQuery());
+  const r = encodeURIComponent(reason || "insufficient_tier");
+  return `/tier1.html?reason=${r}&next=${next}`;
 }
 
 function buildSubscribeUrl(reason) {
-  const next = encodeURIComponent(currentPath());
-  const r = encodeURIComponent(reason || "upgrade_required");
+  const next = encodeURIComponent(currentPathWithQuery());
+  const r = encodeURIComponent(reason || "inactive_account");
   return `/subscribe.html?reason=${r}&next=${next}`;
-}
-
-function meetsTier(required, actual) {
-  if (!required) return true;
-  return TIER_RANK[normalizeTier(actual)] >= TIER_RANK[required];
 }
 
 (async function gateBoot() {
@@ -60,6 +46,7 @@ function meetsTier(required, actual) {
 
   const { reqAuth, reqActive, reqTier } = requires(body);
 
+  // Public pages: do nothing.
   if (!reqAuth && !reqActive && !reqTier) return;
 
   const { user } = await getAuthStateOnce();
@@ -78,7 +65,7 @@ function meetsTier(required, actual) {
   }
 
   if (reqTier && !meetsTier(reqTier, tier)) {
-    redirectTo(buildSubscribeUrl("insufficient_tier"));
+    redirectTo(buildTierUrl("insufficient_tier"));
     return;
   }
 })();
