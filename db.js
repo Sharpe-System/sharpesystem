@@ -1,20 +1,17 @@
 // /db.js
 // Central Firestore access layer for Sharpe Legal
+// AUTH-COMPLIANT: no Firebase re-init, no getAuth(), no SDK duplication.
+// Uses the frozen exports from /firebase-config.js only.
 
-import app from "/firebase-config.js";
-import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { db } from "/firebase-config.js";
 import {
-  getFirestore,
   doc,
   getDoc,
   setDoc,
   serverTimestamp,
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+} from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 
 import { defaultUserDoc } from "/schema.js";
-
-export const auth = getAuth(app);
-export const db = getFirestore(app);
 
 /* ------------------------------------------------------------------ */
 /* User Reference */
@@ -115,7 +112,7 @@ export async function writeChecklist(uid, items = []) {
 }
 
 /* ------------------------------------------------------------------ */
-/* Snapshot Marker (Safe Version — No updateDoc failure) */
+/* Snapshot Marker */
 /* ------------------------------------------------------------------ */
 
 export async function markSnapshotGenerated(uid) {
