@@ -1,3 +1,4 @@
+<!-- /dashboard.html -->
 <!doctype html>
 <html lang="en">
 <head>
@@ -8,36 +9,26 @@
   <link rel="stylesheet" href="/styles.css" />
 </head>
 
-<body class="shell" data-require-auth="1">
+<body
+  class="shell"
+  data-require-auth="1"
+  data-require-tier="basic"
+  data-require-active="1"
+>
   <div id="site-header"></div>
-
-  <div id="globalLoading" class="no-print" style="display:none; position:fixed; inset:0; z-index:9998; background:rgba(11,15,20,.72); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);">
-    <div style="position:absolute; left:50%; top:16%; transform:translateX(-50%); width:min(560px, calc(100% - 32px)); border:1px solid rgba(27,42,63,.8); border-radius:22px; background:rgba(255,255,255,.04); box-shadow:0 18px 40px rgba(0,0,0,.35); padding:16px 16px;">
-      <div class="row" style="justify-content:space-between;">
-        <div style="font-weight:700; letter-spacing:.2px;">Loading…</div>
-        <div class="small soft">Checking access.</div>
-      </div>
-      <div style="height:10px;"></div>
-      <div style="height:10px; border-radius:999px; border:1px solid rgba(27,42,63,.85); background:rgba(255,255,255,.02); overflow:hidden;">
-        <div style="height:100%; width:45%; background:linear-gradient(90deg, rgba(110,231,255,.18), rgba(167,139,250,.18)); border-right:1px solid rgba(110,231,255,.28); animation: shimmer 1.1s linear infinite;"></div>
-      </div>
-      <style>
-        @keyframes shimmer { 0%{transform:translateX(-35%)} 100%{transform:translateX(145%)} }
-      </style>
-    </div>
-  </div>
 
   <main>
     <div class="container">
+
       <section class="panel" style="padding:var(--pad);">
         <div class="row" style="justify-content:space-between; align-items:flex-start;">
           <div>
             <h1>Dashboard</h1>
             <p class="muted" style="margin-top:6px;">Account + routing hub.</p>
           </div>
-          <div class="badge">
+          <div class="badge" title="Tier">
             <span aria-hidden="true" style="width:8px; height:8px; border-radius:50%; background:rgba(52,211,153,.8); display:inline-block;"></span>
-            Tier 1
+            Basic
           </div>
         </div>
 
@@ -55,8 +46,8 @@
 
         <div class="grid-2">
           <div class="card" style="padding:14px;">
-            <h2 style="margin-top:0;">Tier 1 app</h2>
-            <p class="muted">Use Start to route correctly based on tier + intake.</p>
+            <h2 style="margin-top:0;">App</h2>
+            <p class="muted">Route based on tier + intake.</p>
             <div class="row" style="margin-top:10px;">
               <a class="btn primary" href="/start.html">Start</a>
               <a class="btn" href="/intake.html">Intake</a>
@@ -69,29 +60,34 @@
 
           <div class="card" style="padding:14px;">
             <h2 style="margin-top:0;">Billing</h2>
-            <p class="muted">If you already paid, activation should set Tier 1 on your user doc.</p>
+            <p class="muted">If you already paid, activation should set tier + active on your user document.</p>
             <div class="row" style="margin-top:10px;">
-              <a class="btn" href="/tier1.html">Tier 1 page</a>
+              <a class="btn" href="/tier1.html">Plans</a>
               <a class="btn" href="/subscribe.html">Subscribe</a>
+              <a class="btn" href="/billing.html">Billing</a>
             </div>
 
             <div class="alert warn" style="margin-top:12px;">
-              If your Tier is not updating, your user document may not have been written/updated yet.
+              If your tier is not updating, your user document may not have been written/updated yet.
               Use <span class="kbd">Status</span> to confirm services are up.
             </div>
           </div>
         </div>
-
       </section>
+
     </div>
   </main>
 
+  <!-- Canonical footer stack (AuthConan) -->
   <script src="/ui.js" defer></script>
   <script src="/header-loader.js" defer></script>
   <script src="/partials/header.js" defer></script>
   <script src="/i18n.js" defer></script>
+
+  <!-- Gate FIRST -->
   <script type="module" src="/gate.js"></script>
 
+  <!-- Page module AFTER gate -->
   <script type="module" src="/dashboard.js"></script>
 </body>
 </html>
