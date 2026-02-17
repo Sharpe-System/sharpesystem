@@ -1,58 +1,67 @@
-// /intake.js
-import { requireTier1, updateUserDoc, readUserDoc } from "/gate.js";
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Create Account — SharpeSystem</title>
+  <link rel="stylesheet" href="/styles.css" />
 
-function $(id){ return document.getElementById(id); }
+  <!-- Optional i18n -->
+  <script src="/i18n.js" defer></script>
+</head>
 
-const form = $("intakeForm");
-const msg = $("msg");
-const saveBtn = $("saveBtn");
+<body>
+  <!-- Shared header -->
+  <div id="site-header"></div>
+  <script src="/header-loader.js" defer></script>
+  <script type="module" src="/header-auth.js" defer></script>
 
-function setMsg(t){ if (msg) msg.textContent = t || ""; }
-function nowIso(){ return new Date().toISOString(); }
+  <main class="page" style="max-width:920px;margin:0 auto;padding:24px;">
+    <header style="margin-bottom:18px;">
+      <div style="font-weight:700;">SharpeSystem</div>
+      <div class="muted" style="margin-top:4px;">Create an account to sync your intake and unlock tiers.</div>
+    </header>
 
-(async function main(){
-  const { user } = await requireTier1();
+    <section class="card" style="padding:18px;">
+      <h1 style="margin:0 0 8px 0;">Create account</h1>
+      <p class="muted" style="margin:0 0 18px 0;">Email + password. Tier is set on your user profile.</p>
 
-  // Prefill existing intake if present
-  try {
-    const d = await readUserDoc(user.uid);
-    const intake = d?.intake || {};
-    if ($("caseType")) $("caseType").value = intake.caseType || "";
-    if ($("stage")) $("stage").value = intake.stage || "";
-    if ($("nextDate")) $("nextDate").value = intake.nextDate || "";
-    if ($("goal")) $("goal").value = intake.goal || "";
-    if ($("risks")) $("risks").value = intake.risks || "";
-    if ($("facts")) $("facts").value = intake.facts || "";
-  } catch (e) {
-    console.log(e);
-  }
+      <div class="rfoField" style="margin-bottom:12px;">
+        <span>Email</span>
+        <input id="email" type="email" autocomplete="email" placeholder="you@example.com" />
+      </div>
 
-  form?.addEventListener("submit", async (e) => {
-    e.preventDefault();
+      <div class="rfoField" style="margin-bottom:12px;">
+        <span>Password</span>
+        <input id="password" type="password" autocomplete="new-password" placeholder="At least 6 characters" />
+      </div>
 
-    try {
-      if (saveBtn) saveBtn.disabled = true;
-      setMsg("Saving…");
+      <div class="rfoField" style="margin-bottom:12px;">
+        <span>Plan</span>
+        <select id="tier">
+          <option value="free">Free</option>
+          <option value="basic">Basic</option>
+          <option value="pro">Pro</option>
+          <option value="attorney">Attorney</option>
+        </select>
+      </div>
 
-      const intake = {
-        caseType: $("caseType")?.value || "",
-        stage: $("stage")?.value || "",
-        nextDate: $("nextDate")?.value || "",
-        goal: ($("goal")?.value || "").trim(),
-        risks: ($("risks")?.value || "").trim(),
-        facts: ($("facts")?.value || "").trim(),
-        updatedAt: nowIso(),
-      };
+      <div style="display:flex;gap:10px;align-items:center;margin-top:14px;">
+        <button class="btn" id="btnCreate" type="button">Create account</button>
+        <button class="btn" id="btnLogin" type="button">Log in instead</button>
+        <span id="msg" class="muted" style="margin-left:auto;"></span>
+      </div>
 
-      await updateUserDoc(user.uid, { intake });
+      <div class="muted" style="margin-top:14px;font-size:12px;">
+        If you completed an intake before creating an account, we will sync it from this browser after signup.
+      </div>
+    </section>
 
-      setMsg("Saved. Sending you to Snapshot…");
-      setTimeout(() => window.location.replace("/snapshot.html"), 450);
-    } catch (err) {
-      console.log(err);
-      setMsg("Save failed. Check console.");
-    } finally {
-      if (saveBtn) saveBtn.disabled = false;
-    }
-  });
-})();
+    <footer class="muted" style="margin-top:18px;">
+      <a href="/pricing.html">Plans</a> · <a href="/home.html">Home</a>
+    </footer>
+  </main>
+
+  <script type="module" src="/signup.js"></script>
+</body>
+</html>
