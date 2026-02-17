@@ -1,39 +1,52 @@
-/* timeline-v2.js — Structured timeline + court-ready export (localStorage v1) */
+/* timeline-v2.js — Structured timeline + court-ready export (localStorage v1)
+   Module-safe variant (no behavioral changes).
+*/
 
-(function () {
-  "use strict";
+"use strict";
 
-  const KEY = "sharpe_timeline_v2";
+const KEY = "sharpe_timeline_v2";
+const $ = (id) => document.getElementById(id);
 
-  const $ = (id) => document.getElementById(id);
+// --- Required nodes (guard early) ---
+const statusEl = $("status");
+const qualifierEl = $("qualifier");
+const date1El = $("date1");
+const date2Wrap = $("date2Wrap");
+const date2El = $("date2");
 
-  const statusEl = $("status");
-  const qualifierEl = $("qualifier");
-  const date1El = $("date1");
-  const date2Wrap = $("date2Wrap");
-  const date2El = $("date2");
+const categoryEl = $("category");
+const subtypeEl = $("subtype");
 
-  const categoryEl = $("category");
-  const subtypeEl = $("subtype");
+const fact1El = $("fact1");
+const fact2El = $("fact2");
+const fact3El = $("fact3");
+const privateNotesEl = $("privateNotes");
+const rawFactsEl = $("rawFacts");
 
-  const fact1El = $("fact1");
-  const fact2El = $("fact2");
-  const fact3El = $("fact3");
-  const privateNotesEl = $("privateNotes");
-  const rawFactsEl = $("rawFacts");
+const btnAdd = $("btnAdd");
+const btnClear = $("btnClear");
+const btnSave = $("btnSave");
+const btnReset = $("btnReset");
 
-  const btnAdd = $("btnAdd");
-  const btnClear = $("btnClear");
-  const btnSave = $("btnSave");
-  const btnReset = $("btnReset");
+const viewModeEl = $("viewMode");
+const searchEl = $("search");
+const listEl = $("list");
 
-  const viewModeEl = $("viewMode");
-  const searchEl = $("search");
-  const listEl = $("list");
+const exportBox = $("exportBox");
+const btnCopy = $("btnCopy");
+const btnDownload = $("btnDownload");
 
-  const exportBox = $("exportBox");
-  const btnCopy = $("btnCopy");
-  const btnDownload = $("btnDownload");
+function hardFail(msg){
+  console.warn("[timeline-v2] " + msg);
+  if (statusEl) statusEl.textContent = msg;
+}
+
+// If markup isn’t present, don’t run.
+if (!qualifierEl || !date1El || !categoryEl || !subtypeEl || !fact1El || !rawFactsEl ||
+    !btnAdd || !btnClear || !btnSave || !btnReset || !viewModeEl || !searchEl ||
+    !listEl || !exportBox || !btnCopy || !btnDownload || !date2Wrap || !date2El) {
+  hardFail("Timeline UI is missing required elements. Check timeline-v2.html IDs.");
+} else {
 
   function setStatus(msg) {
     if (!statusEl) return;
@@ -47,7 +60,7 @@
       const parsed = JSON.parse(raw);
       if (!parsed || !Array.isArray(parsed.items)) return { items: [] };
       return parsed;
-    } catch (e) {
+    } catch {
       return { items: [] };
     }
   }
@@ -59,7 +72,6 @@
   let state = loadState();
 
   // ---- Taxonomy + template mapping ----
-
   const TAXONOMY = [
     {
       id: "custody_visitation",
@@ -150,7 +162,6 @@
   }
 
   // ---- Date formatting (MM/DD/YYYY) ----
-
   function formatMMDDYYYY(raw) {
     const digits = String(raw || "").replace(/\D/g, "").slice(0, 8);
     const mm = digits.slice(0, 2);
@@ -163,10 +174,8 @@
   }
 
   function normalizeDateForExport(mmddyyyy) {
-    // Keep as-is for now, but enforce structure. If invalid, return empty.
     const s = String(mmddyyyy || "").trim();
     if (!s) return "";
-    // Must match MM/DD/YYYY
     const m = s.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
     if (!m) return "";
     const mm = Number(m[1]), dd = Number(m[2]), yyyy = Number(m[3]);
@@ -184,7 +193,6 @@
   }
 
   // ---- Sanitizer: messy paragraph -> neutral bullets ----
-
   const LOADED_WORDS = [
     "narcissist","abusive","crazy","insane","evil","liar","lying","fraud","fraudulent",
     "gaslight","gaslighting","psychopath","sociopath","toxic","manipulative"
@@ -194,7 +202,6 @@
     const s = String(raw || "").trim();
     if (!s) return [];
 
-    // Split into sentences-ish
     const parts = s
       .replace(/\r/g, "")
       .split(/[\n•\-]+/g)
@@ -206,20 +213,15 @@
     for (const p of parts) {
       let t = p;
 
-      // Remove loaded words (simple pass)
       for (const w of LOADED_WORDS) {
         const re = new RegExp(`\\b${w}\\b`, "ig");
         t = t.replace(re, "");
       }
 
-      // Remove repeated whitespace
       t = t.replace(/\s{2,}/g, " ").trim();
-
-      // Convert intent accusations to observation framing (basic)
       t = t.replace(/\b(she|he|they)\s+tried\s+to\b/ig, "I believe there was an attempt to");
       t = t.replace(/\b(she|he|they)\s+intended\s+to\b/ig, "I believe there was an intent to");
 
-      // Cap length
       if (t.length > 240) t = t.slice(0, 237) + "...";
 
       if (t) bullets.push(t);
@@ -230,7 +232,6 @@
   }
 
   // ---- Export formatting ----
-
   function dateLabel(item) {
     const q = item.qualifier;
     const d1 = normalizeDateForExport(item.date1);
@@ -247,7 +248,6 @@
       return `On or about (date not provided)`;
     }
 
-    // exact
     if (d1) return d1;
     return "(date not provided)";
   }
@@ -263,18 +263,16 @@
 
     const sanitizedBullets = sanitizeTextToBullets(item.rawFacts);
 
-    // Build neutral output
     const bits = [];
     bits.push(sub.tpl);
 
     for (const f of facts) bits.push(f);
     for (const b of sanitizedBullets) bits.push(b);
 
-    // De-dup and cap
     const seen = new Set();
     const clean = [];
     for (const b of bits) {
-      const k = b.toLowerCase();
+      const k = String(b).toLowerCase();
       if (seen.has(k)) continue;
       seen.add(k);
       clean.push(b);
@@ -282,7 +280,6 @@
     }
 
     const bullets = clean.map(x => `- ${x}`).join("\n");
-
     return `${dateLabel(item)} — ${cat} — ${label}\n${bullets}`;
   }
 
@@ -299,20 +296,19 @@
     const lines = [];
     for (const item of filteredItems) {
       lines.push(mode === "private" ? privateLine(item) : courtLine(item));
-      lines.push(""); // spacer
+      lines.push("");
     }
     return lines.join("\n").trim();
   }
 
   // ---- Render list ----
-
   function escapeHtml(s) {
     return String(s || "")
-      .replaceAll("&", "&amp;")
-      .replaceAll("<", "&lt;")
-      .replaceAll(">", "&gt;")
-      .replaceAll('"', "&quot;")
-      .replaceAll("'", "&#039;");
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
   }
 
   function matchesSearch(item, q) {
@@ -329,7 +325,6 @@
   }
 
   function sortItems(items) {
-    // v1: keep insertion order (most recent first)
     return [...items].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
   }
 
@@ -375,7 +370,6 @@
   }
 
   // ---- Add/edit/delete ----
-
   function uid() {
     return "tl_" + Math.random().toString(16).slice(2) + "_" + Date.now().toString(16);
   }
@@ -408,15 +402,12 @@
     const d2 = normalizeDateForExport(date2El.value);
 
     if (!d1) return "Date is required (MM/DD/YYYY).";
-
     if (q === "between" && !d2) return "End date is required for Between.";
 
     const f1 = String(fact1El.value || "").trim();
     const raw = String(rawFactsEl.value || "").trim();
 
     if (!f1 && !raw) return "Provide at least Fact 1 or paste a Raw paragraph.";
-
-    // Court hygiene: keep facts short
     if (f1.length > 240) return "Fact 1 is too long.";
 
     return "";
@@ -496,12 +487,11 @@
   }
 
   // ---- Export actions ----
-
   async function copyExport() {
     try {
       await navigator.clipboard.writeText(exportBox.textContent || "");
       setStatus("Copied export text.");
-    } catch (e) {
+    } catch {
       setStatus("Copy failed. Select the text manually.");
     }
   }
@@ -521,7 +511,6 @@
   }
 
   // ---- Wire events ----
-
   function onQualifierChange() {
     const q = qualifierEl.value;
     date2Wrap.style.display = (q === "between") ? "" : "none";
@@ -583,4 +572,4 @@
   }
 
   init();
-})();
+}
