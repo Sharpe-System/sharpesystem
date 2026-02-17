@@ -4,6 +4,7 @@
   <meta charset="utf-8" />
   <title>High-Conflict Risk Awareness — SharpeSystem</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Neutral overview of escalation patterns and ambiguity risk. Informational only." />
 
   <link rel="stylesheet" href="/styles.css" />
 
@@ -39,49 +40,6 @@
 
     a{color:var(--accent); text-decoration:none}
     a:hover{text-decoration:underline}
-
-    .site-header{
-      position: sticky;
-      top: 0;
-      z-index: 200;
-      background: linear-gradient(180deg, rgba(11,15,20,.92), rgba(11,15,20,.78));
-      border-bottom: 1px solid var(--border);
-      backdrop-filter: blur(10px);
-    }
-
-    .main-nav{
-      max-width: 1100px;
-      margin: 0 auto;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      padding: 14px 18px;
-    }
-
-    .brand{
-      font-weight:700;
-      color: var(--text);
-      text-decoration:none;
-    }
-
-    .nav-links{
-      display:flex;
-      gap:18px;
-      font-size:14px;
-    }
-
-    .nav-links a{
-      color: var(--muted);
-      text-decoration:none;
-    }
-
-    .nav-links a:hover{
-      color: var(--text);
-    }
-
-    .nav-emphasis{
-      color: var(--accent);
-    }
 
     header.page-hero{
       padding: 28px 18px 22px;
@@ -157,78 +115,75 @@
     }
 
     .risk-footer-nav a:hover{ color: var(--text); }
-
   </style>
 </head>
 
 <body>
+  <!-- Standardized header mount (injected) -->
+  <div id="site-header"></div>
 
-<header class="site-header">
-  <nav class="main-nav" aria-label="Primary">
-    <a href="/home.html" class="brand">SharpeSystem</a>
-    <div class="nav-links">
-      <a href="/home.html">Home</a>
-      <a href="/trees.html">Decision Trees</a>
-      <a href="/status.html">Status</a>
-      <a href="/high-conflict-risk-awareness.html" class="nav-emphasis">Risk Awareness</a>
+  <header class="page-hero">
+    <div class="wrap">
+      <h1>High-Conflict Situations: Safety, Boundaries, and Risk Awareness</h1>
+      <p class="sub">
+        A neutral overview of escalation patterns and how ambiguity can become legally risky —
+        even without harmful intent.
+      </p>
     </div>
-  </nav>
-</header>
+  </header>
 
-<header class="page-hero">
-  <div class="wrap">
-    <h1>High-Conflict Situations: Safety, Boundaries, and Risk Awareness</h1>
-    <p class="sub">
-      A neutral overview of escalation patterns and how ambiguity can become legally risky —
-      even without harmful intent.
-    </p>
-  </div>
-</header>
+  <main>
+    <div class="wrap">
+      <section class="panel">
 
-<main>
-  <div class="wrap">
-    <section class="panel">
+        <h2>Why this page exists</h2>
+        <p>
+          High-conflict transitions can escalate faster than expected.
+          Institutions often prioritize immediate safety and clarity over nuance.
+        </p>
 
-      <h2>Why this page exists</h2>
-      <p>
-        High-conflict transitions can escalate faster than expected.
-        Institutions often prioritize immediate safety and clarity over nuance.
-      </p>
+        <div class="note">
+          <strong>Important:</strong> Informational only. Not legal advice.
+          If anyone feels unsafe, contact appropriate local services.
+        </div>
 
-      <div class="note">
-        <strong>Important:</strong> Informational only. Not legal advice.
-        If anyone feels unsafe, contact appropriate local services.
-      </div>
+        <h2>Common escalation triggers</h2>
+        <ul>
+          <li>Repeated contact after one party believes discussion ended</li>
+          <li>Unexpected visits to continue arguments</li>
+          <li>Late-night emotionally escalated exchanges</li>
+          <li>Substances amplifying tone or perception</li>
+        </ul>
 
-      <h2>Common escalation triggers</h2>
-      <ul>
-        <li>Repeated contact after one party believes discussion ended</li>
-        <li>Unexpected visits to continue arguments</li>
-        <li>Late-night emotionally escalated exchanges</li>
-        <li>Substances amplifying tone or perception</li>
-      </ul>
+        <h2>Why intent may not control outcomes</h2>
+        <p>
+          Systems evaluate records for timing, persistence, clarity, and pattern consistency —
+          often more than subjective intent.
+        </p>
 
-      <h2>Why intent may not control outcomes</h2>
-      <p>
-        Systems evaluate records for timing, persistence, clarity, and pattern consistency —
-        often more than subjective intent.
-      </p>
+        <div class="footer">
+          Informational only. Not strategy. Not a substitute for counsel.
+        </div>
 
-      <div class="footer">
-        Informational only. Not strategy. Not a substitute for counsel.
-      </div>
+      </section>
+    </div>
+  </main>
 
-    </section>
-  </div>
-</main>
+  <footer class="risk-footer-nav">
+    <a href="/home.html">Home</a>
+    <a href="/trees.html">Decision Trees</a>
+    <a href="/status.html">Status</a>
+  </footer>
 
-<footer class="risk-footer-nav">
-  <a href="/home.html">Home</a>
-  <a href="/trees.html">Decision Trees</a>
-  <a href="/status.html">Status</a>
-</footer>
+  <!-- UI hardening (safe on every page) -->
+  <script src="/ui.js" defer></script>
 
-<script src="/i18n.js"></script>
+  <!-- Header + controls (canonical: /partials only) -->
+  <script src="/header-loader.js" defer></script>
+  <script src="/partials/header.js" defer></script>
+  <script src="/i18n.js" defer></script>
 
+  <!-- AUTH CORE (required on all pages) -->
+  <script type="module" src="/gate.js"></script>
 </body>
 </html>
