@@ -9,7 +9,7 @@
 </head>
 
 <body>
-  <!-- Shared header (injected) -->
+  <!-- Shared header mount -->
   <div id="site-header"></div>
 
   <main class="page">
@@ -78,15 +78,22 @@
     </div>
   </main>
 
-  <!-- UI hardening (safe on every page) -->
-  <script src="/ui.js" defer></script>
-
-  <!-- Header injection + header controls -->
+  <!-- Shared header injection -->
   <script src="/header-loader.js" defer></script>
+
+  <!-- Header controls (theme) -->
   <script src="/partials/header.js" defer></script>
+
+  <!-- i18n -->
   <script src="/i18n.js" defer></script>
 
-  <!-- AUTH CORE (safe on public pages; redirects only if data-require-* exists) -->
-  <script type="module" src="/gate.js"></script>
+  <!-- Optional UI hardening -->
+  <script src="/ui.js" defer></script>
+
+  <!-- Auth gate is safe on public pages (only redirects when data-require-* exists) -->
+  <script type="module" src="/gate.js" defer></script>
+
+  <!-- Header auth UI swap is safe on public pages -->
+  <script type="module" src="/header-auth.js" defer></script>
 </body>
 </html>
