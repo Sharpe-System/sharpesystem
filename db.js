@@ -1,6 +1,6 @@
 // /db.js
 // Central Firestore access layer for Sharpe Legal
-// AUTH-COMPLIANT: no Firebase re-init, no getAuth(), no SDK duplication.
+// AUTH-COMPLIANT: no Firebase re-init, no getAuth(), no listeners, no redirects.
 // Uses the frozen exports from /firebase-config.js only.
 
 import { db } from "/firebase-config.js";
@@ -78,18 +78,55 @@ export async function writeIntake(uid, intake = {}) {
 }
 
 /* ------------------------------------------------------------------ */
-/* Timeline */
-/* ------------------------------------------------------------------ */
+/* Timeline (COMPAT BRIDGE: v1 text blob + v2 events array)
+ *
+ * Accepted inputs:
+ *   - writeTimeline(uid, eventsArray)
+ *   - writeTimeline(uid, { events: [...], text: "..." })
+ *
+ * Hardening:
+ *   - Only writes timeline.events if events is explicitly provided
+ *   - Only writes timeline.text   if text   is explicitly provided
+ *   - Prevents accidental overwrite (“clobbering”) of the other field
+ * ------------------------------------------------------------------ */
 
-export async function writeTimeline(uid, events = []) {
+export async function writeTimeline(uid, payload = undefined) {
+  let eventsProvided = false;
+  let textProvided = false;
+
+  let events;
+  let text;
+
+  if (Array.isArray(payload)) {
+    eventsProvided = true;
+    events = payload;
+  } else if (payload && typeof payload === "object") {
+    if ("events" in payload) {
+      eventsProvided = true;
+      events = Array.isArray(payload.events) ? payload.events : [];
+    }
+    if ("text" in payload) {
+      textProvided = true;
+      text = typeof payload.text === "string" ? payload.text : "";
+    }
+  } else if (payload !== undefined) {
+    // If someone passes a weird primitive, treat as "no-op" rather than writing junk.
+    return;
+  }
+
+  // If nothing was explicitly provided, do nothing.
+  if (!eventsProvided && !textProvided) return;
+
+  const timeline = {
+    updatedAt: new Date().toISOString(),
+  };
+
+  if (eventsProvided) timeline.events = events;
+  if (textProvided) timeline.text = text;
+
   await setDoc(
     userRef(uid),
-    {
-      timeline: {
-        events: Array.isArray(events) ? events : [],
-        updatedAt: new Date().toISOString(),
-      },
-    },
+    { timeline },
     { merge: true }
   );
 }
