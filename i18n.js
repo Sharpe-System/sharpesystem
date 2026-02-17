@@ -1,8 +1,10 @@
 // /i18n.js
 // English default. Spanish optional.
-// Re-applies once after header partial injection.
+// Works with injected header partials + re-applies after header loads.
 
 (function () {
+  "use strict";
+
   const STORAGE_KEY = "sharpe_lang"; // "en" | "es"
   const HEADER_EVENT = "sharpe:header:loaded";
 
@@ -62,23 +64,26 @@
     applyLang(next);
   }
 
+  // Public init hook for header-loader.js
+  window.initI18n = function initI18n() {
+    applyLang(getLang());
+  };
+
   // Click handler (works even if header injected later)
   document.addEventListener("click", (e) => {
     const t = e.target;
-    if (t && t.id === "langToggle") {
+    if (!t) return;
+    if (t.id === "langToggle" || t.closest?.("#langToggle")) {
       e.preventDefault();
       toggleLang();
     }
   });
 
-  // Apply now
+  // Apply once now
   applyLang(getLang());
 
-  // Re-apply once after header injection
-  let reapplied = false;
+  // Re-apply after header injection
   document.addEventListener(HEADER_EVENT, () => {
-    if (reapplied) return;
-    reapplied = true;
-    applyLang(getLang());
+    try { window.initI18n?.(); } catch (_) {}
   });
 })();
