@@ -4,23 +4,15 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Billing — SharpeSystem</title>
-
-  <!-- Global styles -->
   <link rel="stylesheet" href="/styles.css" />
-
-  <!-- Optional i18n loader (absolute path) -->
-  <script src="/i18n.js" defer></script>
 </head>
-<body>
+
+<body data-require-auth="1">
+
+  <!-- Shared header -->
+  <div id="site-header"></div>
 
   <main class="page" style="max-width:1000px;margin:0 auto;padding:24px;">
-    <header style="margin-bottom:20px;">
-      <div style="font-weight:700;font-size:20px;">SharpeSystem</div>
-      <div class="muted" style="margin-top:4px;">
-        Manage your plan and billing status.
-      </div>
-    </header>
-
     <section class="card" style="padding:20px;">
       <h1 style="margin-top:0;">Billing</h1>
 
@@ -38,15 +30,26 @@
       <div class="muted" style="margin-top:20px;font-size:13px;">
         If your tier does not update immediately, refresh the page after checkout.
       </div>
-    </section>
 
-    <footer class="muted" style="margin-top:24px;">
-      <a href="/dashboard.html">Back to Dashboard</a>
-    </footer>
+      <div class="muted" style="margin-top:24px;">
+        <a href="/dashboard.html">Back to Dashboard</a>
+      </div>
+    </section>
   </main>
 
   <!-- Billing logic -->
   <script type="module" src="/billing.js"></script>
+
+  <!-- UI hardening -->
+  <script src="/ui.js" defer></script>
+
+  <!-- Header + controls -->
+  <script src="/header-loader.js" defer></script>
+  <script src="/partials/header.js" defer></script>
+  <script src="/i18n.js" defer></script>
+
+  <!-- AUTH CORE -->
+  <script type="module" src="/gate.js"></script>
 
 </body>
 </html>
