@@ -1,4 +1,7 @@
-// subscribe.js
+// /subscribe.js
+// Creates a checkout session via your Worker and redirects to the provider checkout URL.
+// Tier names must match Authconan tier model: free | basic | pro | attorney
+
 const WORKER_BASE = "https://sharpe-pay.nd-sharpe.workers.dev";
 
 function $(id){ return document.getElementById(id); }
@@ -18,7 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const r = await fetch(`${WORKER_BASE}/create-checkout`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tier: "tier1" })
+        body: JSON.stringify({ tier: "basic" })
       });
 
       const data = await r.json().catch(() => ({}));
