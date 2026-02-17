@@ -5,15 +5,7 @@
   <title>Attorney Portal — Preview</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="description" content="Preview-only attorney portal concept for SharpeSystem." />
-
-  <!-- ✅ absolute -->
   <link rel="stylesheet" href="/styles.css" />
-
-  <!-- ✅ injected header -->
-  <script src="/header.js" defer></script>
-  <script src="/header-loader.js" defer></script>
-  <script src="/i18n.js" defer></script>
-
   <style>
     .grid{display:grid;grid-template-columns: 1.15fr .85fr;gap: 14px;margin-top: 12px;}
     @media (max-width: 920px){ .grid{ grid-template-columns: 1fr; } }
@@ -29,7 +21,6 @@
 </head>
 
 <body>
-  <!-- Shared header/nav -->
   <div id="site-header"></div>
 
   <main class="page">
@@ -121,5 +112,11 @@
 
     </div>
   </main>
+
+  <script src="/ui.js" defer></script>
+  <script src="/header-loader.js" defer></script>
+  <script src="/partials/header.js" defer></script>
+  <script src="/i18n.js" defer></script>
+  <script type="module" src="/gate.js"></script>
 </body>
 </html>
