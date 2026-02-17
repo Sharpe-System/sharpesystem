@@ -23,7 +23,6 @@
 </head>
 
 <body>
-  <!-- Shared header mount -->
   <div id="site-header"></div>
 
   <main class="page" id="start">
@@ -109,17 +108,13 @@
             </aside>
           </div>
         </section>
+
       </section>
     </div>
   </main>
 
-  <!-- Shared header injection -->
   <script src="/header-loader.js" defer></script>
-
-  <!-- Header controls (theme) -->
   <script src="/partials/header.js" defer></script>
-
-  <!-- i18n -->
   <script src="/i18n.js" defer></script>
 
   <script>
@@ -141,8 +136,7 @@
         stop:["Don’t discard damaged items.","Don’t rely on phone calls only."]
       },
       medical:{
-        chip:"Medical claim",
-        lead:"Medical denial or billing issue.",
+        chip:"Medical denial or billing issue.",
         matters:"Denial reason + deadline.",
         today:["Get denial in writing.","Ask appeal deadline.","Collect EOB + bill."],
         stop:["Don’t ignore deadline.","Don’t over-explain."]
@@ -177,14 +171,14 @@
       $("deadlineEcho").textContent = dl ? ("Deadline: " + dl) : "No deadline provided.";
 
       $("todayList").innerHTML = "";
-      t.today.forEach(x => {
+      t.today.forEach((x) => {
         const li = document.createElement("li");
         li.textContent = x;
         $("todayList").appendChild(li);
       });
 
       $("stopList").innerHTML = "";
-      t.stop.forEach(x => {
+      t.stop.forEach((x) => {
         const li = document.createElement("li");
         li.textContent = x;
         $("stopList").appendChild(li);
@@ -193,20 +187,15 @@
       $("result").scrollIntoView({ behavior:"smooth" });
     }
 
-    $("btnGo").addEventListener("click", () => {
-      showResult($("event").value);
-    });
-
+    $("btnGo").addEventListener("click", () => showResult($("event").value));
     $("btnReset").addEventListener("click", () => {
       $("result").classList.add("hidden");
       $("resHr").classList.add("hidden");
       window.location.hash = "#start";
     });
 
-    // “Wizard” placeholder (no-op for now; prevents dead button)
-    $("btnWizard").addEventListener("click", () => {
-      showResult("other");
-    });
+    // Prevent dead button: treat Wizard as “other”
+    $("btnWizard").addEventListener("click", () => showResult("other"));
   </script>
 </body>
 </html>
