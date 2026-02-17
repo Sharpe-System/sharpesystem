@@ -15,9 +15,10 @@
   </style>
 </head>
 
-<body data-require-auth="1" data-require-tier="tier1">
+<body data-require-auth="1" data-require-tier="tier1" data-next="/timeline.html">
   <div id="site-header"></div>
-  <script type="module" src="/header-auth.js"></script>
+  <script src="/header-loader.js" defer></script>
+  <script type="module" src="/header-auth.js" defer></script>
   <script src="/i18n.js" defer></script>
 
   <main class="page">
@@ -30,9 +31,9 @@
         <textarea id="raw"></textarea>
 
         <div class="row">
-          <button id="saveBtn" class="button primary" type="button">Save Timeline</button>
-          <a class="button" href="/snapshot.html">Back to Snapshot</a>
-          <a class="button" href="/dashboard.html">Back to Dashboard</a>
+          <button id="saveBtn" class="btn primary" type="button">Save Timeline</button>
+          <a class="btn" href="/snapshot.html">Back to Snapshot</a>
+          <a class="btn" href="/dashboard.html">Back to Dashboard</a>
         </div>
 
         <div id="msg" class="muted"></div>
@@ -40,7 +41,6 @@
     </section>
   </main>
 
-  <script type="module" src="/firebase-config.js"></script>
   <script type="module" src="/gate.js"></script>
   <script type="module" src="/timeline.js"></script>
 </body>
