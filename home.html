@@ -15,11 +15,10 @@
   <main class="page">
     <div class="container content">
 
-      <!-- Hero -->
       <section class="page-hero" aria-label="Home hero">
         <h1>SharpeSystem</h1>
         <p class="lede">
-          Let’s start where you are.<br>
+          Let’s start where you are.<br />
           Where would you like to begin?
         </p>
 
@@ -31,7 +30,6 @@
         </div>
       </section>
 
-      <!-- Direct Intake -->
       <section class="template-box" aria-label="Start here">
         <h2>Start here</h2>
         <p class="muted">
@@ -40,15 +38,10 @@
         </p>
 
         <div class="cta-row">
-          <a class="button primary" href="/rfo/">
-            Start Request for Order (RFO)
-          </a>
-          <a class="button" href="/triage.html">
-            I’m not sure what I need
-          </a>
+          <a class="button primary" href="/rfo/">Start Request for Order (RFO)</a>
+          <a class="button" href="/triage.html">I’m not sure what I need</a>
         </div>
 
-        <!-- Secondary links -->
         <div class="link-row" aria-label="Secondary links">
           <a id="authLink" href="/login.html?next=/dashboard.html">Log in</a>
           <span class="sep">·</span>
@@ -58,14 +51,12 @@
         </div>
       </section>
 
-      <!-- Platform Context -->
       <section class="template-box" aria-label="Platform context">
         <h2>About SharpeSystem</h2>
         <p>
-          SharpeSystem is a structured decision framework for navigating
-          complex systems. Legal processes are currently the most developed branch.
-          Additional branches — including healthcare, immigration, education,
-          and licensing pathways — are being built using the same orientation model.
+          SharpeSystem is a structured decision framework for navigating complex systems.
+          Legal processes are currently the most developed branch. Additional branches —
+          including healthcare, immigration, education, and licensing pathways — are being built.
         </p>
 
         <ul>
@@ -78,10 +69,10 @@
     </div>
   </main>
 
-  <!-- Shared header injection -->
+  <!-- Header injection -->
   <script src="/header-loader.js" defer></script>
 
-  <!-- Header controls (theme) -->
+  <!-- Header controls (theme, etc.) -->
   <script src="/partials/header.js" defer></script>
 
   <!-- i18n -->
@@ -90,10 +81,8 @@
   <!-- Optional UI hardening -->
   <script src="/ui.js" defer></script>
 
-  <!-- Auth gate is safe on public pages (only redirects when data-require-* exists) -->
+  <!-- Safe on public pages -->
   <script type="module" src="/gate.js" defer></script>
-
-  <!-- Header auth UI swap is safe on public pages -->
   <script type="module" src="/header-auth.js" defer></script>
 </body>
 </html>
