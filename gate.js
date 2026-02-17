@@ -1,15 +1,16 @@
-// /gate.js
-// Frozen AUTH CORE gate:
-// - Reads requirements from <body data-*> attributes
-// - Checks auth + user profile (tier/active)
-// - Redirects only if requirements not satisfied
-// - Never hides/re-hides content, never mutates UI state
+/* /gate.js
+   Frozen AUTH CORE gate
+   - Reads requirements from <body data-*>
+   - Checks auth + user profile
+   - Redirects only if necessary
+   - Never mutates UI
+*/
 
 import { getAuthStateOnce, getUserProfile } from "/firebase-config.js";
 
 const TIER_RANK = {
   free: 0,
-  basic: 1,
+  basic: 1,     // Tier 1
   pro: 2,
   attorney: 3,
 };
@@ -20,57 +21,53 @@ function normalizeTier(tier) {
 }
 
 function requires(body) {
-  const reqAuth = body?.dataset?.requireAuth === "1";
-  const reqActive = body?.dataset?.requireActive === "1";
-  const reqTier = body?.dataset?.requireTier ? normalizeTier(body.dataset.requireTier) : null;
-  return { reqAuth, reqActive, reqTier };
+  return {
+    reqAuth: body?.dataset?.requireAuth === "1",
+    reqActive: body?.dataset?.requireActive === "1",
+    reqTier: body?.dataset?.requireTier
+      ? normalizeTier(body.dataset.requireTier)
+      : null,
+  };
 }
 
-function currentPathWithQuery() {
+function currentPath() {
   return window.location.pathname + window.location.search + window.location.hash;
 }
 
 function redirectTo(url) {
-  // Strictly controlled: a single hard navigation, no fancy router.
   window.location.replace(url);
 }
 
 function buildLoginUrl() {
-  const next = encodeURIComponent(currentPathWithQuery());
+  const next = encodeURIComponent(currentPath());
   return `/login.html?next=${next}`;
 }
 
 function buildSubscribeUrl(reason) {
-  const next = encodeURIComponent(currentPathWithQuery());
+  const next = encodeURIComponent(currentPath());
   const r = encodeURIComponent(reason || "upgrade_required");
   return `/subscribe.html?reason=${r}&next=${next}`;
 }
 
-function meetsTier(requiredTier, actualTier) {
-  if (!requiredTier) return true;
-  const req = TIER_RANK[normalizeTier(requiredTier)];
-  const act = TIER_RANK[normalizeTier(actualTier)];
-  return act >= req;
+function meetsTier(required, actual) {
+  if (!required) return true;
+  return TIER_RANK[normalizeTier(actual)] >= TIER_RANK[required];
 }
 
 (async function gateBoot() {
   const body = document.body;
-  if (!body) return; // if no body yet, do nothing; page will still render.
+  if (!body) return;
 
   const { reqAuth, reqActive, reqTier } = requires(body);
 
-  // Public pages: do nothing.
   if (!reqAuth && !reqActive && !reqTier) return;
 
-  // Auth required: check signed-in state once.
   const { user } = await getAuthStateOnce();
   if (!user) {
     redirectTo(buildLoginUrl());
     return;
   }
 
-  // Profile required for tier/active enforcement.
-  // If doc missing/unreadable, treat as free+inactive conservatively only if required.
   const profile = await getUserProfile(user.uid);
   const active = !!profile?.active;
   const tier = normalizeTier(profile?.tier);
@@ -84,6 +81,4 @@ function meetsTier(requiredTier, actualTier) {
     redirectTo(buildSubscribeUrl("insufficient_tier"));
     return;
   }
-
-  // Passed gate: no DOM changes. No hiding. No re-rendering.
 })();
