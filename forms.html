@@ -1,0 +1,146 @@
+<!-- /forms.html -->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Blank Court Forms — SharpeSystem</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Free blank court forms to print at home. Upgrade for guided, court-ready completion and packet printing." />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+
+<body class="shell">
+  <!-- Shared header mount -->
+  <div id="site-header"></div>
+
+  <main>
+    <div class="container">
+
+      <section class="panel" style="padding:var(--pad);">
+        <div class="row" style="justify-content:space-between; align-items:flex-start;">
+          <div style="max-width:760px;">
+            <h1>Blank Court Forms (Free)</h1>
+            <p class="muted" style="margin-top:6px;">
+              Download blank forms to print at home. These are starting points.
+              If you want help filling them correctly and printing a court-ready packet (including copies), see the trial option below.
+            </p>
+          </div>
+
+          <div class="badge" title="Free downloads" style="margin-top:6px;">
+            <span aria-hidden="true" style="width:8px; height:8px; border-radius:50%; background:rgba(110,231,255,.85); display:inline-block;"></span>
+            Free
+          </div>
+        </div>
+
+        <div class="alert warn" role="note" style="margin-top:14px;">
+          <strong>Note:</strong> These links should point to official court sources. Replace the placeholder URLs below with your chosen official links.
+          SharpeSystem provides informational guidance only.
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="row">
+          <a class="btn primary" href="/subscribe.html">Start $10 Trial (Guided Fill + Packet Print)</a>
+          <a class="btn" href="/triage.html">Use Triage First</a>
+          <a class="btn" href="/stabilize.html">Stabilize (Red Button)</a>
+        </div>
+
+        <div class="small soft" style="margin-top:12px;">
+          Court is designed for resolution — on no particular timeline. If you proceed formally, structure and clarity matter.
+        </div>
+      </section>
+
+      <div style="height:14px;"></div>
+
+      <!-- FORMS TABLE -->
+      <section class="card" style="padding:var(--pad);">
+        <h2>Common forms</h2>
+        <p class="muted">Replace the “official link” URLs with your selected authoritative sources (state court, county court, etc.).</p>
+
+        <table class="table" style="margin-top:12px;">
+          <thead>
+            <tr>
+              <th style="width:180px;">Form</th>
+              <th>Use</th>
+              <th style="width:220px;">Download</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>FL-300</strong></td>
+              <td>Request for Order (core motion form)</td>
+              <td><a class="btn" href="#" aria-disabled="true" onclick="return false;">Official link</a></td>
+            </tr>
+            <tr>
+              <td><strong>FL-311</strong></td>
+              <td>Child custody and visitation attachment</td>
+              <td><a class="btn" href="#" aria-disabled="true" onclick="return false;">Official link</a></td>
+            </tr>
+            <tr>
+              <td><strong>FL-150</strong></td>
+              <td>Income and expense declaration</td>
+              <td><a class="btn" href="#" aria-disabled="true" onclick="return false;">Official link</a></td>
+            </tr>
+            <tr>
+              <td><strong>DV-100</strong></td>
+              <td>Request for Domestic Violence Restraining Order</td>
+              <td><a class="btn" href="#" aria-disabled="true" onclick="return false;">Official link</a></td>
+            </tr>
+            <tr>
+              <td><strong>DV-120</strong></td>
+              <td>Response to request for DV restraining order</td>
+              <td><a class="btn" href="#" aria-disabled="true" onclick="return false;">Official link</a></td>
+            </tr>
+            <tr>
+              <td><strong>Proof of Service</strong></td>
+              <td>Service documentation (varies by form/type)</td>
+              <td><a class="btn" href="#" aria-disabled="true" onclick="return false;">Official link</a></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="hr"></div>
+
+        <div class="grid-2">
+          <div class="card" style="padding:14px;">
+            <h3 style="margin-top:0;">Want these filled correctly?</h3>
+            <p class="muted">
+              If you’re worried about wasting a courthouse day, the paid tier guides your intake → timeline → snapshot
+              and then generates a structured packet for print (including copies).
+            </p>
+            <div class="row">
+              <a class="btn primary" href="/subscribe.html">Start $10 Trial</a>
+              <a class="btn" href="/tier1.html">See what’s included</a>
+            </div>
+          </div>
+
+          <div class="card" style="padding:14px;">
+            <h3 style="margin-top:0;">If you’re hot</h3>
+            <p class="muted">
+              Before filing or sending anything emotional, use Stabilize.
+              You can write it out, then we help you translate it into clear, neutral language.
+            </p>
+            <div class="row">
+              <a class="btn" href="/stabilize.html">Stabilize</a>
+              <a class="btn" href="/amicable.html">Structured Communication</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Universal footer stack (AuthConan canonical) -->
+  <!-- UI hardening (safe on every page) -->
+  <script src="/ui.js" defer></script>
+
+  <!-- Header + controls (canonical: /partials only) -->
+  <script src="/header-loader.js" defer></script>
+  <script src="/partials/header.js" defer></script>
+  <script src="/i18n.js" defer></script>
+
+  <!-- AUTH CORE (required on all pages) -->
+  <script type="module" src="/gate.js"></script>
+</body>
+</html>
