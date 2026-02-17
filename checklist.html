@@ -7,7 +7,8 @@
   <link rel="stylesheet" href="/styles.css" />
 </head>
 
-<body data-require-auth="1" data-require-tier="tier1">
+<body data-require-auth="1" data-require-tier="basic">
+
   <div id="site-header"></div>
 
   <main class="page">
@@ -21,8 +22,6 @@
     </div>
   </main>
 
-  <script type="module" src="/checklist.js"></script>
-
   <!-- UI hardening -->
   <script src="/ui.js" defer></script>
 
@@ -31,8 +30,11 @@
   <script src="/partials/header.js" defer></script>
   <script src="/i18n.js" defer></script>
 
-  <!-- AUTH CORE -->
+  <!-- AUTH CORE (must run before page module) -->
   <script type="module" src="/gate.js"></script>
+
+  <!-- Page module -->
+  <script type="module" src="/checklist.js"></script>
 
 </body>
 </html>
