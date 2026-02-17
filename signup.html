@@ -5,8 +5,17 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Create Account — SharpeSystem</title>
   <link rel="stylesheet" href="/styles.css" />
+
+  <!-- Optional i18n -->
+  <script src="/i18n.js" defer></script>
 </head>
+
 <body>
+  <!-- Shared header -->
+  <div id="site-header"></div>
+  <script src="/header-loader.js" defer></script>
+  <script type="module" src="/header-auth.js" defer></script>
+
   <main class="page" style="max-width:920px;margin:0 auto;padding:24px;">
     <header style="margin-bottom:18px;">
       <div style="font-weight:700;">SharpeSystem</div>
