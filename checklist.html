@@ -1,3 +1,4 @@
+<!-- /checklist.html -->
 <!doctype html>
 <html lang="en">
 <head>
@@ -25,12 +26,16 @@
     </div>
   </main>
 
+  <!-- Canonical footer stack (AuthConan) -->
   <script src="/ui.js" defer></script>
   <script src="/header-loader.js" defer></script>
   <script src="/partials/header.js" defer></script>
   <script src="/i18n.js" defer></script>
+
+  <!-- Gate FIRST -->
   <script type="module" src="/gate.js"></script>
 
+  <!-- Page module AFTER gate -->
   <script type="module" src="/checklist.js"></script>
 </body>
 </html>
