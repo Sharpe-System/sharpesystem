@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Immigration — SharpeSystem</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+
+<body class="shell">
+  <div id="site-header"></div>
+
+  <main>
+    <div class="container">
+      <section class="panel" style="padding:var(--pad);">
+        <h1>Immigration</h1>
+        <p class="muted">
+          Orientation first: classify your issue, identify deadlines, and build a clean intake.
+          Informational only.
+        </p>
+
+        <div class="hr"></div>
+
+        <div class="row">
+          <a class="btn primary" href="/immigration/triage.html">Start Immigration Triage</a>
+          <a class="btn" href="/immigration/intake.html">Open Intake (Tier 1)</a>
+          <a class="btn" href="/pricing.html">Plans</a>
+        </div>
+
+        <div class="small soft" style="margin-top:12px;">
+          If you hit a locked page, you’ll be routed to upgrade or subscribe with a reason code.
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- UI hardening -->
+  <script src="/ui.js" defer></script>
+
+  <!-- Header + controls -->
+  <script src="/header-loader.js" defer></script>
+  <script src="/partials/header.js" defer></script>
+  <script src="/i18n.js" defer></script>
+
+  <!-- AUTH CORE (safe to load; no-op on public pages) -->
+  <script type="module" src="/gate.js"></script>
+</body>
+</html>
