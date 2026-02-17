@@ -8,7 +8,6 @@
   <link rel="stylesheet" href="/styles.css" />
 </head>
 
-<!-- Canonical auth gating -->
 <body
   class="shell"
   data-require-auth="1"
@@ -16,15 +15,8 @@
   data-next="/dashboard.html"
 >
 
+  <!-- Shared header -->
   <div id="site-header"></div>
-  <script src="/header.js" defer></script>
-
-  <!-- AUTH LAYER (FROZEN) -->
-  <script type="module" src="/header-auth.js" defer></script>
-  <script src="/i18n.js" defer></script>
-
-  <!-- Optional UI hardening (recommended). Add /ui.js file if not already present. -->
-  <script src="/ui.js" defer></script>
 
   <!-- Optional global loading overlay -->
   <div id="globalLoading" class="no-print" style="display:none; position:fixed; inset:0; z-index:9998; background:rgba(11,15,20,.72); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);">
@@ -71,7 +63,6 @@
         <div class="hr"></div>
 
         <div class="grid-2">
-          <!-- Tier 1 Modules -->
           <div class="card" style="padding:14px;">
             <h2 style="margin-top:0;">Tier 1 app</h2>
             <p class="muted">Use Start to route correctly based on tier + intake.</p>
@@ -85,7 +76,6 @@
             </div>
           </div>
 
-          <!-- Billing -->
           <div class="card" style="padding:14px;">
             <h2 style="margin-top:0;">Billing</h2>
             <p class="muted">If you already paid, activation should set Tier 1 on your user doc.</p>
@@ -106,8 +96,18 @@
     </div>
   </main>
 
-  <script type="module" src="/firebase-config.js"></script>
-  <script type="module" src="/gate.js"></script>
   <script type="module" src="/dashboard.js"></script>
+
+  <!-- UI hardening -->
+  <script src="/ui.js" defer></script>
+
+  <!-- Header + controls -->
+  <script src="/header-loader.js" defer></script>
+  <script src="/partials/header.js" defer></script>
+  <script src="/i18n.js" defer></script>
+
+  <!-- AUTH CORE -->
+  <script type="module" src="/gate.js"></script>
+
 </body>
 </html>
