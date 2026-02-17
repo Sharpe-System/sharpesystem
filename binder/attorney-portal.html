@@ -1,59 +1,116 @@
 <!doctype html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <title>Attorney Portal — Preview</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="SharpeSystem Attorney Portal preview (informational only)." />
+  <meta name="description" content="Preview-only attorney portal concept for SharpeSystem." />
   <link rel="stylesheet" href="/styles.css" />
+
+  <style>
+    .grid{display:grid;grid-template-columns: 1.15fr .85fr;gap: 14px;margin-top: 12px;}
+    @media (max-width: 920px){ .grid{ grid-template-columns: 1fr; } }
+    .tile{padding: 14px;border-radius: var(--radius);border: 1px solid var(--border);background: rgba(255,255,255,.03);margin-top: 12px;}
+    .tile h3{ margin: 0 0 6px; }
+    .mini{ font-size: 13px; color: var(--soft); }
+    .kbd{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 12px;padding: 2px 6px;border: 1px solid var(--border);border-radius: 8px;
+      background: rgba(0,0,0,.25);color: var(--text);
+    }
+  </style>
 </head>
 
 <body>
-  <!-- Shared header mount -->
+  <!-- Shared header/nav -->
   <div id="site-header"></div>
 
   <main class="page">
     <div class="container content">
 
-      <section class="page-hero">
-        <h1>Attorney Portal</h1>
+      <section class="page-hero" aria-label="Attorney portal hero">
+        <h1>Attorney Portal (Preview)</h1>
         <p class="lede">
-          Preview only. No authentication. No client data. This exists to demonstrate the intended workflow surface.
+          Workflow preview only. No authentication. No client data. No messaging.
+          This shows how an attorney-facing view could remain clean, bounded, and non-advisory.
         </p>
       </section>
 
-      <section class="template-box">
-        <h2>What this will become</h2>
-        <ul>
-          <li>Read-only access to a client-controlled “Matter Binder”</li>
-          <li>Clean, chronological timeline + document index</li>
-          <li>Structured intake summary generated from client inputs</li>
-          <li>Clear boundary framing (procedural orientation — not legal advice)</li>
-        </ul>
+      <div class="grid">
+        <section class="template-box" aria-label="Portal preview">
+          <h2>What this page represents</h2>
+          <ul>
+            <li><strong>Read-only by default</strong> (concept)</li>
+            <li><strong>Structured intake summary</strong> instead of narrative sprawl</li>
+            <li><strong>Document checklist</strong> + timeline slots</li>
+            <li><strong>Scope clarity</strong> to reduce confusion and liability ambiguity</li>
+          </ul>
 
-        <div class="note" role="note">
-          <strong>Boundary:</strong> Nothing on this page creates an attorney-client relationship.
-          No confidential information should be submitted at this stage.
-        </div>
-      </section>
+          <div class="hr"></div>
 
-      <section class="template-box">
-        <h2>Intended Flow (Future State)</h2>
-        <ol>
-          <li>Client completes structured intake.</li>
-          <li>System generates timeline + categorized summary.</li>
-          <li>Attorney receives secure, read-only preview link.</li>
-          <li>Attorney decides whether engagement is appropriate.</li>
-        </ol>
-      </section>
+          <h2>Mock “matter view” tiles</h2>
 
-      <div class="cta-row">
-        <a class="button primary" href="/binder/attorney-invite.html">Back to Attorney Invite</a>
-        <a class="button" href="/home.html">Home</a>
-        <a class="button" href="/status.html">Status</a>
+          <div class="tile">
+            <h3>1) Snapshot</h3>
+            <p class="mini">One paragraph, structured. No argument. No conclusion.</p>
+            <p><span class="kbd">Case type</span> • <span class="kbd">Next date</span> • <span class="kbd">Primary goal</span> • <span class="kbd">Immediate risks</span></p>
+          </div>
+
+          <div class="tile">
+            <h3>2) Timeline anchors</h3>
+            <p class="mini">Dates + events only. No adjectives.</p>
+            <ul>
+              <li><span class="kbd">YYYY-MM-DD</span> — event label</li>
+              <li><span class="kbd">YYYY-MM-DD</span> — filing / service / hearing</li>
+              <li><span class="kbd">YYYY-MM-DD</span> — communication log reference</li>
+            </ul>
+          </div>
+
+          <div class="tile">
+            <h3>3) Document completeness</h3>
+            <p class="mini">What exists, what’s missing, and what the client claims exists but hasn’t provided.</p>
+            <ul>
+              <li>Provided: X</li>
+              <li>Missing: Y</li>
+              <li>Unknown: Z</li>
+            </ul>
+          </div>
+
+          <div class="cta-row">
+            <a class="button" href="/binder/attorney-invite.html">Back to invite</a>
+            <a class="button primary" href="/binder/matter-binder.html">Matter Binder concept</a>
+          </div>
+
+          <div class="note" role="note">
+            <strong>Preview-only:</strong> No duty, relationship, or obligation is created by viewing this page.
+            No client data is collected here.
+          </div>
+        </section>
+
+        <aside class="template-box" aria-label="Boundaries">
+          <h2>Boundaries</h2>
+          <ul>
+            <li>No legal advice content</li>
+            <li>No “recommended actions” framed as strategy</li>
+            <li>No jurisdiction-specific instructions here</li>
+            <li>No client-to-attorney messaging (concept-only)</li>
+          </ul>
+
+          <div class="hr"></div>
+
+          <h2>What would come later (not now)</h2>
+          <ul>
+            <li>Authentication</li>
+            <li>Invite links scoped to a matter</li>
+            <li>Read-only access controls</li>
+            <li>Audit trail (who viewed what)</li>
+          </ul>
+
+          <div class="template-box" style="margin-top:12px;">
+            <strong>Reminder:</strong> Informational only. Not legal advice.
+          </div>
+        </aside>
       </div>
-
-      <div class="footer-links">Informational only. Not legal advice.</div>
 
     </div>
   </main>
@@ -68,69 +125,5 @@
 
   <!-- AUTH CORE (required on all pages) -->
   <script type="module" src="/gate.js"></script>
-
-</body>
-</html><!-- /binder/attorney-portal.html  (COPY/PASTE WHOLE FILE — NOTHING ABOVE <!doctype html>) -->
-<!doctype html>
-<html lang="en" data-theme="dark">
-<head>
-  <meta charset="utf-8" />
-  <title>Attorney Portal — Preview</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="SharpeSystem Attorney Portal preview (informational only)." />
-  <link rel="stylesheet" href="/styles.css" />
-</head>
-
-<body>
-  <!-- Shared header/nav -->
-  <div id="site-header"></div>
-  <script src="/header-loader.js" defer></script>
-  <script src="/i18n.js" defer></script>
-
-  <main class="page">
-    <div class="container content">
-
-      <section class="page-hero">
-        <h1>Attorney Portal</h1>
-        <p class="lede">
-          Preview only. No authentication. No client data. This exists to demonstrate the intended workflow surface.
-        </p>
-      </section>
-
-      <section class="template-box">
-        <h2>What this will become</h2>
-        <ul>
-          <li>Read-only access to a client-controlled “Matter Binder”</li>
-          <li>Clean, chronological timeline + document index</li>
-          <li>Structured intake summary generated from client inputs</li>
-          <li>Clear boundary framing (procedural orientation — not legal advice)</li>
-        </ul>
-
-        <div class="note" role="note">
-          <strong>Boundary:</strong> Nothing on this page creates an attorney-client relationship.
-          No confidential information should be submitted at this stage.
-        </div>
-      </section>
-
-      <section class="template-box">
-        <h2>Intended Flow (Future State)</h2>
-        <ol>
-          <li>Client completes structured intake.</li>
-          <li>System generates timeline + categorized summary.</li>
-          <li>Attorney receives secure, read-only preview link.</li>
-          <li>Attorney decides whether engagement is appropriate.</li>
-        </ol>
-      </section>
-
-      <div class="cta-row">
-        <a class="button primary" href="/binder/attorney-invite.html">Back to Attorney Invite</a>
-        <a class="button" href="/home.html">Home</a>
-        <a class="button" href="/status.html">Status</a>
-      </div>
-
-      <div class="footer-links">Informational only. Not legal advice.</div>
-
-    </div>
-  </main>
 </body>
 </html>
