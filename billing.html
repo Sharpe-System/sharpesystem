@@ -36,13 +36,17 @@
     </section>
   </main>
 
-  <script type="module" src="/billing.js"></script>
-
+  <!-- Canonical footer stack -->
   <script src="/ui.js" defer></script>
   <script src="/header-loader.js" defer></script>
   <script src="/partials/header.js" defer></script>
   <script src="/i18n.js" defer></script>
+
+  <!-- Gate FIRST -->
   <script type="module" src="/gate.js"></script>
+
+  <!-- Page module AFTER gate -->
+  <script type="module" src="/billing.js"></script>
 
 </body>
 </html>
