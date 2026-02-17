@@ -27,7 +27,7 @@
 <body>
   <div id="site-header"></div>
   <script src="/header-loader.js" defer></script>
-  <script type="module" src="/header-auth.js"></script>
+  <script type="module" src="/header-auth.js" defer></script>
   <script src="/i18n.js" defer></script>
 
   <main class="page">
@@ -55,12 +55,12 @@
 
           <div class="row">
             <button class="btn primary" type="button"
-              onclick="location.href='/login?next=%2Fdashboard'">
+              onclick="location.href='/login.html?next=%2Fdashboard.html'">
               Continue
             </button>
 
             <button class="btn secondary" type="button"
-              onclick="location.href='/home'">
+              onclick="location.href='/home.html'">
               Back to Home
             </button>
           </div>
@@ -75,18 +75,18 @@
           </div>
 
           <ul>
-            <li>Login will route you to your dashboard</li>
+            <li>Login routes you to your dashboard</li>
             <li>Dashboard routes to Start → Intake → Snapshot → Timeline</li>
           </ul>
 
           <div class="row">
             <button class="btn secondary" type="button"
-              onclick="location.href='/login?next=%2Fdashboard'">
+              onclick="location.href='/login.html?next=%2Fdashboard.html'">
               Log In
             </button>
 
             <button class="btn secondary" type="button"
-              onclick="location.href='/subscribe'">
+              onclick="location.href='/billing.html'">
               Subscribe
             </button>
           </div>
