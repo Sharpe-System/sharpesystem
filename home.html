@@ -1,3 +1,4 @@
+<!-- /home.html -->
 <!doctype html>
 <html lang="en">
 <head>
@@ -7,9 +8,7 @@
   <meta name="description" content="Procedural orientation and decision support for high-stakes situations. Informational only." />
   <link rel="stylesheet" href="/styles.css" />
 </head>
-
-<body>
-  <!-- Shared header mount -->
+<body class="shell">
   <div id="site-header"></div>
 
   <main class="page">
@@ -23,9 +22,8 @@
         </p>
 
         <div class="note" role="note">
-          <strong>Scope:</strong> This site is educational. It provides procedural
-          orientation and structured drafting support — not legal advice,
-          strategy, or jurisdiction-specific rules.
+          <strong>Scope:</strong> Educational only. Procedural orientation and structured drafting support —
+          not legal advice, not legal strategy, and not jurisdiction-specific rules.
           If you have immediate safety concerns, contact local emergency services.
         </div>
       </section>
@@ -69,20 +67,10 @@
     </div>
   </main>
 
-  <!-- Header injection -->
-  <script src="/header-loader.js" defer></script>
-
-  <!-- Header controls (theme, etc.) -->
-  <script src="/partials/header.js" defer></script>
-
-  <!-- i18n -->
-  <script src="/i18n.js" defer></script>
-
-  <!-- Optional UI hardening -->
   <script src="/ui.js" defer></script>
-
-  <!-- Safe on public pages -->
-  <script type="module" src="/gate.js" defer></script>
-  <script type="module" src="/header-auth.js" defer></script>
+  <script src="/header-loader.js" defer></script>
+  <script src="/partials/header.js" defer></script>
+  <script src="/i18n.js" defer></script>
+  <script type="module" src="/gate.js"></script>
 </body>
 </html>
