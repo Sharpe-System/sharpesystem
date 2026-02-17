@@ -11,11 +11,10 @@
 
 <body
   data-require-auth="1"
-  data-require-tier="tier1"
-  data-next="/rfo/index.html"
+  data-require-tier="basic"
+  data-require-active="1"
 >
 
-  <!-- Standardized header mount -->
   <div id="site-header"></div>
 
   <main class="page">
@@ -55,23 +54,23 @@
     </div>
   </main>
 
+  <!-- UI hardening -->
+  <script src="/ui.js" defer></script>
+
+  <!-- Header + controls -->
+  <script src="/header-loader.js" defer></script>
+  <script src="/partials/header.js" defer></script>
+  <script src="/i18n.js" defer></script>
+
+  <!-- AUTH CORE: must run before RFO scripts -->
+  <script type="module" src="/gate.js"></script>
+
   <!-- RFO Core (non-module scripts) -->
   <script src="/schema.js" defer></script>
   <script src="/rfo/rfo-state.js" defer></script>
   <script src="/rfo/rfo-router.js" defer></script>
   <script src="/rfo/rfo-locations.js" defer></script>
   <script src="/rfo/rfo-ui.js" defer></script>
-
-  <!-- UI hardening (safe on every page) -->
-  <script src="/ui.js" defer></script>
-
-  <!-- Header + controls (canonical: /partials only) -->
-  <script src="/header-loader.js" defer></script>
-  <script src="/partials/header.js" defer></script>
-  <script src="/i18n.js" defer></script>
-
-  <!-- AUTH CORE (required on all pages) -->
-  <script type="module" src="/gate.js"></script>
 
 </body>
 </html>
