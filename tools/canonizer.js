@@ -1,75 +1,37 @@
-/* /tools/canonizer.js
-   Canonizer — wraps imperfect HTML/JS into a canon page template.
-   DOES NOT add Firebase imports. DOES NOT add gating logic. DOES NOT add redirects.
-*/
+// /tools/canonizer.js
+// Canonizer — wraps fragment into SharpeSystem canon page + report
+// NO Firebase. Pure client transform.
+
 (function () {
   "use strict";
 
-  const KEY_PAYLOAD = "SHARPESYSTEM_VALIDIZER_PAYLOAD";
+  const $ = (id) => document.getElementById(id);
 
-  function $(id) { return document.getElementById(id); }
+  const inCode = $("inCode");
+  const outCode = $("outCode");
+  const report = $("report");
 
-  function safeCopy(text) {
-    try { navigator.clipboard.writeText(text); return true; } catch { return false; }
+  const btnCanonize = $("btnCanonize");
+  const btnCopy = $("btnCopyOut");
+  const btnDownload = $("btnDownloadOut");
+  const btnClear = $("btnClear");
+
+  function esc(s) {
+    return String(s ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;");
   }
 
-  function download(filename, text, mime) {
-    try {
-      const blob = new Blob([text], { type: mime || "text/plain" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-    } catch {}
-  }
-
-  function loadFromValidizer() {
-    try {
-      const raw = sessionStorage.getItem(KEY_PAYLOAD);
-      if (!raw) return null;
-      return JSON.parse(raw);
-    } catch {
-      return null;
-    }
-  }
-
-  function guessTitle(input) {
-    const s = String(input || "");
-    const m = s.match(/<h1[^>]*>([^<]{1,120})<\/h1>/i);
-    if (m && m[1]) return m[1].trim();
-    return "Page";
-  }
-
-  function stripOuterHTML(input) {
-    const s = String(input || "").trim();
-
-    // If it looks like full HTML, extract just the <main> content block if possible.
-    if (/<html[\s>]/i.test(s)) {
-      const main = s.match(/<main[\s\S]*?<\/main>/i);
-      if (main && main[0]) return main[0];
-      // fallback: return body inner
-      const body = s.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
-      if (body && body[1]) return body[1].trim();
-    }
-    return s; // already fragment
-  }
-
-  function canonPageHTML({ title, inner }) {
-    // Canon stack: header mount, ui.js, header-loader.js, partials/header.js, i18n.js, gate.js (module)
-    // No Firebase, no redirects.
-    const safeTitle = String(title || "Page").replace(/\s+/g, " ").trim();
+  function wrapCanon(fragment) {
+    const cleaned = String(fragment || "").trim();
 
     return `<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>${safeTitle} — SharpeSystem</title>
+  <title>SharpeSystem Page</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="" />
   <link rel="stylesheet" href="/styles.css" />
 </head>
 
@@ -78,7 +40,7 @@
 
   <main class="page">
     <div class="container content">
-${inner}
+${cleaned}
     </div>
   </main>
 
@@ -91,88 +53,39 @@ ${inner}
 </html>`;
   }
 
-  function makeDefaultInner(title) {
-    const t = String(title || "Page").trim();
-    return `      <section class="card" style="padding:var(--pad);">
-        <h1>${t}</h1>
-        <p class="muted">Describe this page.</p>
-      </section>`;
+  function runCanon() {
+    const input = inCode.value || "";
+    const output = wrapCanon(input);
+
+    outCode.textContent = output;
+
+    report.textContent =
+`SHARPESYSTEM CANONIZER REPORT
+Time: ${new Date().toISOString()}
+Input length: ${input.length} chars
+Output length: ${output.length} chars
+Status: OK
+`;
   }
 
-  function buildReport(input, output) {
-    const lines = [];
-    lines.push("SHARPESYSTEM CANONIZER REPORT");
-    lines.push("");
-    lines.push("Output guarantees:");
-    lines.push("- Canon template stack present");
-    lines.push("- No Firebase imports added");
-    lines.push("- No gating logic added (gate.js remains sole gate)");
-    lines.push("- No redirects added");
-    lines.push("");
-    lines.push("Notes:");
-    lines.push("- If your input contained gating/redirects/Firebase imports, you must remove them BEFORE publishing.");
-    lines.push("- Canonizer is a wrapper, not a mind reader: verify business logic and routes.manifest classification.");
-    lines.push("");
-    lines.push("Input chars: " + String(input || "").length);
-    lines.push("Output chars: " + String(output || "").length);
-    return lines.join("\n");
-  }
+  btnCanonize.addEventListener("click", runCanon);
 
-  function canonize() {
-    const inEl = $("inCode");
-    const outEl = $("outCode");
-    const repEl = $("report");
+  btnCopy.addEventListener("click", async () => {
+    await navigator.clipboard.writeText(outCode.textContent || "");
+  });
 
-    const input = inEl ? inEl.value : "";
-    const title = guessTitle(input);
+  btnDownload.addEventListener("click", () => {
+    const blob = new Blob([outCode.textContent || ""], { type: "text/html" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "canonized.html";
+    a.click();
+  });
 
-    let inner = stripOuterHTML(input);
-    if (!inner || !String(inner).trim()) inner = makeDefaultInner(title);
+  btnClear.addEventListener("click", () => {
+    inCode.value = "";
+    outCode.textContent = "";
+    report.textContent = "";
+  });
 
-    // Indent inner consistently inside container
-    const innerIndented = String(inner)
-      .split("\n")
-      .map((l) => (l.trim().length ? "      " + l : l))
-      .join("\n");
-
-    const output = canonPageHTML({ title, inner: innerIndented });
-
-    if (outEl) outEl.value = output;
-    if (repEl) repEl.textContent = buildReport(input, output);
-  }
-
-  function boot() {
-    const payload = loadFromValidizer();
-    const inEl = $("inCode");
-
-    if (payload && inEl && typeof payload.input === "string" && payload.input.trim()) {
-      inEl.value = payload.input;
-    }
-
-    const btnCanonize = $("btnCanonize");
-    const btnCopy = $("btnCopyOutput");
-    const btnDownload = $("btnDownloadOutput");
-
-    if (btnCanonize) btnCanonize.addEventListener("click", canonize);
-
-    if (btnCopy) {
-      btnCopy.addEventListener("click", () => {
-        const out = $("outCode") ? $("outCode").value : "";
-        safeCopy(out || "");
-      });
-    }
-
-    if (btnDownload) {
-      btnDownload.addEventListener("click", () => {
-        const out = $("outCode") ? $("outCode").value : "";
-        download("canonized.html", out || "", "text/html");
-      });
-    }
-  }
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", boot);
-  } else {
-    boot();
-  }
 })();
