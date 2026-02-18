@@ -3,51 +3,87 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>SharpeSystem</title>
+  <title>Binder Home — SharpeSystem</title>
+  <meta name="description" content="Your matter binder workspace for building court-ready packets." />
   <link rel="stylesheet" href="/styles.css" />
   <style>
-    .page{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:40px 16px;}
-    .box{max-width:860px;width:100%;background:var(--panel);border:1px solid var(--border);border-radius:18px;
-      padding:26px;box-shadow:var(--shadow);}
-    h1{margin:0 0 10px;font-size:36px;}
-    .sub{color:var(--muted);margin:0 0 18px;line-height:1.45;}
+    .page{min-height:100vh;padding:28px 16px;}
+    .wrap{max-width:1100px;margin:0 auto;}
+    .hero{background:var(--panel);border:1px solid var(--border);border-radius:18px;padding:22px;box-shadow:var(--shadow);}
+    h1{margin:0 0 8px;font-size:34px;}
+    .sub{color:var(--muted);margin:0;line-height:1.45;max-width:880px;}
+    .grid{display:grid;gap:12px;margin-top:14px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));}
+    .card{background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:16px;padding:16px;}
+    .card h2{margin:0 0 8px;font-size:18px;}
+    .card p{margin:0 0 12px;color:var(--muted);line-height:1.45;}
     .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;}
-    .btn{appearance:none;border:1px solid var(--border);border-radius:12px;padding:12px 14px;cursor:pointer;font-weight:900;}
+    .btn{appearance:none;border:1px solid var(--border);border-radius:12px;padding:12px 14px;cursor:pointer;font-weight:900;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;}
     .btn.primary{background:var(--accent);color:#071018;}
     .btn.secondary{background:transparent;color:var(--text);}
-    .pill{display:inline-block;margin-top:8px;padding:6px 10px;border-radius:999px;border:1px solid var(--border);color:var(--muted);font-size:12px;}
+    .pill{display:inline-block;margin-top:10px;padding:6px 10px;border-radius:999px;border:1px solid var(--border);color:var(--muted);font-size:12px;}
+    .note{margin-top:14px;color:var(--muted);font-size:13px;line-height:1.45;}
+    .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;}
   </style>
 </head>
-<body>
 
-  <!-- Shared header mount -->
+<body class="shell" data-require-auth="1" data-require-tier="basic" data-require-active="1">
+
   <div id="site-header"></div>
 
   <main class="page">
-    <section class="box">
-      <h1>SharpeSystem</h1>
-      <p class="sub">
-        A guided system for completing complicated tasks under stress — starting with family court and custody workflows.
+    <div class="wrap">
+
+      <section class="hero">
+        <h1>Matter Binder</h1>
+        <p class="sub">
+          Build, organize, and export a court-ready packet. This space stays canon-compliant so you don’t drift as the site grows.
+        </p>
+
+        <div class="row">
+          <a class="btn primary" href="/binder/matter-binder.html">Open Binder</a>
+          <a class="btn secondary" href="/dashboard.html">Back to Dashboard</a>
+        </div>
+
+        <span class="pill">Access: <span class="mono">Paid (basic)</span> • Canon-gated</span>
+      </section>
+
+      <section class="grid">
+
+        <div class="card">
+          <h2>Binder Workspace</h2>
+          <p>Open your binder workspace. This is the page you’ll grow into full packet generation.</p>
+          <a class="btn secondary" href="/binder/matter-binder.html">Open</a>
+        </div>
+
+        <div class="card">
+          <h2>Attorney Collaboration</h2>
+          <p>Invite an attorney/reviewer or open the portal. (Leave public preview pages public.)</p>
+          <div class="row">
+            <a class="btn secondary" href="/binder/attorney-invite.html">Invite</a>
+            <a class="btn secondary" href="/binder/attorney-portal.html">Portal</a>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Export</h2>
+          <p>Export becomes active after schema + templates are locked.</p>
+          <button class="btn secondary" type="button" disabled style="opacity:.55;cursor:not-allowed;">Export</button>
+        </div>
+
+      </section>
+
+      <p class="note">
+        If this page is reachable while logged out, then either <span class="mono">data-require-*</span> is missing
+        or <span class="mono">gate.js</span> failed to load. Guardrails + Playwright will catch it.
       </p>
 
-      <div class="row">
-        <button class="btn primary" onclick="location.href='/tier1.html'">Sharpe Legal</button>
-        <button class="btn secondary" onclick="location.href='/login.html?next=/dashboard.html'">Log in</button>
-      </div>
-
-      <span class="pill">First-time user flow: Home → Tier 1 → Login → App</span>
-    </section>
+    </div>
   </main>
 
-  <!-- UI hardening (safe on every page) -->
   <script src="/ui.js" defer></script>
-
-  <!-- Header + controls (canonical: /partials only) -->
   <script src="/header-loader.js" defer></script>
   <script src="/partials/header.js" defer></script>
   <script src="/i18n.js" defer></script>
-
-  <!-- AUTH CORE (required on all pages) -->
   <script type="module" src="/gate.js"></script>
 
 </body>
