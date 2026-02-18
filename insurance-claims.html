@@ -1,3 +1,4 @@
+<!-- /insurance-claims.html -->
 <!doctype html>
 <html lang="en">
 <head>
@@ -5,10 +6,9 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="color-scheme" content="dark light" />
   <meta name="theme-color" content="#0b0f14" />
-  <title>SharpeSystem — Insurance Claim Navigator</title>
+  <title>Insurance Claim Navigator — SharpeSystem</title>
   <meta name="description" content="Calm, plain navigation for insurance claims when you’re not sure what to do next." />
   <link rel="stylesheet" href="/styles.css" />
-
   <style>
     .two-col{display:grid;grid-template-columns:1.15fr .85fr;gap:14px;margin-top:12px;}
     @media (max-width:920px){.two-col{grid-template-columns:1fr;}}
@@ -21,7 +21,6 @@
       border-radius:var(--radius);padding:14px;}
   </style>
 </head>
-
 <body>
   <div id="site-header"></div>
 
@@ -113,10 +112,6 @@
     </div>
   </main>
 
-  <script src="/header-loader.js" defer></script>
-  <script src="/partials/header.js" defer></script>
-  <script src="/i18n.js" defer></script>
-
   <script>
     const $ = (id) => document.getElementById(id);
 
@@ -137,6 +132,7 @@
       },
       medical:{
         chip:"Medical denial or billing issue.",
+        lead:"Medical denial or billing issue.",
         matters:"Denial reason + deadline.",
         today:["Get denial in writing.","Ask appeal deadline.","Collect EOB + bill."],
         stop:["Don’t ignore deadline.","Don’t over-explain."]
@@ -193,9 +189,13 @@
       $("resHr").classList.add("hidden");
       window.location.hash = "#start";
     });
-
-    // Prevent dead button: treat Wizard as “other”
     $("btnWizard").addEventListener("click", () => showResult("other"));
   </script>
+
+  <script src="/ui.js" defer></script>
+  <script src="/header-loader.js" defer></script>
+  <script src="/partials/header.js" defer></script>
+  <script src="/i18n.js" defer></script>
+  <script type="module" src="/gate.js"></script>
 </body>
 </html>
