@@ -1,76 +1,46 @@
+<!-- /rfo/index.html -->
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Sharpe Legal — Request for Order</title>
-
+  <title>Request for Order — SharpeSystem</title>
+  <meta name="description" content="RFO workflow." />
   <link rel="stylesheet" href="/styles.css" />
   <link rel="stylesheet" href="/rfo/rfo.css" />
 </head>
-
-<body
-  data-require-auth="1"
-  data-require-tier="basic"
-  data-require-active="1"
->
-
+<body data-require-auth="1" data-require-tier="basic" data-require-active="1">
   <div id="site-header"></div>
 
   <main class="page">
-    <div class="wrap">
-      <div class="topbar">
-        <div>
-          <h1 class="h1">Request for Order</h1>
-          <p class="muted">Step-by-step intake for custody, visitation, and support requests.</p>
+    <div class="container content">
+      <section class="page-hero">
+        <h1>Request for Order (RFO)</h1>
+        <p class="sub">Workflow entry. Your router/state/ui modules own the flow.</p>
+      </section>
+
+      <section class="template-box">
+        <div class="cta-row">
+          <a class="button primary" href="/rfo/index.html">Start / Resume</a>
+          <a class="button" href="/dashboard.html">Dashboard</a>
         </div>
-        <div class="topbarActions">
-          <button id="btnSave" class="btn secondary" type="button">Save</button>
-          <button id="btnReset" class="btn danger" type="button">Reset</button>
-        </div>
-      </div>
+      </section>
 
-      <div id="status" class="status" role="status"></div>
-
-      <div class="card">
-        <div class="progress">
-          <div class="progressBar">
-            <div id="progressFill" class="progressFill"></div>
-          </div>
-          <div id="progressText" class="progressText"></div>
-        </div>
-
-        <div id="stepMount"></div>
-
-        <div class="nav">
-          <button id="btnBack" class="btn secondary" type="button">Back</button>
-          <button id="btnNext" class="btn primary" type="button">Next</button>
-        </div>
-      </div>
-
-      <div class="foot">
-        <a class="link" href="/dashboard.html">Back to Dashboard</a>
-      </div>
+      <section class="card" style="padding:14px;margin-top:14px;">
+        <div class="muted">Loading RFO module…</div>
+      </section>
     </div>
   </main>
 
-  <!-- UI hardening -->
   <script src="/ui.js" defer></script>
-
-  <!-- Header + controls -->
   <script src="/header-loader.js" defer></script>
   <script src="/partials/header.js" defer></script>
   <script src="/i18n.js" defer></script>
-
-  <!-- AUTH CORE: must run before RFO scripts -->
   <script type="module" src="/gate.js"></script>
 
-  <!-- RFO Core (non-module scripts) -->
-  <script src="/schema.js" defer></script>
-  <script src="/rfo/rfo-state.js" defer></script>
-  <script src="/rfo/rfo-router.js" defer></script>
-  <script src="/rfo/rfo-locations.js" defer></script>
-  <script src="/rfo/rfo-ui.js" defer></script>
-
+  <script type="module" src="/rfo/rfo-state.js"></script>
+  <script type="module" src="/rfo/rfo-router.js"></script>
+  <script type="module" src="/rfo/rfo-locations.js"></script>
+  <script type="module" src="/rfo/rfo-ui.js"></script>
 </body>
 </html>
