@@ -83,7 +83,9 @@ export async function getUserProfile(uid) {
 
 // Auth helpers
 export const authOnAuthStateChanged = onAuthStateChanged;
-export const authSignOut = signOut;
+
+// IMPORTANT: wrapper so callers do NOT pass auth around (prevents drift)
+export const authSignOut = () => signOut(auth);
 
 // Firestore helpers
 export const fsDoc = doc;
