@@ -1,59 +1,53 @@
-Understood. Below is the clean plain-text list format you can send to backend.
-No commentary. Just the served HTML pages.
+<!-- /stabilize.html -->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Stabilize — SharpeSystem</title>
+  <meta name="description" content="Write it out. Slow down. Convert heat into neutral language." />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body class="shell">
+  <div id="site-header"></div>
 
-If this matches your repo, forward it as-is. If anything is missing, adjust before sending.
+  <main class="page">
+    <div class="container content">
+      <section class="page-hero">
+        <h1>Stabilize</h1>
+        <p class="sub">Write first. Send later. Informational only.</p>
+      </section>
 
-⸻
+      <section class="template-box">
+        <label class="label" for="raw">What do you want to say?</label>
+        <textarea class="input" id="raw" rows="10" placeholder="Dump it here. No polish."></textarea>
 
-ROOT LEVEL
+        <div class="cta-row" style="margin-top:12px;">
+          <button class="button primary" type="button" id="btnSave">Save</button>
+          <a class="button" href="/home.html">Home</a>
+        </div>
 
-/index.html
-/home.html
-/status.html
-/pricing.html
-/tier1.html
-/subscribe.html
-/login.html
-/signup.html
-/dashboard.html
-/start.html
-/intake.html
-/snapshot.html
-/checklist.html
-/timeline.html
-/timeline-v2.html
-/insurance.html   (formerly insurance intake navigator)
-/billing.html
+        <div class="note" style="margin-top:12px;">
+          Informational only. Not legal advice. Not strategy.
+        </div>
+      </section>
+    </div>
+  </main>
 
+  <script>
+    const key = "stabilize_raw_v1";
+    const el = document.getElementById("raw");
+    const btn = document.getElementById("btnSave");
+    try { el.value = localStorage.getItem(key) || ""; } catch {}
+    btn.addEventListener("click", () => {
+      try { localStorage.setItem(key, (el.value || "")); } catch {}
+    });
+  </script>
 
-⸻
-
-/rfo/
-
-/rfo/index.html
-/rfo/start.html
-/rfo/intake.html
-/rfo/snapshot.html
-/rfo/timeline.html
-/rfo/checklist.html
-
-
-⸻
-
-/binder/
-
-/binder/index.html
-/binder/roadmap.html
-/binder/print.html
-
-
-⸻
-
-If you want this to be exactly correct, do this once:
-	1.	Open your repo root.
-	2.	List every *.html file.
-	3.	Group by folder (root, /rfo, /binder).
-	4.	Paste that raw list back to me.
-	5.	I’ll normalize and freeze it into the final canonical routing matrix.
-
-That final list becomes the immutable page map between UI + Backend.
+  <script src="/ui.js" defer></script>
+  <script src="/header-loader.js" defer></script>
+  <script src="/partials/header.js" defer></script>
+  <script src="/i18n.js" defer></script>
+  <script type="module" src="/gate.js"></script>
+</body>
+</html>
