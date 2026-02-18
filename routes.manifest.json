@@ -1,4 +1,4 @@
-{
+Routes.manifest.json exists and is populated with {
   "baseUrl": "https://sharpesystem.pages.dev",
   "loginUrlRegex": "\\/login\\.html",
   "public": [
@@ -54,3 +54,5 @@
     "/rfo/index.html"
   ]
 }
+
+Please advise if I should copy/paste yours or leave unaffected. 
