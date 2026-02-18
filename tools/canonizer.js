@@ -1,49 +1,73 @@
-
 /* /tools/canonizer.js
-   Canonizer — offline wrapper/refiner (NO Firebase imports)
-   - Reads prior payload from sessionStorage (optional)
-   - Produces canon-stable HTML page shell if input is a fragment
-   - Never redirects, never gates, never imports Firebase
+   Canonizer — wraps imperfect HTML/JS into a canon page template.
+   DOES NOT add Firebase imports. DOES NOT add gating logic. DOES NOT add redirects.
 */
-
 (function () {
   "use strict";
 
-  const KEY = "SHARPESYSTEM_VALIDIZER_PAYLOAD_v1";
+  const KEY_PAYLOAD = "SHARPESYSTEM_VALIDIZER_PAYLOAD";
 
   function $(id) { return document.getElementById(id); }
 
-  function nowISO() { return new Date().toISOString(); }
-
   function safeCopy(text) {
-    const t = String(text ?? "");
-    if (!t) return;
-    navigator.clipboard?.writeText(t).catch(() => {});
+    try { navigator.clipboard.writeText(text); return true; } catch { return false; }
   }
 
-  function download(name, text, mime = "text/plain") {
-    const blob = new Blob([String(text ?? "")], { type: mime });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = name;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(() => URL.revokeObjectURL(a.href), 500);
+  function download(filename, text, mime) {
+    try {
+      const blob = new Blob([text], { type: mime || "text/plain" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch {}
   }
 
-  function isFullHtml(doc) {
-    const t = String(doc || "");
-    return /<!doctype html>/i.test(t) && /<html[\s>]/i.test(t);
+  function loadFromValidizer() {
+    try {
+      const raw = sessionStorage.getItem(KEY_PAYLOAD);
+      if (!raw) return null;
+      return JSON.parse(raw);
+    } catch {
+      return null;
+    }
   }
 
-  function wrapAsCanonPage(title, bodyInner) {
-    // Canon page shell + canonical script stack
+  function guessTitle(input) {
+    const s = String(input || "");
+    const m = s.match(/<h1[^>]*>([^<]{1,120})<\/h1>/i);
+    if (m && m[1]) return m[1].trim();
+    return "Page";
+  }
+
+  function stripOuterHTML(input) {
+    const s = String(input || "").trim();
+
+    // If it looks like full HTML, extract just the <main> content block if possible.
+    if (/<html[\s>]/i.test(s)) {
+      const main = s.match(/<main[\s\S]*?<\/main>/i);
+      if (main && main[0]) return main[0];
+      // fallback: return body inner
+      const body = s.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+      if (body && body[1]) return body[1].trim();
+    }
+    return s; // already fragment
+  }
+
+  function canonPageHTML({ title, inner }) {
+    // Canon stack: header mount, ui.js, header-loader.js, partials/header.js, i18n.js, gate.js (module)
+    // No Firebase, no redirects.
+    const safeTitle = String(title || "Page").replace(/\s+/g, " ").trim();
+
     return `<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>${title}</title>
+  <title>${safeTitle} — SharpeSystem</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="description" content="" />
   <link rel="stylesheet" href="/styles.css" />
@@ -54,9 +78,7 @@
 
   <main class="page">
     <div class="container content">
-      <section class="template-box">
-${bodyInner}
-      </section>
+${inner}
     </div>
   </main>
 
@@ -69,94 +91,88 @@ ${bodyInner}
 </html>`;
   }
 
-  function canonize(input) {
-    const raw = String(input ?? "").trim();
-
-    const report = [];
-    report.push("SHARPESYSTEM CANONIZER REPORT");
-    report.push(`Time: ${nowISO()}`);
-    report.push("");
-
-    if (!raw) {
-      report.push("FAIL: empty input");
-      return { out: "", report: report.join("\n") };
-    }
-
-    // If it already looks like full HTML, do not rewrite structure.
-    if (isFullHtml(raw)) {
-      report.push("PASS: input is full HTML (no wrapping applied).");
-      report.push("NOTE: Canonizer does not reorder or rewrite full documents.");
-      return { out: raw, report: report.join("\n") };
-    }
-
-    // Otherwise treat as “body fragment” and wrap into canon shell.
-    report.push("PASS: input is a fragment → wrapped into canon page shell.");
-    report.push("NOTE: Update <title> + <h1> + description after paste if needed.");
-
-    // If fragment does not include <h1>, add a safe default.
-    const hasH1 = /<h1[\s>]/i.test(raw);
-    const bodyInner = hasH1
-      ? raw
-      : `        <h1>Page</h1>
-        <p class="muted"></p>
-
-        <div class="card" style="padding:var(--pad); margin-top:12px;">
-${raw.split("\n").map(l => "          " + l).join("\n")}
-        </div>`;
-
-    const out = wrapAsCanonPage("Page — SharpeSystem", bodyInner);
-    return { out, report: report.join("\n") };
+  function makeDefaultInner(title) {
+    const t = String(title || "Page").trim();
+    return `      <section class="card" style="padding:var(--pad);">
+        <h1>${t}</h1>
+        <p class="muted">Describe this page.</p>
+      </section>`;
   }
 
-  function loadPayloadIntoInput() {
-    try {
-      const raw = sessionStorage.getItem(KEY);
-      if (!raw) return;
-      const payload = JSON.parse(raw);
-      // If Validizer stored original input, prefer that.
-      if (payload && typeof payload.input === "string" && payload.input.trim()) {
-        $("inCode").value = payload.input;
-        $("report").textContent =
-          "Loaded prior Validizer payload from sessionStorage.\n" +
-          "Click Canonize to generate canon output.\n";
-      }
-    } catch {
-      // ignore
-    }
+  function buildReport(input, output) {
+    const lines = [];
+    lines.push("SHARPESYSTEM CANONIZER REPORT");
+    lines.push("");
+    lines.push("Output guarantees:");
+    lines.push("- Canon template stack present");
+    lines.push("- No Firebase imports added");
+    lines.push("- No gating logic added (gate.js remains sole gate)");
+    lines.push("- No redirects added");
+    lines.push("");
+    lines.push("Notes:");
+    lines.push("- If your input contained gating/redirects/Firebase imports, you must remove them BEFORE publishing.");
+    lines.push("- Canonizer is a wrapper, not a mind reader: verify business logic and routes.manifest classification.");
+    lines.push("");
+    lines.push("Input chars: " + String(input || "").length);
+    lines.push("Output chars: " + String(output || "").length);
+    return lines.join("\n");
   }
 
-  function boot() {
+  function canonize() {
     const inEl = $("inCode");
     const outEl = $("outCode");
     const repEl = $("report");
 
-    $("btnCanonize").addEventListener("click", () => {
-      const { out, report } = canonize(inEl.value);
-      outEl.textContent = out;
-      repEl.textContent = report;
-      // Store last output (optional)
-      try {
-        sessionStorage.setItem(KEY, JSON.stringify({ at: nowISO(), input: inEl.value, output: out }));
-      } catch {}
-    });
+    const input = inEl ? inEl.value : "";
+    const title = guessTitle(input);
 
-    $("btnCopyOut").addEventListener("click", () => safeCopy(outEl.textContent));
+    let inner = stripOuterHTML(input);
+    if (!inner || !String(inner).trim()) inner = makeDefaultInner(title);
 
-    $("btnDownloadOut").addEventListener("click", () => {
-      const out = outEl.textContent || "";
-      const name = isFullHtml(out) ? "canon.html" : "canon.txt";
-      download(name, out, isFullHtml(out) ? "text/html" : "text/plain");
-    });
+    // Indent inner consistently inside container
+    const innerIndented = String(inner)
+      .split("\n")
+      .map((l) => (l.trim().length ? "      " + l : l))
+      .join("\n");
 
-    $("btnClear").addEventListener("click", () => {
-      inEl.value = "";
-      outEl.textContent = "";
-      repEl.textContent = "";
-      try { sessionStorage.removeItem(KEY); } catch {}
-    });
+    const output = canonPageHTML({ title, inner: innerIndented });
 
-    loadPayloadIntoInput();
+    if (outEl) outEl.value = output;
+    if (repEl) repEl.textContent = buildReport(input, output);
   }
 
-  boot();
+  function boot() {
+    const payload = loadFromValidizer();
+    const inEl = $("inCode");
+
+    if (payload && inEl && typeof payload.input === "string" && payload.input.trim()) {
+      inEl.value = payload.input;
+    }
+
+    const btnCanonize = $("btnCanonize");
+    const btnCopy = $("btnCopyOutput");
+    const btnDownload = $("btnDownloadOutput");
+
+    if (btnCanonize) btnCanonize.addEventListener("click", canonize);
+
+    if (btnCopy) {
+      btnCopy.addEventListener("click", () => {
+        const out = $("outCode") ? $("outCode").value : "";
+        safeCopy(out || "");
+      });
+    }
+
+    if (btnDownload) {
+      btnDownload.addEventListener("click", () => {
+        const out = $("outCode") ? $("outCode").value : "";
+        download("canonized.html", out || "", "text/html");
+      });
+    }
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", boot);
+  } else {
+    boot();
+  }
 })();
