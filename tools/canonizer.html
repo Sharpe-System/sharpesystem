@@ -1,42 +1,108 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <title>Canonizer — SharpeSystem</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Convert pages into SharpeSystem canon format." />
-  <link rel="stylesheet" href="/styles.css" />
-</head>
+/* /snapshot.js
+   Snapshot (paid module) — canon compliant.
 
-<body>
+   Canon rules:
+   - NO redirects for auth/tier (gate.js owns gating)
+   - NO Firebase CDN imports
+   - Auth state via getAuthStateOnce()
+   - Firestore access ONLY via firebase-config exports
+*/
 
-  <div id="site-header"></div>
+import { getAuthStateOnce, getUserProfile, db, fsDoc, fsGetDoc } from "/firebase-config.js";
 
-  <main class="page">
-    <div class="container content">
+(function () {
+  "use strict";
 
-      <section class="card" style="padding:var(--pad);">
-        <h1>Canonizer</h1>
-        <p class="muted">Paste raw HTML and receive canon-compliant page code.</p>
+  function esc(s) {
+    return String(s ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#39;");
+  }
 
-        <textarea id="input" style="width:100%; height:220px; margin-top:12px;"></textarea>
+  function $(sel, root = document) {
+    return root.querySelector(sel);
+  }
 
-        <div style="margin-top:12px;">
-          <button id="run" class="button">Canonize</button>
+  async function readUserSnapshot(uid) {
+    // If you later add a dedicated doc (e.g. /users/{uid}/snapshots/main),
+    // update here + firestore.rules accordingly.
+    // For now, keep it minimal and safe:
+    // - Profile from /users/{uid} (via getUserProfile)
+    // - Optional: read a "snapshot" field from the same doc if present
+    try {
+      const ref = fsDoc(db, "users", uid);
+      const snap = await fsGetDoc(ref);
+      if (!snap.exists()) return {};
+      const data = snap.data() || {};
+      return (data.snapshot && typeof data.snapshot === "object") ? data.snapshot : {};
+    } catch {
+      return {};
+    }
+  }
+
+  function render({ user, profile, snapshot }) {
+    const box = $(".template-box") || document.body;
+
+    const html = `
+      <div class="card" style="padding:14px; margin-top:12px;">
+        <div class="row" style="justify-content:space-between; align-items:flex-start;">
+          <div>
+            <div class="muted" style="font-size:13px;">Signed in as</div>
+            <div style="font-weight:800;">${esc(user?.email || "(no email)")}</div>
+          </div>
+          <div class="badge" title="Profile tier">
+            Tier: ${esc(profile?.tier || "free")}
+          </div>
         </div>
 
-        <pre id="output" style="margin-top:12px;"></pre>
-      </section>
+        <div class="hr"></div>
 
-    </div>
-  </main>
+        <div class="card" style="padding:12px;">
+          <div class="muted" style="font-size:13px;">Snapshot</div>
+          <div class="muted" style="margin-top:8px;">
+            This module is live and canon-safe. Your actual Snapshot fields can be added incrementally
+            once you decide the schema and update Firestore rules.
+          </div>
 
-  <script src="/ui.js"></script>
-  <script src="/header-loader.js"></script>
-  <script src="/partials/header.js"></script>
-  <script src="/i18n.js"></script>
-  <script type="module" src="/gate.js"></script>
-  <script type="module" src="/tools/canonizer.js"></script>
+          <div class="hr"></div>
 
-</body>
-</html>
+          <div class="muted" style="font-size:13px;">Current saved snapshot payload</div>
+          <pre style="margin-top:10px; white-space:pre-wrap; font-size:12px; color:var(--muted);">${esc(
+            JSON.stringify(snapshot || {}, null, 2)
+          )}</pre>
+        </div>
+      </div>
+    `;
+
+    // Replace the placeholder muted line if present.
+    const placeholder = $(".muted", box);
+    if (placeholder) placeholder.outerHTML = html;
+    else box.insertAdjacentHTML("beforeend", html);
+  }
+
+  async function init() {
+    try {
+      const { user } = await getAuthStateOnce();
+      if (!user) return; // gate.js handles auth redirect
+
+      const [profile, snapshot] = await Promise.all([
+        getUserProfile(user.uid).catch(() => ({})),
+        readUserSnapshot(user.uid).catch(() => ({})),
+      ]);
+
+      render({ user, profile, snapshot });
+    } catch (e) {
+      console.error(e);
+      const box = document.querySelector(".template-box") || document.body;
+      box.insertAdjacentHTML(
+        "beforeend",
+        `<div class="alert warn" style="margin-top:12px;">Snapshot failed to load. Check console.</div>`
+      );
+    }
+  }
+
+  init();
+})();
