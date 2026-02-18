@@ -2,51 +2,41 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Billing — SharpeSystem</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="SharpeSystem billing and subscription management." />
   <link rel="stylesheet" href="/styles.css" />
 </head>
 
-<body data-require-auth="1">
+<body data-require-auth="1" data-require-tier="basic" data-require-active="1">
 
   <div id="site-header"></div>
 
-  <main class="page" style="max-width:1000px;margin:0 auto;padding:24px;">
-    <section class="card" style="padding:20px;">
-      <h1 style="margin-top:0;">Billing</h1>
+  <main class="page">
+    <div class="container content">
 
-      <div style="margin-top:16px;">
-        <div><strong>Current Tier:</strong> <span id="tierValue">—</span></div>
-        <div style="margin-top:6px;"><strong>Active:</strong> <span id="activeValue">—</span></div>
-      </div>
+      <section class="card" style="padding:var(--pad);">
+        <h1>Billing</h1>
+        <p class="muted">
+          Manage your SharpeSystem subscription.
+        </p>
 
-      <div style="margin-top:24px;display:flex;gap:12px;flex-wrap:wrap;">
-        <button class="btn" id="btnUpgradeBasic">Upgrade to Basic</button>
-        <button class="btn" id="btnUpgradePro">Upgrade to Pro</button>
-        <button class="btn" id="btnUpgradeAttorney">Upgrade to Attorney</button>
-      </div>
+        <div class="hr"></div>
 
-      <div class="muted" style="margin-top:20px;font-size:13px;">
-        If your tier does not update immediately, refresh the page after checkout.
-      </div>
+        <div class="row">
+          <a class="btn primary" href="/subscribe.html">Update Subscription</a>
+          <a class="btn" href="/dashboard.html">Back</a>
+        </div>
+      </section>
 
-      <div class="muted" style="margin-top:24px;">
-        <a href="/dashboard.html">Back to Dashboard</a>
-      </div>
-    </section>
+    </div>
   </main>
 
-  <!-- Canonical footer stack -->
-  <script src="/ui.js" defer></script>
-  <script src="/header-loader.js" defer></script>
-  <script src="/partials/header.js" defer></script>
-  <script src="/i18n.js" defer></script>
-
-  <!-- Gate FIRST -->
+  <script src="/ui.js"></script>
+  <script src="/header-loader.js"></script>
+  <script src="/partials/header.js"></script>
+  <script src="/i18n.js"></script>
   <script type="module" src="/gate.js"></script>
-
-  <!-- Page module AFTER gate -->
-  <script type="module" src="/billing.js"></script>
 
 </body>
 </html>
