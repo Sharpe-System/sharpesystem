@@ -1,75 +1,47 @@
+<!-- /status.html -->
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Status — SharpeSystem</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Platform status and build notes." />
   <link rel="stylesheet" href="/styles.css" />
 </head>
-
-<body>
-  <!-- Shared header/nav -->
+<body class="shell">
   <div id="site-header"></div>
-  <script src="/header-loader.js" defer></script>
-  <script src="/i18n.js" defer></script>
 
   <main class="page">
     <div class="container content">
-      <section class="page-hero" aria-label="Status overview">
+      <section class="page-hero">
         <h1>Status</h1>
-        <p class="sub">Scope, boundaries, and current state of the SharpeSystem project.</p>
+        <p class="sub">Build state and known limitations. Informational only.</p>
       </section>
 
-      <section class="card" aria-label="What this is">
-        <h2>What this is</h2>
+      <section class="template-box">
+        <h2>Core</h2>
         <ul>
-          <li>A <strong>decision-support framework</strong> for procedural orientation in high-stakes situations</li>
-          <li>Designed to help users identify where they are, what matters next, and what deadlines or risks may exist</li>
-          <li>Built to reduce confusion, false urgency, and avoidable procedural mistakes</li>
+          <li>Auth gate: enabled</li>
+          <li>Tier gating: enabled</li>
+          <li>Header injection: enabled</li>
         </ul>
       </section>
 
-      <section class="card" aria-label="What this is not">
-        <h2>What this is not</h2>
-        <ul>
-          <li>Not legal advice</li>
-          <li>Not legal strategy</li>
-          <li>Not a substitute for an attorney or other qualified professional</li>
-          <li>Not a tool for confrontation, leverage, or escalation</li>
-        </ul>
-
-        <div class="note" role="note">
-          <strong>Important:</strong> Content is intentionally general and non-directive.
-          Jurisdiction-specific rules, tactics, and filings are outside the scope of this project.
-        </div>
-      </section>
-
-      <section class="card" aria-label="Current build state">
-        <h2>Current build state</h2>
-        <ul>
-          <li>Core site structure and navigation are live</li>
-          <li>Decision tree framework is in active development</li>
-          <li>Risk Awareness and Amicable paths are operational</li>
-          <li>Additional decision branches will be added iteratively</li>
-          <li>Custom domain will be connected after registrar transfer window</li>
-        </ul>
-
-        <div class="bottom-nav" aria-label="Navigation">
-          <div class="left">
-            <a class="button" href="/home.html">Home</a>
-            <a class="button" href="/trees.html">Decision Trees</a>
-          </div>
-          <div class="right">
-            <span class="hint">Foundational context:</span>
-            <a class="button primary" href="/high-conflict-risk-awareness.html">Risk Awareness</a>
-          </div>
-        </div>
-
-        <div class="footer">
-          <div>SharpeSystem is designed to evolve deliberately. Accuracy and clarity take priority over speed.</div>
+      <section class="template-box">
+        <h2>Links</h2>
+        <div class="cta-row">
+          <a class="button" href="/home.html">Home</a>
+          <a class="button" href="/trees.html">Decision Trees</a>
+          <a class="button" href="/dashboard.html">Dashboard</a>
         </div>
       </section>
     </div>
   </main>
+
+  <script src="/ui.js" defer></script>
+  <script src="/header-loader.js" defer></script>
+  <script src="/partials/header.js" defer></script>
+  <script src="/i18n.js" defer></script>
+  <script type="module" src="/gate.js"></script>
 </body>
 </html>
