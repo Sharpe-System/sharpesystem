@@ -1,3 +1,7 @@
+cd /Users/nathansharpe/Desktop/sharpesystem || exit 1
+mkdir -p rfo
+
+cat > rfo/rfo-state.js <<'EOF'
 /* /rfo/rfo-state.js
    SharpeSystem — Request for Order (RFO) module
    Firestore-backed persistence layer (per-user)
@@ -170,3 +174,4 @@ import { auth, db, fsDoc, fsGetDoc, fsSetDoc } from "../firebase-config.js";
     normalizeState
   };
 })();
+EOF
