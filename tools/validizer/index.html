@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Validizer — SharpeSystem</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Deterministic canon checks for pasted HTML/JS." />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+
+<body class="shell">
+  <div id="site-header"></div>
+
+  <main class="page">
+    <div class="container content">
+      <section class="card" style="padding:var(--pad);">
+        <h1>Validizer</h1>
+        <p class="muted">Paste imperfect HTML or page fragments. This tool runs deterministic canon checks and produces a report you can hand to Canonizer.</p>
+
+        <div class="grid-2" style="margin-top:14px;">
+          <div class="card" style="padding:12px;">
+            <div class="muted" style="font-size:13px; margin-bottom:8px;">Input (HTML or fragment)</div>
+            <textarea id="inCode" class="input" style="width:100%; min-height:280px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;"></textarea>
+
+            <div class="row" style="margin-top:10px; gap:10px; flex-wrap:wrap;">
+              <button id="btnValidate" class="btn primary" type="button">Validate</button>
+              <button id="btnToCanon" class="btn" type="button">Send to Canonizer</button>
+              <button id="btnClear" class="btn" type="button">Clear</button>
+              <button id="btnDownloadReport" class="btn" type="button">Download report</button>
+            </div>
+
+            <div class="muted" style="margin-top:10px; font-size:12px;">
+              Canon assumptions: centralized Firebase imports, auth via getAuthStateOnce(), gate ownership, canonical template stack.
+            </div>
+          </div>
+
+          <div class="card" style="padding:12px;">
+            <div class="muted" style="font-size:13px; margin-bottom:8px;">Report</div>
+            <pre id="report" class="code" style="white-space:pre-wrap; min-height:340px;"></pre>
+
+            <div class="hr"></div>
+
+            <div class="muted" style="font-size:13px; margin-bottom:8px;">Checks performed</div>
+            <ul style="margin:0 0 0 18px; color:var(--muted);">
+              <li>C1 Firebase CDN imports (must be only in /firebase-config.js)</li>
+              <li>C2 onAuthStateChanged outside firebase-config</li>
+              <li>C3 redirects/gating outside gate.js (heuristic scan)</li>
+              <li>C5 canonical page template stack/order (full HTML only)</li>
+              <li>C6 header-auth duplication patterns (heuristic scan)</li>
+              <li>C7 legacy window.firebase usage</li>
+              <li>Basic stability: doctype/lang/meta/stylesheet/header mount</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script src="/ui.js"></script>
+  <script src="/header-loader.js"></script>
+  <script src="/partials/header.js"></script>
+  <script src="/i18n.js"></script>
+  <script type="module" src="/gate.js"></script>
+
+  <script src="/tools/validizer.js" defer></script>
+</body>
+</html>
