@@ -1,177 +1,36 @@
-cd /Users/nathansharpe/Desktop/sharpesystem || exit 1
-mkdir -p rfo
-
-cat > rfo/rfo-state.js <<'EOF'
 /* /rfo/rfo-state.js
-   SharpeSystem — Request for Order (RFO) module
-   Firestore-backed persistence layer (per-user)
-   Canon compliant: NO window.firebase*, NO direct Firebase SDK imports here.
+   FirebaseConan shim:
+   - Sources Auth/Firestore ONLY from /firebase-config.js (canon).
+   - Exposes backward-compatible window.firebase* handles (optional legacy support).
+   - Contains NO redirect logic, NO tier checks. gate.js owns enforcement.
+
+   Requirement:
+   - /firebase-config.js must export: auth, db
+     (db = Firestore instance)
 */
 
-import { auth, db, fsDoc, fsGetDoc, fsSetDoc } from "../firebase-config.js";
+import { auth, db } from "../firebase-config.js";
 
-(function () {
-  "use strict";
+/* ---------- Back-compat surface (legacy callers) ---------- */
+try {
+  // Provide handles for older code that still reads these, without being a separate surface.
+  window.firebaseAuth = auth;
+  window.firebaseDB = db;
+  // window.firebaseFS historically sometimes meant "Firestore module" — do NOT provide SDK module surface here.
+  // If legacy code expects firebaseFS, keep it as the db instance alias to avoid drift.
+  window.firebaseFS = db;
+} catch (_) {
+  // non-browser environments
+}
 
-  const COLLECTION = "modules";
-  const DOC_ID = "rfo";
+/* ---------- Canon exports for RFO module usage ---------- */
+export { auth, db };
 
-  function nowISO() {
-    try { return new Date().toISOString(); } catch { return ""; }
-  }
+/* ---------- Optional helpers (safe, non-gating) ---------- */
 
-  function deepClone(obj) {
-    return JSON.parse(JSON.stringify(obj));
-  }
-
-  function defaultState() {
-    return {
-      meta: {
-        version: 1,
-        createdAt: nowISO(),
-        updatedAt: nowISO(),
-        lastStepId: "case_info"
-      },
-
-      caseInfo: {
-        state: "",
-        county: "",
-        courthouse: "",
-        caseNumber: "",
-        petitioner: "",
-        respondent: "",
-        relationship: "marriage",
-        childrenCount: 0
-      },
-
-      ordersRequested: {
-        custody: false,
-        visitation: false,
-        support: false,
-        attorneyFees: false,
-        other: false,
-        otherText: "",
-        emergency: false
-      },
-
-      custody: {
-        legalCustodyRequested: "",
-        physicalCustodyRequested: "",
-        primaryTimeshareRequested: "",
-        exchangeLocation: "",
-        exchangeLocationOther: "",
-        notes: ""
-      },
-
-      visitation: {
-        scheduleText: "",
-        supervisionRequested: "",
-        supervisionDetails: ""
-      },
-
-      support: {
-        childSupportRequested: "",
-        spousalSupportRequested: "",
-        guidelineRequested: true,
-        requestedEffectiveDate: "",
-        notes: ""
-      },
-
-      emergency: {
-        immediateHarmRisk: "",
-        harmDescription: "",
-        recentIncidentDate: "",
-        policeReportFiled: "",
-        policeAgency: "",
-        policeReportNumber: "",
-        priorOrdersExist: "",
-        priorOrdersDescription: ""
-      }
-    };
-  }
-
-  function normalizeState(raw) {
-    const base = defaultState();
-    if (!raw || typeof raw !== "object") return base;
-
-    const merged = deepClone(base);
-
-    for (const k of Object.keys(base)) {
-      if (raw[k] !== undefined && raw[k] !== null) {
-        if (typeof base[k] === "object" && !Array.isArray(base[k])) {
-          merged[k] = Object.assign({}, base[k], raw[k]);
-        } else {
-          merged[k] = raw[k];
-        }
-      }
-    }
-
-    merged.meta = Object.assign({}, base.meta, raw.meta || {});
-    merged.meta.updatedAt = nowISO();
-
-    if (!merged.meta.lastStepId || typeof merged.meta.lastStepId !== "string") {
-      merged.meta.lastStepId = "case_info";
-    }
-
-    return merged;
-  }
-
-  async function getUserDocRef() {
-    const user = auth.currentUser;
-    if (!user) return null;
-    return fsDoc(db, "users", user.uid, COLLECTION, DOC_ID);
-  }
-
-  async function load() {
-    try {
-      const ref = await getUserDocRef();
-      if (!ref) return defaultState();
-
-      const snap = await fsGetDoc(ref);
-      if (!snap.exists()) return defaultState();
-
-      return normalizeState(snap.data());
-    } catch (e) {
-      console.error("RFO load error:", e);
-      return defaultState();
-    }
-  }
-
-  async function save(state) {
-    try {
-      const ref = await getUserDocRef();
-      if (!ref) return false;
-
-      const s = deepClone(state);
-      if (!s.meta) s.meta = {};
-      s.meta.updatedAt = nowISO();
-
-      await fsSetDoc(ref, s, { merge: true });
-      return true;
-    } catch (e) {
-      console.error("RFO save error:", e);
-      return false;
-    }
-  }
-
-  async function reset() {
-    try {
-      const ref = await getUserDocRef();
-      if (ref) {
-        await fsSetDoc(ref, defaultState(), { merge: false });
-      }
-    } catch (e) {
-      console.error("RFO reset error:", e);
-    }
-    return defaultState();
-  }
-
-  window.RFO_STATE = {
-    defaultState,
-    load,
-    save,
-    reset,
-    normalizeState
-  };
-})();
-EOF
+// Canon location for RFO draft state (scoped to user)
+export function rfoDraftRef(uid) {
+  // Lazy import to keep this file purely boundary-safe.
+  // If you prefer, move these to a canon /db.js.
+  return { collection: "rfoDrafts", docId: uid };
+}
