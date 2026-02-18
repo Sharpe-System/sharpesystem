@@ -1,10 +1,16 @@
 // /firebase-config.js
 // Frozen AUTH CORE module: initializes Firebase exactly once and exposes
 // a shared auth state promise + helper to read the user doc.
+// Also exports Firestore helpers so feature modules do NOT import Firebase directly.
 
 import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
-import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  setDoc
+} from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 
 /**
  * ✅ Replace with your actual Firebase config.
@@ -16,7 +22,7 @@ export const firebaseConfig = {
   projectId: "sharpe-legal",
   storageBucket: "sharpe-legal.firebasestorage.app",
   messagingSenderId: "770027799385",
-  appId: "1:770027799385:web:64c3f7bd4b7a140f5c0248",
+  appId: "1:770027799385:web:64c3f7bd4b7a140f5c0248"
 };
 
 export const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
@@ -63,6 +69,14 @@ export async function getUserProfile(uid) {
   }
 }
 
+/**
+ * --- FIRESTORE HELPERS (exported) ---
+ * Feature modules MUST use these exports and MUST NOT import Firebase SDK directly.
+ */
+export const fsDoc = doc;
+export const fsGetDoc = getDoc;
+export const fsSetDoc = setDoc;
+
 // ✅ Compatibility default export (fixes: "does not provide an export named 'default'")
 export default {
   firebaseConfig,
@@ -71,4 +85,7 @@ export default {
   db,
   getAuthStateOnce,
   getUserProfile,
+  fsDoc,
+  fsGetDoc,
+  fsSetDoc
 };
