@@ -4,314 +4,47 @@
   <meta charset="utf-8" />
   <title>Validizer — SharpeSystem</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Validate incoming page code against SharpeSystem canon rules." />
+  <meta name="description" content="Canon compliance checker." />
   <link rel="stylesheet" href="/styles.css" />
 </head>
 
-<body>
+<body class="shell">
   <div id="site-header"></div>
 
   <main class="page">
     <div class="container content">
-
-      <section class="card" style="padding:var(--pad);">
+      <section class="template-box">
         <h1>Validizer</h1>
         <p class="muted">
-          Paste imperfect HTML or page fragments. This tool runs deterministic canon checks and produces a report
-          you can hand to Canonizer.
+          Paste imperfect HTML or fragments. Runs canon compliance checks.
         </p>
 
-        <div class="grid-2" style="gap:12px; margin-top:12px;">
-          <div class="card" style="padding:12px;">
-            <div class="muted" style="font-size:13px; margin-bottom:6px;">Input (HTML or fragment)</div>
-            <textarea id="inCode" class="input" style="width:100%; min-height:260px; font-family: ui-monospace, Menlo, Monaco, Consolas, 'Liberation Mono', monospace; font-size:12px; line-height:1.35; padding:10px;"></textarea>
+        <div class="card" style="padding:var(--pad); margin-top:12px;">
+          <label class="muted" for="valIn" style="display:block; margin-bottom:8px;">Input</label>
+          <textarea id="valIn" class="mono" style="width:100%; min-height:220px; resize:vertical;"></textarea>
 
-            <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
-              <button id="btnValidate" class="button">Validate</button>
-              <button id="btnToCanon" class="button">Send to Canonizer</button>
-              <button id="btnClear" class="button" type="button">Clear</button>
-            </div>
-
-            <div class="muted" style="margin-top:10px; font-size:12px;">
-              Canon assumptions: page.template stack, centralized Firebase imports, gate ownership.
-            </div>
-          </div>
-
-          <div class="card" style="padding:12px;">
-            <div class="muted" style="font-size:13px; margin-bottom:6px;">Report</div>
-            <pre id="report" style="margin:0; white-space:pre-wrap; font-family: ui-monospace, Menlo, Monaco, Consolas, 'Liberation Mono', monospace; font-size:12px; line-height:1.35;"></pre>
-
-            <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
-              <button id="btnCopyReport" class="button">Copy report</button>
-              <button id="btnDownloadReport" class="button">Download report</button>
-            </div>
-
-            <div class="hr"></div>
-
-            <div class="muted" style="font-size:13px; margin-bottom:6px;">Checks performed</div>
-            <ul class="muted" style="margin:0 0 0 18px;">
-              <li>C1 Firebase CDN imports (must be only in /firebase-config.js)</li>
-              <li>C2 onAuthStateChanged outside firebase-config</li>
-              <li>C3 redirects/gating outside gate.js (heuristic scan)</li>
-              <li>C5 page template stack/order</li>
-              <li>C6 header-auth duplication patterns (heuristic scan)</li>
-              <li>C7 legacy window.firebase usage</li>
-              <li>Basic HTML stability: doctype/lang/meta/stylesheet/header mount</li>
-            </ul>
+          <div class="cta-row" style="margin-top:12px; gap:8px;">
+            <button class="button" id="btnValidate" type="button">Validate</button>
+            <button class="button" id="btnCopyReport" type="button">Copy Report</button>
+            <button class="button" id="btnClearVal" type="button">Clear</button>
+            <a class="button" href="/tools/canonizer.html">To Canonizer</a>
           </div>
         </div>
-      </section>
 
+        <div class="card" style="padding:var(--pad); margin-top:12px;">
+          <div class="muted" style="margin-bottom:8px;">Report</div>
+          <pre id="valReport" class="mono" style="white-space:pre-wrap; word-break:break-word; margin:0;"></pre>
+        </div>
+      </section>
     </div>
   </main>
-
-  <script>
-    (function () {
-      "use strict";
-
-      const KEY_PAYLOAD = "ss_validizer_payload_v1";
-
-      function $(id) { return document.getElementById(id); }
-
-      function nowISO() {
-        try { return new Date().toISOString(); } catch { return ""; }
-      }
-
-      function safeCopy(text) {
-        try {
-          return navigator.clipboard.writeText(text);
-        } catch {
-          // fallback
-          const ta = document.createElement("textarea");
-          ta.value = text;
-          ta.style.position = "fixed";
-          ta.style.left = "-9999px";
-          document.body.appendChild(ta);
-          ta.select();
-          try { document.execCommand("copy"); } catch {}
-          ta.remove();
-          return Promise.resolve();
-        }
-      }
-
-      function download(name, content, type) {
-        const blob = new Blob([content], { type: type || "text/plain" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = name;
-        document.body.appendChild(a);
-        a.click();
-        setTimeout(() => {
-          URL.revokeObjectURL(url);
-          a.remove();
-        }, 0);
-      }
-
-      function hasAny(hay, patterns) {
-        const s = String(hay || "");
-        return patterns.some((re) => re.test(s));
-      }
-
-      function checkTemplateStack(html) {
-        // Canon stack expected (order-sensitive, whitespace tolerant):
-        //   <div id="site-header"></div>
-        //   <script src="/ui.js"></script>
-        //   <script src="/header-loader.js"></script>
-        //   <script src="/partials/header.js"></script>
-        //   <script src="/i18n.js"></script>
-        //   <script type="module" src="/gate.js"></script>
-        const s = String(html || "");
-
-        const want = [
-          /<div[^>]+id\s*=\s*["']site-header["'][^>]*>\s*<\/div>/i,
-          /<script[^>]+src\s*=\s*["']\/ui\.js["'][^>]*>\s*<\/script>/i,
-          /<script[^>]+src\s*=\s*["']\/header-loader\.js["'][^>]*>\s*<\/script>/i,
-          /<script[^>]+src\s*=\s*["']\/partials\/header\.js["'][^>]*>\s*<\/script>/i,
-          /<script[^>]+src\s*=\s*["']\/i18n\.js["'][^>]*>\s*<\/script>/i,
-          /<script[^>]+type\s*=\s*["']module["'][^>]+src\s*=\s*["']\/gate\.js["'][^>]*>\s*<\/script>/i
-        ];
-
-        const found = want.map((re) => re.exec(s));
-        const okAll = found.every(Boolean);
-
-        // If all exist, also ensure relative order by index.
-        let okOrder = false;
-        if (okAll) {
-          const idx = found.map((m) => m.index);
-          okOrder = idx.every((v, i) => i === 0 || v > idx[i - 1]);
-        }
-
-        return { okAll, okOrder, missing: want.map((re, i) => (found[i] ? null : re.toString())).filter(Boolean) };
-      }
-
-      function runChecks(input) {
-        const text = String(input || "");
-        const isFullHtml = /<html[\s>]/i.test(text) || /<!doctype/i.test(text);
-
-        const findings = [];
-        function add(rule, severity, ok, desc, evidence) {
-          findings.push({
-            rule,
-            severity,
-            status: ok ? "PASS" : "FAIL",
-            desc,
-            evidence: evidence || ""
-          });
-        }
-
-        // ---- Stability checks ----
-        add("STABLE-DOCTYPE", "MAJOR", /<!doctype\s+html/i.test(text) || !isFullHtml, "DOCTYPE present (or input is fragment)", "");
-        add("STABLE-LANG", "MINOR", /<html[^>]+lang\s*=\s*["'][^"']+["']/i.test(text) || !isFullHtml, "<html lang=…> present (or fragment)", "");
-        add("STABLE-META-CHARSET", "MAJOR", /<meta[^>]+charset\s*=\s*["']utf-8["']/i.test(text) || !isFullHtml, "meta charset utf-8 present (or fragment)", "");
-        add("STABLE-VIEWPORT", "MAJOR", /<meta[^>]+name\s*=\s*["']viewport["']/i.test(text) || !isFullHtml, "meta viewport present (or fragment)", "");
-        add("STABLE-STYLES", "MAJOR", /<link[^>]+rel\s*=\s*["']stylesheet["'][^>]+href\s*=\s*["']\/styles\.css["']/i.test(text) || !isFullHtml, "/styles.css linked (or fragment)", "");
-
-        // ---- Canon checks ----
-        const firebaseCDN = /https:\/\/www\.gstatic\.com\/firebasejs\//i;
-        add("C1", "CRITICAL", !firebaseCDN.test(text), "No Firebase CDN imports in this page/module", firebaseCDN.test(text) ? "Found firebasejs CDN reference" : "");
-
-        const onAuth = /\bonAuthStateChanged\b/i;
-        add("C2", "CRITICAL", !onAuth.test(text), "No onAuthStateChanged usage here (must be only in firebase-config.js)", onAuth.test(text) ? "Found onAuthStateChanged usage" : "");
-
-        const winFirebase = /window\.firebase/i;
-        add("C7", "CRITICAL", !winFirebase.test(text), "No legacy window.firebase* usage", winFirebase.test(text) ? "Found window.firebase usage" : "");
-
-        // Heuristic gating/redirects (cannot know ownership from a single file; still useful)
-        const redirects = /\b(location\.href|location\.replace|window\.location)\b/i;
-        add("C3-HEUR", "MAJOR", !redirects.test(text), "No redirects in this page/module (gate.js owns gating)", redirects.test(text) ? "Found redirect-like usage" : "");
-
-        // Header-auth duplication heuristics
-        const headerAuthDup = /\binitHeaderAuth\b|\bdata-auth-(user|tier|login|logout)\b/i;
-        add("C6-HEUR", "MAJOR", !headerAuthDup.test(text), "Avoid duplicating header auth logic; use canonical header-auth.js only", headerAuthDup.test(text) ? "Found header-auth style hooks" : "");
-
-        // Template stack (only meaningful if full HTML)
-        const stack = checkTemplateStack(text);
-        if (isFullHtml) {
-          add("C5", "MAJOR", stack.okAll, "Canonical script stack present", stack.okAll ? "" : ("Missing: " + stack.missing.join(" | ")));
-          add("C5-ORDER", "MAJOR", stack.okOrder, "Canonical script stack order correct", stack.okOrder ? "" : "Scripts present but order differs from canon");
-        } else {
-          add("C5", "MINOR", true, "Template stack skipped (input is fragment)", "");
-          add("C5-ORDER", "MINOR", true, "Template stack order skipped (input is fragment)", "");
-        }
-
-        const score = Math.max(0, Math.min(100, Math.round(
-          100 - findings.reduce((acc, f) => {
-            if (f.status !== "FAIL") return acc;
-            if (f.severity === "CRITICAL") return acc + 18;
-            if (f.severity === "MAJOR") return acc + 10;
-            return acc + 4;
-          }, 0)
-        )));
-
-        const failed = findings.filter(f => f.status === "FAIL");
-        const pass = findings.filter(f => f.status === "PASS");
-
-        const reportObj = {
-          tool: "Validizer",
-          at: nowISO(),
-          score,
-          summary: {
-            inputType: isFullHtml ? "full-html" : "fragment",
-            pass: pass.length,
-            fail: failed.length
-          },
-          findings
-        };
-
-        return reportObj;
-      }
-
-      function formatReport(obj) {
-        const lines = [];
-        lines.push("SHARPESYSTEM VALIDIZER REPORT");
-        lines.push("Time: " + (obj.at || ""));
-        lines.push("Score: " + obj.score + "/100");
-        lines.push("Input: " + obj.summary.inputType);
-        lines.push("");
-        lines.push("Findings:");
-        lines.push("Severity | Rule | Status | Description | Evidence");
-        lines.push("--------------------------------------------------");
-        for (const f of obj.findings) {
-          lines.push(
-            [f.severity, f.rule, f.status, f.desc, f.evidence].join(" | ")
-          );
-        }
-        return lines.join("\n");
-      }
-
-      function setReport(text) {
-        $("report").textContent = text;
-      }
-
-      $("btnValidate").addEventListener("click", () => {
-        const input = $("inCode").value || "";
-        const obj = runChecks(input);
-        const txt = formatReport(obj);
-        setReport(txt);
-
-        // Store payload for canonizer handoff
-        try {
-          sessionStorage.setItem(KEY_PAYLOAD, JSON.stringify({
-            at: obj.at,
-            report: obj,
-            input
-          }));
-        } catch {}
-      });
-
-      $("btnToCanon").addEventListener("click", () => {
-        const input = $("inCode").value || "";
-        const obj = runChecks(input);
-        const txt = formatReport(obj);
-
-        try {
-          sessionStorage.setItem(KEY_PAYLOAD, JSON.stringify({
-            at: obj.at,
-            report: obj,
-            input
-          }));
-        } catch {}
-
-        setReport(txt);
-        window.location.href = "/canonizer.html";
-      });
-
-      $("btnCopyReport").addEventListener("click", async () => {
-        const txt = $("report").textContent || "";
-        await safeCopy(txt);
-      });
-
-      $("btnDownloadReport").addEventListener("click", () => {
-        const txt = $("report").textContent || "";
-        download("validizer-report.txt", txt, "text/plain");
-      });
-
-      $("btnClear").addEventListener("click", () => {
-        $("inCode").value = "";
-        setReport("");
-        try { sessionStorage.removeItem(KEY_PAYLOAD); } catch {}
-      });
-
-      // Auto-load any prior payload (so it feels continuous)
-      try {
-        const raw = sessionStorage.getItem(KEY_PAYLOAD);
-        if (raw) {
-          const payload = JSON.parse(raw);
-          if (payload && typeof payload.input === "string" && payload.input.trim()) {
-            $("inCode").value = payload.input;
-            const txt = formatReport(payload.report || runChecks(payload.input));
-            setReport(txt);
-          }
-        }
-      } catch {}
-    })();
-  </script>
 
   <script src="/ui.js"></script>
   <script src="/header-loader.js"></script>
   <script src="/partials/header.js"></script>
   <script src="/i18n.js"></script>
   <script type="module" src="/gate.js"></script>
+
+  <script src="/tools/validizer.js" defer></script>
 </body>
 </html>
