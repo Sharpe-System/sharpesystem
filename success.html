@@ -24,11 +24,15 @@
     </div>
   </main>
 
-  <script src="/ui.js" defer></script>
-  <script src="/header-loader.js" defer></script>
-  <script src="/partials/header.js" defer></script>
-  <script src="/i18n.js" defer></script>
-  <script type="module" src="/gate.js"></script>
+  <script src="/ui.js"></script>
+  <script src="/header-loader.js"></script>
+  <script src="/partials/header.js"></script>
+  <script src="/i18n.js"></script>
+
+  <!-- Page module BEFORE gate -->
   <script type="module" src="/success.js"></script>
+
+  <!-- Gate MUST be last -->
+  <script type="module" src="/gate.js"></script>
 </body>
 </html>
