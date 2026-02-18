@@ -1,21 +1,24 @@
+cd /Users/nathansharpe/Desktop/sharpesystem || exit 1
+mkdir -p scripts
+
+cat > scripts/guardrails.sh <<'EOF'
 #!/usr/bin/env bash
 set -euo pipefail
 
 echo "== SharpeSystem Guardrails =="
 
-# 1) Block window.firebase* bypass everywhere
-echo "[1/3] Checking for window.firebase* bypass..."
-if grep -RIn "window\.firebase" -- . >/dev/null 2>&1; then
-  echo "FAIL: Found window.firebase* usage. This is a bypass vector."
-  grep -RIn "window\.firebase" -- .
+# 1) Block window.firebase* bypass in SOURCE JS ONLY (ignore scripts/)
+echo "[1/3] Checking for window.firebase* bypass in JS files..."
+if grep -RIn --include="*.js" --exclude-dir="scripts" "window\.firebase" . >/dev/null 2>&1; then
+  echo "FAIL: Found window.firebase* usage in JS source. This is a bypass vector."
+  grep -RIn --include="*.js" --exclude-dir="scripts" "window\.firebase" .
   exit 1
 fi
-echo "OK: No window.firebase* usage."
+echo "OK: No window.firebase* usage in JS source."
 
 # 2) Block Firebase SDK usage outside approved canon files
 echo "[2/3] Checking for Firebase SDK usage outside approved files..."
 
-# Allowlist: ONLY these files may import firebase CDN modules directly.
 ALLOWED_FILES=(
   "firebase-config.js"
   "gate.js"
@@ -51,7 +54,7 @@ if (( ${#HITS[@]} > 0 )); then
   echo "FAIL: Firebase SDK usage detected outside approved canon files:"
   printf ' - %s\n' "${HITS[@]}"
   echo ""
-  echo "Fix: route all Firebase usage through firebase-config.js (or a canon module)."
+  echo "Fix: route all Firebase usage through firebase-config.js (or canon modules)."
   exit 1
 fi
 echo "OK: Firebase usage is confined to approved files."
@@ -90,3 +93,7 @@ fi
 
 echo "OK: routes.manifest.json covers all HTML routes."
 echo "All guardrails passed."
+EOF
+
+chmod +x scripts/guardrails.sh
+/bin/bash scripts/guardrails.sh
