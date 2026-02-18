@@ -1,73 +1,37 @@
+<!-- /triage.html -->
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title data-i18n="triage.meta.title">I’m Not Sure What To Do — SharpeSystem</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Triage — SharpeSystem</title>
+  <meta name="description" content="Triage." />
   <link rel="stylesheet" href="/styles.css" />
 </head>
-
-<body>
-  <!-- Shared header/nav -->
+<body class="shell">
   <div id="site-header"></div>
-  <script src="/header-loader.js" defer></script>
-  <script src="/i18n.js" defer></script>
 
   <main class="page">
     <div class="container content">
-      <h1 data-i18n="triage.h1">I’m not sure what to do</h1>
+      <section class="page-hero">
+        <h1>Triage</h1>
+        <p class="sub">Classify what you’re dealing with before acting. Informational only.</p>
+      </section>
 
-      <p data-i18n="triage.p1">
-        This page is for the moment where you feel behind, unsure what matters, and you need help
-        even naming what you’re dealing with.
-      </p>
-
-      <h2 data-i18n="triage.step1.h2">Step 1 — What kind of situation is this?</h2>
-      <ul>
-        <li>
-          <a href="/trees.html" data-i18n="triage.step1.link1">Family / custody / divorce</a>
-          <span data-i18n="triage.step1.desc1"> (relationships, kids, money, court orders)</span>
-        </li>
-        <li>
-          <a href="/trees.html" data-i18n="triage.step1.link2">Protective order / restraining order</a>
-          <span data-i18n="triage.step1.desc2"> (no-contact orders, hearings, alleged abuse)</span>
-        </li>
-        <li>
-          <a href="/trees.html" data-i18n="triage.step1.link3">Criminal case</a>
-          <span data-i18n="triage.step1.desc3"> (arraignment, plea, probation, court dates)</span>
-        </li>
-        <li>
-          <a href="/trees.html" data-i18n="triage.step1.link4">Not sure</a>
-          <span data-i18n="triage.step1.desc4"> — keep reading</span>
-        </li>
-      </ul>
-
-      <h2 data-i18n="triage.step2.h2">Step 2 — Is there a deadline or a hearing?</h2>
-      <p class="note" data-i18n="triage.step2.note">
-        If you have a court date or a filing deadline, that’s usually the first anchor.
-      </p>
-      <ul>
-        <li data-i18n="triage.step2.li1">I have a hearing within 14 days</li>
-        <li data-i18n="triage.step2.li2">I have a deadline within 30 days</li>
-        <li data-i18n="triage.step2.li3">No known deadline — I’m trying to stabilize and plan</li>
-      </ul>
-
-      <h2 data-i18n="triage.step3.h2">Step 3 — What outcome are you trying to create?</h2>
-      <ul>
-        <li data-i18n="triage.step3.li1">Protect my time with my child / custody / visitation structure</li>
-        <li data-i18n="triage.step3.li2">Reduce conflict and communicate cleanly</li>
-        <li data-i18n="triage.step3.li3">Respond to a filing / avoid default / avoid procedural mistakes</li>
-        <li data-i18n="triage.step3.li4">Understand what stage I’m in and what “next” actually means</li>
-      </ul>
-
-      <div class="cta-row">
-        <a class="button" href="/trees.html" data-i18n="triage.cta">Go to Decision Trees</a>
-      </div>
-
-      <div class="footer-links">
-        <a href="/amicable.html" data-i18n="triage.footer.link">Try the amicable / structured path</a>
-      </div>
+      <section class="template-box">
+        <div class="cta-row">
+          <a class="button primary" href="/intake.html">Start Intake</a>
+          <a class="button" href="/rfo/">RFO</a>
+          <a class="button" href="/stabilize.html">Stabilize</a>
+        </div>
+      </section>
     </div>
   </main>
+
+  <script src="/ui.js" defer></script>
+  <script src="/header-loader.js" defer></script>
+  <script src="/partials/header.js" defer></script>
+  <script src="/i18n.js" defer></script>
+  <script type="module" src="/gate.js"></script>
 </body>
 </html>
