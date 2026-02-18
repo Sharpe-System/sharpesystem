@@ -1,67 +1,35 @@
+<!-- /signup.html -->
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Create Account — SharpeSystem</title>
+  <title>Sign up — SharpeSystem</title>
+  <meta name="description" content="Create an account." />
   <link rel="stylesheet" href="/styles.css" />
-
-  <!-- Optional i18n -->
-  <script src="/i18n.js" defer></script>
 </head>
-
-<body>
-  <!-- Shared header -->
+<body class="shell">
   <div id="site-header"></div>
-  <script src="/header-loader.js" defer></script>
-  <script type="module" src="/header-auth.js" defer></script>
 
-  <main class="page" style="max-width:920px;margin:0 auto;padding:24px;">
-    <header style="margin-bottom:18px;">
-      <div style="font-weight:700;">SharpeSystem</div>
-      <div class="muted" style="margin-top:4px;">Create an account to sync your intake and unlock tiers.</div>
-    </header>
+  <main class="page">
+    <div class="container content">
+      <section class="template-box">
+        <h1>Create account</h1>
+        <p class="muted">Placeholder UI. Your signup.js owns the real flow.</p>
 
-    <section class="card" style="padding:18px;">
-      <h1 style="margin:0 0 8px 0;">Create account</h1>
-      <p class="muted" style="margin:0 0 18px 0;">Email + password. Tier is set on your user profile.</p>
-
-      <div class="rfoField" style="margin-bottom:12px;">
-        <span>Email</span>
-        <input id="email" type="email" autocomplete="email" placeholder="you@example.com" />
-      </div>
-
-      <div class="rfoField" style="margin-bottom:12px;">
-        <span>Password</span>
-        <input id="password" type="password" autocomplete="new-password" placeholder="At least 6 characters" />
-      </div>
-
-      <div class="rfoField" style="margin-bottom:12px;">
-        <span>Plan</span>
-        <select id="tier">
-          <option value="free">Free</option>
-          <option value="basic">Basic</option>
-          <option value="pro">Pro</option>
-          <option value="attorney">Attorney</option>
-        </select>
-      </div>
-
-      <div style="display:flex;gap:10px;align-items:center;margin-top:14px;">
-        <button class="btn" id="btnCreate" type="button">Create account</button>
-        <button class="btn" id="btnLogin" type="button">Log in instead</button>
-        <span id="msg" class="muted" style="margin-left:auto;"></span>
-      </div>
-
-      <div class="muted" style="margin-top:14px;font-size:12px;">
-        If you completed an intake before creating an account, we will sync it from this browser after signup.
-      </div>
-    </section>
-
-    <footer class="muted" style="margin-top:18px;">
-      <a href="/pricing.html">Plans</a> · <a href="/home.html">Home</a>
-    </footer>
+        <div class="cta-row" style="margin-top:12px;">
+          <a class="button" href="/login.html">Log in</a>
+          <a class="button" href="/home.html">Home</a>
+        </div>
+      </section>
+    </div>
   </main>
 
+  <script src="/ui.js" defer></script>
+  <script src="/header-loader.js" defer></script>
+  <script src="/partials/header.js" defer></script>
+  <script src="/i18n.js" defer></script>
+  <script type="module" src="/gate.js"></script>
   <script type="module" src="/signup.js"></script>
 </body>
 </html>
