@@ -1,3 +1,4 @@
+<!-- /intake.html -->
 <!doctype html>
 <html lang="en">
 <head>
@@ -8,7 +9,6 @@
   <title>Case Intake — SharpeSystem</title>
   <meta name="description" content="Answer a few questions so SharpeSystem can route you to the right next steps." />
   <link rel="stylesheet" href="/styles.css" />
-
   <style>
     .two-col{display:grid;grid-template-columns:1.1fr .9fr;gap:14px;margin-top:12px;}
     @media (max-width:920px){.two-col{grid-template-columns:1fr;}}
@@ -28,11 +28,7 @@
   </style>
 </head>
 
-<body
-  data-require-auth="1"
-  data-require-tier="basic"
-  data-next="/intake.html"
->
+<body data-require-auth="1" data-require-tier="basic" data-require-active="1">
   <div id="site-header"></div>
 
   <main class="page">
@@ -47,9 +43,7 @@
         <form id="intakeForm" class="panel">
           <div class="row">
             <div>
-              <label class="label" for="kind">
-                What kind of issue is this? <span class="req">*</span>
-              </label>
+              <label class="label" for="kind">What kind of issue is this? <span class="req">*</span></label>
               <select class="input" id="kind" required>
                 <option value="" selected disabled>Select one…</option>
                 <option value="family">Family / custody / divorce</option>
@@ -65,9 +59,7 @@
             </div>
 
             <div>
-              <label class="label" for="stage">
-                Where are you in the process? <span class="req">*</span>
-              </label>
+              <label class="label" for="stage">Where are you in the process? <span class="req">*</span></label>
               <select class="input" id="stage" required>
                 <option value="" selected disabled>Select one…</option>
                 <option value="starting">I’m starting / trying to understand what to do</option>
@@ -83,33 +75,25 @@
 
           <div class="row" style="margin-top:12px;">
             <div>
-              <label class="label" for="where">
-                Where is this happening? (state/county/court)
-              </label>
+              <label class="label" for="where">Where is this happening? (state/county/court)</label>
               <input class="input" id="where" type="text" placeholder="Example: California, Orange County" />
               <div class="mini">This helps SharpeSystem choose the right procedural assumptions later.</div>
             </div>
 
             <div>
-              <label class="label" for="deadline">
-                Any deadline or court date?
-              </label>
+              <label class="label" for="deadline">Any deadline or court date?</label>
               <input class="input" id="deadline" type="text" placeholder="Example: hearing March 9 / deadline in 10 days / none" />
               <div class="mini">If there’s a deadline, it becomes the primary anchor.</div>
             </div>
           </div>
 
           <div style="margin-top:12px;">
-            <label class="label" for="goal">
-              What outcome are you trying to create?
-            </label>
+            <label class="label" for="goal">What outcome are you trying to create?</label>
             <input class="input" id="goal" type="text" placeholder="Example: modify custody schedule, respond to filing, terminate order, stabilize a plan" />
           </div>
 
           <div style="margin-top:12px;">
-            <label class="label" for="facts">
-              What happened? (plain facts, short)
-            </label>
+            <label class="label" for="facts">What happened? (plain facts, short)</label>
             <textarea class="input" id="facts" rows="5" placeholder="2–8 sentences. Plain facts."></textarea>
           </div>
 
@@ -140,14 +124,11 @@
     </div>
   </main>
 
+  <script src="/ui.js" defer></script>
   <script src="/header-loader.js" defer></script>
-  <script type="module" src="/header-auth.js" defer></script>
+  <script src="/partials/header.js" defer></script>
   <script src="/i18n.js" defer></script>
-
-  <!-- Gate first (module-only, consistent) -->
   <script type="module" src="/gate.js"></script>
-
-  <!-- Intake logic -->
   <script type="module" src="/intake.js"></script>
 </body>
 </html>
