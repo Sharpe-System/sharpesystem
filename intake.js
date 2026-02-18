@@ -18,7 +18,7 @@ function buildIntakePayload(){
   return {
     caseType: ($("kind")?.value || "").trim(),
     stage: ($("stage")?.value || "").trim(),
-    nextDate: ($("deadline")?.value || "").trim(), // keep your existing field name for compatibility
+    nextDate: ($("deadline")?.value || "").trim(),
     goal: ($("goal")?.value || "").trim(),
     risks: JSON.stringify({
       noContact: !!$("flagNoContact")?.checked,
@@ -37,11 +37,7 @@ function buildIntakePayload(){
     setMsg("Loading…");
 
     const { user } = await getAuthStateOnce();
-    if (!user) {
-      // Gate should prevent this, but keep a safe fallback.
-      window.location.replace("/login.html?next=%2Fintake.html&reason=login_required");
-      return;
-    }
+    if (!user) return; // gate.js already handles auth redirects
 
     await ensureUserDoc(user.uid);
 
@@ -55,7 +51,6 @@ function buildIntakePayload(){
     if ($("goal")) $("goal").value = intake.goal || "";
     if ($("facts")) $("facts").value = intake.facts || "";
 
-    // Decode risks JSON if present
     try {
       const r = intake.risks ? JSON.parse(intake.risks) : null;
       if (r) {
@@ -81,14 +76,10 @@ function buildIntakePayload(){
       setMsg("Saving…");
 
       const { user } = await getAuthStateOnce();
-      if (!user) {
-        window.location.replace("/login.html?next=%2Fintake.html&reason=login_required");
-        return;
-      }
+      if (!user) return; // gate.js owns auth redirect
 
       const intake = buildIntakePayload();
 
-      // Minimal validation (HTML required covers the first two fields)
       if (!intake.caseType || !intake.stage) {
         setMsg("Please choose the kind of issue and the stage.");
         return;
