@@ -1,0 +1,6 @@
+{
+  "scripts": {
+    "canon-guard": "node scripts/canon-guard.js",
+    "test": "npm run canon-guard"
+  }
+}
