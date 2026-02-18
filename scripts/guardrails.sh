@@ -15,7 +15,7 @@ echo "OK: No window.firebase* usage."
 # 2) Block Firebase SDK usage outside approved canon files
 echo "[2/3] Checking for Firebase SDK usage outside approved files..."
 
-# Adjust this allowlist ONLY if you intentionally centralize further.
+# Allowlist: ONLY these files may import firebase CDN modules directly.
 ALLOWED_FILES=(
   "firebase-config.js"
   "gate.js"
@@ -35,7 +35,6 @@ is_allowed () {
   return 1
 }
 
-# Patterns that typically indicate Firebase SDK usage in client JS
 FIREBASE_PAT='(from[[:space:]]+["'\''][^"'\'']*firebase|firebase/auth|firebase/firestore|initializeApp|getAuth|getFirestore|onAuthStateChanged|signInWithEmailAndPassword|createUserWithEmailAndPassword|signOut|doc\(|setDoc\(|getDoc\(|updateDoc\(|collection\()'
 
 HITS=()
@@ -65,10 +64,8 @@ if [[ ! -f "routes.manifest.json" ]]; then
   exit 1
 fi
 
-# Build list of all html routes in repo (prefixed with /, normalized)
 ALL_HTML=$(git ls-files "*.html" | sed 's#^#/#' | sort -u)
 
-# Extract all manifest paths (public/protected/paid arrays)
 MANIFEST_HTML=$(node -e '
   const fs=require("fs");
   const m=JSON.parse(fs.readFileSync("routes.manifest.json","utf8"));
