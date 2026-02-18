@@ -1,121 +1,42 @@
-/* /login.js
-   Login + post-login sync
-   - Signs in with email/password
-   - After successful login, syncs local RFO intake (if present) into Firestore:
-       /users/{uid}  (merge)
-       fields: rfoIntake, rfoLastStep, rfoSyncedAt
-   - Then redirects to /dashboard.html
-*/
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Billing — SharpeSystem</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="SharpeSystem billing and subscription management." />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
 
-import { auth, db } from "/firebase-config.js";
-import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
-import { doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
+<body data-require-auth="1" data-require-tier="basic" data-require-active="1">
 
-function $(id) { return document.getElementById(id); }
+  <div id="site-header"></div>
 
-const emailEl = $("email");
-const passEl  = $("password");
-const btnLogin = $("btnLogin");
-const btnSignup = $("btnSignup");
-const msgEl = $("msg");
+  <main class="page">
+    <div class="container content">
 
-const LS_STATE_KEY = "rfo_intake_state_v1";
-const LS_STEP_KEY  = "rfo_intake_step_v1";
+      <section class="card" style="padding:var(--pad);">
+        <h1>Billing</h1>
+        <p class="muted">
+          Manage your SharpeSystem subscription.
+        </p>
 
-function setMsg(text) {
-  if (msgEl) msgEl.textContent = text || "";
-}
+        <div class="hr"></div>
 
-function disableUI(disabled) {
-  if (btnLogin) btnLogin.disabled = disabled;
-  if (btnSignup) btnSignup.disabled = disabled;
-  if (emailEl) emailEl.disabled = disabled;
-  if (passEl) passEl.disabled = disabled;
-}
+        <div class="row">
+          <a class="btn primary" href="/subscribe.html">Update Subscription</a>
+          <a class="btn" href="/dashboard.html">Back</a>
+        </div>
+      </section>
 
-function readLocalIntake() {
-  try {
-    const raw = localStorage.getItem(LS_STATE_KEY);
-    const step = localStorage.getItem(LS_STEP_KEY);
-    if (!raw) return { intake: null, step: step || "" };
-    const parsed = JSON.parse(raw);
-    if (!parsed || typeof parsed !== "object") return { intake: null, step: step || "" };
-    return { intake: parsed, step: step || "" };
-  } catch {
-    return { intake: null, step: "" };
-  }
-}
+    </div>
+  </main>
 
-async function syncLocalIntakeToUser(uid) {
-  const { intake, step } = readLocalIntake();
-  if (!intake) return false;
+  <script src="/ui.js"></script>
+  <script src="/header-loader.js"></script>
+  <script src="/partials/header.js"></script>
+  <script src="/i18n.js"></script>
+  <script type="module" src="/gate.js"></script>
 
-  await setDoc(
-    doc(db, "users", uid),
-    {
-      rfoIntake: intake,
-      rfoLastStep: String(step || ""),
-      rfoSyncedAt: new Date().toISOString(),
-    },
-    { merge: true }
-  );
-
-  return true;
-}
-
-async function doLogin() {
-  const email = String(emailEl?.value || "").trim();
-  const password = String(passEl?.value || "");
-
-  if (!email) { setMsg("Enter email."); emailEl?.focus(); return; }
-  if (!password) { setMsg("Enter password."); passEl?.focus(); return; }
-
-  setMsg("Signing in…");
-  disableUI(true);
-
-  try {
-    const cred = await signInWithEmailAndPassword(auth, email, password);
-
-    // Sync local intake if present (non-fatal if it fails)
-    try {
-      setMsg("Signed in. Syncing intake…");
-      await syncLocalIntakeToUser(cred.user.uid);
-    } catch (e) {
-      console.warn("Intake sync failed (non-fatal):", e);
-    }
-
-    setMsg("Success. Redirecting…");
-    window.location.href = "/dashboard.html";
-  } catch (err) {
-    console.error(err);
-    const code = String(err?.code || "");
-    if (code.includes("auth/invalid-credential") || code.includes("auth/wrong-password")) {
-      setMsg("Invalid email or password.");
-    } else if (code.includes("auth/user-not-found")) {
-      setMsg("No account found for that email.");
-    } else if (code.includes("auth/too-many-requests")) {
-      setMsg("Too many attempts. Try again later.");
-    } else {
-      setMsg("Login failed. See console.");
-    }
-    disableUI(false);
-  }
-}
-
-// Click handlers
-btnLogin?.addEventListener("click", doLogin);
-
-btnSignup?.addEventListener("click", () => {
-  window.location.href = "/signup.html";
-});
-
-// Enter key submits
-passEl?.addEventListener("keydown", (e) => {
-  if (e.key === "Enter") doLogin();
-});
-emailEl?.addEventListener("keydown", (e) => {
-  if (e.key === "Enter") passEl?.focus();
-});
-
-// Initial
-setMsg("");
+</body>
+</html>
