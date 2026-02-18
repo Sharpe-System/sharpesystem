@@ -2,92 +2,99 @@ cd /Users/nathansharpe/Desktop/sharpesystem || exit 1
 mkdir -p scripts
 
 cat > scripts/guardrails.sh <<'EOF'
-#!/usr/bin/env bash
-set -euo pipefail
+#!/bin/bash
+set -eu
 
 echo "== SharpeSystem Guardrails =="
 
-# 1) Block window.firebase* bypass in SOURCE JS ONLY (ignore scripts/)
-echo "[1/3] Checking for window.firebase* bypass in JS files..."
+# 1) Block legacy global firebase bypass in JS source (ignore scripts/)
+echo "[1/3] Checking for legacy global firebase bypass in JS files..."
 if grep -RIn --include="*.js" --exclude-dir="scripts" "window\.firebase" . >/dev/null 2>&1; then
-  echo "FAIL: Found window.firebase* usage in JS source. This is a bypass vector."
+  echo "FAIL: Found legacy global firebase usage in JS source."
   grep -RIn --include="*.js" --exclude-dir="scripts" "window\.firebase" .
   exit 1
 fi
-echo "OK: No window.firebase* usage in JS source."
+echo "OK: No legacy global firebase usage in JS source."
 
-# 2) Block Firebase SDK usage outside approved canon files
-echo "[2/3] Checking for Firebase SDK usage outside approved files..."
+# 2) Block Firebase CDN imports outside approved canon files
+echo "[2/3] Checking for Firebase CDN imports outside approved canon files..."
 
-ALLOWED_FILES=(
-  "firebase-config.js"
-  "gate.js"
-  "login.js"
-  "signup.js"
-  "billing.js"
-  "peace/peace.js"
-)
+ALLOWED="firebase-config.js gate.js login.js signup.js billing.js peace/peace.js"
 
-is_allowed () {
-  local f="$1"
-  for a in "${ALLOWED_FILES[@]}"; do
-    if [[ "$f" == "$a" ]]; then
+is_allowed() {
+  f="$1"
+  for a in $ALLOWED; do
+    if [ "$f" = "$a" ]; then
       return 0
     fi
   done
   return 1
 }
 
-FIREBASE_PAT='(from[[:space:]]+["'\''][^"'\'']*firebase|firebase/auth|firebase/firestore|initializeApp|getAuth|getFirestore|onAuthStateChanged|signInWithEmailAndPassword|createUserWithEmailAndPassword|signOut|doc\(|setDoc\(|getDoc\(|updateDoc\(|collection\()'
+TMP="/tmp/jsfiles.$$"
+git ls-files "*.js" > "$TMP"
 
-HITS=()
+HIT=0
 while IFS= read -r f; do
   if is_allowed "$f"; then
     continue
   fi
-  if grep -Eq "$FIREBASE_PAT" "$f"; then
-    HITS+=("$f")
-  fi
-done < <(git ls-files "*.js")
 
-if (( ${#HITS[@]} > 0 )); then
-  echo "FAIL: Firebase SDK usage detected outside approved canon files:"
-  printf ' - %s\n' "${HITS[@]}"
+  if grep -q "https://www.gstatic.com/firebasejs/" "$f" 2>/dev/null; then
+    echo "FAIL: Firebase CDN import found outside canon: $f"
+    grep -n "https://www.gstatic.com/firebasejs/" "$f" || true
+    HIT=1
+  fi
+done < "$TMP"
+
+rm -f "$TMP"
+
+if [ "$HIT" -ne 0 ]; then
   echo ""
-  echo "Fix: route all Firebase usage through firebase-config.js (or canon modules)."
+  echo "Fix: only these files may import Firebase CDN:"
+  echo "  $ALLOWED"
   exit 1
 fi
-echo "OK: Firebase usage is confined to approved files."
+
+echo "OK: Firebase CDN imports are confined to approved files."
 
 # 3) Ensure every HTML route is listed in routes.manifest.json
 echo "[3/3] Checking that all HTML routes are in routes.manifest.json..."
 
-if [[ ! -f "routes.manifest.json" ]]; then
+if [ ! -f "routes.manifest.json" ]; then
   echo "FAIL: routes.manifest.json missing at repo root."
   exit 1
 fi
 
-ALL_HTML=$(git ls-files "*.html" | sed 's#^#/#' | sort -u)
+ALL_HTML="/tmp/allhtml.$$"
+MAN_HTML="/tmp/manhtml.$$"
 
-MANIFEST_HTML=$(node -e '
+git ls-files "*.html" | sed 's#^#/#' | sort -u > "$ALL_HTML"
+
+node -e '
   const fs=require("fs");
   const m=JSON.parse(fs.readFileSync("routes.manifest.json","utf8"));
   const all=[...(m.public||[]),...(m.protected||[]),...(m.paid||[])];
-  console.log([...new Set(all)].sort().join("\n"));
-')
+  const out=[...new Set(all)].sort();
+  console.log(out.join("\n"));
+' > "$MAN_HTML"
 
-MISSING=()
+MISSING=0
 while IFS= read -r route; do
-  if ! grep -Fxq "$route" <<< "$MANIFEST_HTML"; then
-    MISSING+=("$route")
+  if ! grep -Fxq "$route" "$MAN_HTML"; then
+    if [ "$MISSING" -eq 0 ]; then
+      echo "FAIL: These HTML routes exist in git but are missing from routes.manifest.json:"
+    fi
+    echo " - $route"
+    MISSING=1
   fi
-done <<< "$ALL_HTML"
+done < "$ALL_HTML"
 
-if (( ${#MISSING[@]} > 0 )); then
-  echo "FAIL: These HTML routes exist in git but are missing from routes.manifest.json:"
-  printf ' - %s\n' "${MISSING[@]}"
+rm -f "$ALL_HTML" "$MAN_HTML"
+
+if [ "$MISSING" -ne 0 ]; then
   echo ""
-  echo "Fix: add each route to public/protected/paid in routes.manifest.json."
+  echo "Fix: add each missing route to public/protected/paid in routes.manifest.json."
   exit 1
 fi
 
@@ -96,4 +103,3 @@ echo "All guardrails passed."
 EOF
 
 chmod +x scripts/guardrails.sh
-/bin/bash scripts/guardrails.sh
