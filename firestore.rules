@@ -2,75 +2,137 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    /* =========================
+       Helpers
+       ========================= */
     function signedIn() {
       return request.auth != null;
     }
 
-    function isOwner(uid) {
+    function isSelf(uid) {
       return signedIn() && request.auth.uid == uid;
     }
 
-    // Read thread doc for membership checks
+    function isValidTier(t) {
+      return t in ["free", "basic", "pro", "attorney"];
+    }
+
+    // Canon user-shape requires these keys to exist.
+    function hasCanonUserKeys(d) {
+      return d.keys().hasAll(["tier", "active", "role"]);
+    }
+
+    // v1 canon role
+    function isValidRole(r) {
+      return r == "user";
+    }
+
+    // Enforce immutable tier/active/role after creation.
+    function canonImmutableUnchanged() {
+      return request.resource.data.tier == resource.data.tier
+          && request.resource.data.active == resource.data.active
+          && request.resource.data.role == resource.data.role;
+    }
+
+    /* =========================
+       USERS
+       /users/{uid}
+       ========================= */
+    match /users/{uid} {
+
+      // Read: user can read own doc
+      allow read: if isSelf(uid);
+
+      // Create: user can create own doc, but ONLY with canon-safe defaults (no client elevation)
+      // Default recommendation baked in:
+      //   tier = "free"
+      //   active = true
+      //   role = "user"
+      allow create: if isSelf(uid)
+        && hasCanonUserKeys(request.resource.data)
+        && request.resource.data.tier == "free"
+        && request.resource.data.active == true
+        && isValidRole(request.resource.data.role);
+
+      // Update: user can update own doc BUT cannot change tier/active/role client-side
+      // Other profile subfields can change normally (intake/timeline/checklist/etc.)
+      allow update: if isSelf(uid)
+        && hasCanonUserKeys(request.resource.data)
+        && isValidTier(request.resource.data.tier)
+        && (request.resource.data.active is bool)
+        && (request.resource.data.role is string)
+        && canonImmutableUnchanged();
+
+      // Delete: deny (keeps account history stable; adjust later if you want self-delete)
+      allow delete: if false;
+    }
+
+    /* =========================
+       PEACE THREADS
+       /threads/{threadId}
+       and /threads/{threadId}/messages/{messageId}
+       ========================= */
+
     function threadDoc(threadId) {
       return get(/databases/$(database)/documents/threads/$(threadId));
     }
 
+    function threadOwnerUids(threadId) {
+      return threadDoc(threadId).data.ownerUids;
+    }
+
     function isThreadMember(threadId) {
       return signedIn()
-        && (request.auth.uid in threadDoc(threadId).data.ownerUids);
+        && threadDoc(threadId).exists()
+        && (request.auth.uid in threadOwnerUids(threadId));
     }
 
-    // -------------------------
-    // USERS
-    // -------------------------
-    match /users/{uid} {
-
-      allow read: if isOwner(uid);
-
-      allow create: if isOwner(uid);
-
-      // Prevent client-side tier / active / role changes
-      allow update: if isOwner(uid)
-        && request.resource.data.tier == resource.data.tier
-        && request.resource.data.active == resource.data.active
-        && request.resource.data.role == resource.data.role;
-
-      allow delete: if false;
-    }
-
-    // -------------------------
-    // PEACE PATH THREADS
-    // -------------------------
     match /threads/{threadId} {
 
-      allow read: if signedIn()
-        && request.auth.uid in resource.data.ownerUids;
+      // Only signed-in members can read
+      allow read: if isThreadMember(threadId);
 
+      // Create requires ownerUids array and must include request.auth.uid
       allow create: if signedIn()
-        && request.resource.data.ownerUids is list
-        && request.resource.data.ownerUids.size() > 0
-        && request.auth.uid in request.resource.data.ownerUids;
+        && (request.resource.data.ownerUids is list)
+        && (request.resource.data.ownerUids.size() > 0)
+        && (request.auth.uid in request.resource.data.ownerUids);
 
-      allow update: if signedIn()
-        && request.auth.uid in resource.data.ownerUids
-        && request.resource.data.ownerUids == resource.data.ownerUids;
+      // Update must preserve ownerUids exactly (no membership tampering client-side)
+      allow update: if isThreadMember(threadId)
+        && (request.resource.data.ownerUids == resource.data.ownerUids);
 
+      // Delete denied (per spec)
       allow delete: if false;
 
+      // Messages subcollection
       match /messages/{messageId} {
 
+        // Read allowed to thread members
         allow read: if isThreadMember(threadId);
 
+        // Create requires senderUid == request.auth.uid AND user is a member
         allow create: if isThreadMember(threadId)
+          && (request.resource.data.senderUid is string)
           && request.resource.data.senderUid == request.auth.uid;
 
+        // Update allowed only if original senderUid == request.auth.uid
+        // Also prevents changing senderUid after the fact.
         allow update: if isThreadMember(threadId)
+          && (resource.data.senderUid is string)
           && resource.data.senderUid == request.auth.uid
           && request.resource.data.senderUid == resource.data.senderUid;
 
+        // No deletes
         allow delete: if false;
       }
     }
 
+    /* =========================
+       Default deny
+       ========================= */
+    match /{document=**} {
+      allow read, write: if false;
+    }
   }
 }
