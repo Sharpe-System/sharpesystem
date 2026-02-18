@@ -5,8 +5,7 @@
 // - NO onAuthStateChanged listeners (prevents duplicate listeners on header re-injection)
 // - Idempotent: safe if initHeaderAuth() is called multiple times
 
-import { auth, getAuthStateOnce } from "/firebase-config.js";
-import { signOut } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
+import { getAuthStateOnce, authSignOut } from "/firebase-config.js";
 
 function byId(id) {
   return document.getElementById(id);
@@ -54,7 +53,7 @@ function bindLogoutOnce() {
     async (e) => {
       e.preventDefault();
       try {
-        await signOut(auth);
+        await authSignOut();
       } catch (err) {
         console.error(err);
         return;
