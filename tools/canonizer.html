@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Canonizer — SharpeSystem</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Canonical page generator." />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+
+<body>
+  <div id="site-header"></div>
+
+  <main class="page">
+    <div class="container content">
+      <section class="card" style="padding:var(--pad);">
+        <h1>Canonizer</h1>
+        <p class="muted">Enter content → get canon-perfect HTML scaffold.</p>
+
+        <div class="grid-2" style="margin-top:14px;">
+          <div class="card" style="padding:var(--pad);">
+            <label class="muted" style="font-size:13px;">Title</label>
+            <input id="title" style="width:100%;margin-top:6px;" placeholder="Example: Free Forms — Family Law" />
+
+            <label class="muted" style="font-size:13px;margin-top:10px;display:block;">Meta description</label>
+            <input id="desc" style="width:100%;margin-top:6px;" placeholder="One sentence." />
+
+            <label class="muted" style="font-size:13px;margin-top:10px;display:block;">H1</label>
+            <input id="h1" style="width:100%;margin-top:6px;" placeholder="Page heading" />
+
+            <label class="muted" style="font-size:13px;margin-top:10px;display:block;">Body HTML (inside the card)</label>
+            <textarea id="body" style="width:100%;min-height:220px;margin-top:6px;"
+              placeholder="<p class=&quot;muted&quot;>Short lead.</p>"></textarea>
+
+            <div class="row" style="gap:10px;margin-top:10px;">
+              <button class="button" id="btnBuild" type="button">Build Canon HTML</button>
+              <button class="button secondary" id="btnCopy" type="button">Copy Output</button>
+            </div>
+
+            <div class="muted" style="margin-top:10px;font-size:12px;">
+              Canonizer does not decide public/protected/paid. You classify routes in routes.manifest.json.
+            </div>
+          </div>
+
+          <div class="card" style="padding:var(--pad);">
+            <div class="muted" style="font-size:13px;">Output (paste into new .html file)</div>
+            <textarea id="outHtml" style="width:100%;min-height:520px;margin-top:8px;"></textarea>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script src="/ui.js"></script>
+  <script src="/header-loader.js"></script>
+  <script src="/partials/header.js"></script>
+  <script src="/i18n.js"></script>
+  <script type="module" src="/gate.js"></script>
+
+  <script type="module" src="/tools/canonizer.js"></script>
+</body>
+</html>
