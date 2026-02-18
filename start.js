@@ -1,47 +1,21 @@
-// /start.js
-// Purpose: route user based on whether intake exists yet.
-// AUTH-COMPLIANT: no gate exports, no firebase re-init.
+/* /rfo/rfo-state.js
+   Canon boundary shim:
+   - Sources Auth/Firestore ONLY from /firebase-config.js (canon).
+   - NO window.firebase* globals (forbidden).
+   - NO redirect logic, NO tier checks. gate.js owns enforcement.
 
-import { getAuthStateOnce, getUserProfile } from "/firebase-config.js";
-import { readUserDoc } from "/db.js";
+   Requirement:
+   - /firebase-config.js must export: auth, db
+*/
 
-function $(id){ return document.getElementById(id); }
-function setStatus(html){
-  const el = $("status");
-  if (el) el.innerHTML = html || "";
+import { auth, db } from "/firebase-config.js";
+
+/* ---------- Canon exports for RFO module usage ---------- */
+export { auth, db };
+
+/* ---------- Optional helpers (safe, non-gating) ---------- */
+
+// Canon location for RFO draft state (scoped to user)
+export function rfoDraftRef(uid) {
+  return { collection: "rfoDrafts", docId: uid };
 }
-
-(async function main(){
-  try {
-    // Session
-    const { user } = await getAuthStateOnce();
-    if (!user) {
-      window.location.replace("/login.html?next=%2Fstart.html");
-      return;
-    }
-
-    // Profile (tier check belongs in gate.js; here we just route)
-    const profile = await getUserProfile(user.uid).catch(() => ({}));
-
-    setStatus(
-      `Signed in as <strong>${user.email || "(no email)"}</strong>` +
-      ` • Tier: <strong>${profile?.tier || "?"}</strong>` +
-      ` • Routing…`
-    );
-
-    // Read user doc (intake lives on /users/{uid}.intake per your /db.js)
-    const data = await readUserDoc(user.uid);
-    const intake = data?.intake || null;
-
-    if (!intake || !intake.caseType || !intake.stage) {
-      window.location.replace("/intake.html");
-      return;
-    }
-
-    window.location.replace("/snapshot.html");
-  } catch (e) {
-    console.warn(e);
-    // If anything fails, fall back to tier page (your existing UX)
-    window.location.replace("/tier1.html");
-  }
-})();
