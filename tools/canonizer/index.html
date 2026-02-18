@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Canonizer — SharpeSystem</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Wrap imperfect code into canon-structured pages/modules." />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+
+<body class="shell">
+  <div id="site-header"></div>
+
+  <main class="page">
+    <div class="container content">
+      <section class="card" style="padding:var(--pad);">
+        <h1>Canonizer</h1>
+        <p class="muted">Paste imperfect HTML/JS. This tool outputs canon-structured code. No Firebase imports. No gating logic. No redirects.</p>
+
+        <div class="grid-2" style="margin-top:14px;">
+          <div class="card" style="padding:12px;">
+            <div class="muted" style="font-size:13px; margin-bottom:8px;">Input</div>
+            <textarea id="inCode" class="input" style="width:100%; min-height:260px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;"></textarea>
+
+            <div class="row" style="margin-top:10px; gap:10px; flex-wrap:wrap;">
+              <button id="btnCanonize" class="btn primary" type="button">Canonize</button>
+              <button id="btnCopyOutput" class="btn" type="button">Copy output</button>
+              <button id="btnDownloadOutput" class="btn" type="button">Download output</button>
+              <a class="btn" href="/tools/validizer/">Back to Validizer</a>
+            </div>
+          </div>
+
+          <div class="card" style="padding:12px;">
+            <div class="muted" style="font-size:13px; margin-bottom:8px;">Output</div>
+            <textarea id="outCode" class="input" style="width:100%; min-height:260px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;"></textarea>
+          </div>
+        </div>
+
+        <div class="card" style="padding:12px; margin-top:12px;">
+          <div class="muted" style="font-size:13px; margin-bottom:8px;">Canonizer Report</div>
+          <pre id="report" class="code" style="white-space:pre-wrap;"></pre>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script src="/ui.js"></script>
+  <script src="/header-loader.js"></script>
+  <script src="/partials/header.js"></script>
+  <script src="/i18n.js"></script>
+  <script type="module" src="/gate.js"></script>
+
+  <script src="/tools/canonizer.js" defer></script>
+</body>
+</html>
