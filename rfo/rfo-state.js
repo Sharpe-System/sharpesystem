@@ -1,23 +1,19 @@
 /* /rfo/rfo-state.js
    SharpeSystem — Request for Order (RFO) module
-   Firestore-backed persistence layer
-   Replaces localStorage with per-user document storage.
+   Firestore-backed persistence layer (per-user)
+   Canon compliant: NO window.firebase*, NO direct Firebase SDK imports here.
 */
+
+import { auth, db, fsDoc, fsGetDoc, fsSetDoc } from "../firebase-config.js";
 
 (function () {
   "use strict";
-
-  // ---- REQUIREMENTS ----
-  // firebase-config.js must initialize:
-  //   window.firebaseApp
-  //   window.firebaseAuth
-  //   window.firebaseDB
 
   const COLLECTION = "modules";
   const DOC_ID = "rfo";
 
   function nowISO() {
-    try { return new Date().toISOString(); } catch (e) { return ""; }
+    try { return new Date().toISOString(); } catch { return ""; }
   }
 
   function deepClone(obj) {
@@ -116,16 +112,10 @@
     return merged;
   }
 
-  // ---- FIRESTORE HELPERS ----
-
   async function getUserDocRef() {
-    const auth = window.firebaseAuth;
-    const db = window.firebaseDB;
-
     const user = auth.currentUser;
     if (!user) return null;
-
-    return window.firebaseDoc(db, "users", user.uid, COLLECTION, DOC_ID);
+    return fsDoc(db, "users", user.uid, COLLECTION, DOC_ID);
   }
 
   async function load() {
@@ -133,10 +123,8 @@
       const ref = await getUserDocRef();
       if (!ref) return defaultState();
 
-      const snap = await window.firebaseGetDoc(ref);
-      if (!snap.exists()) {
-        return defaultState();
-      }
+      const snap = await fsGetDoc(ref);
+      if (!snap.exists()) return defaultState();
 
       return normalizeState(snap.data());
     } catch (e) {
@@ -154,7 +142,7 @@
       if (!s.meta) s.meta = {};
       s.meta.updatedAt = nowISO();
 
-      await window.firebaseSetDoc(ref, s, { merge: true });
+      await fsSetDoc(ref, s, { merge: true });
       return true;
     } catch (e) {
       console.error("RFO save error:", e);
@@ -166,7 +154,7 @@
     try {
       const ref = await getUserDocRef();
       if (ref) {
-        await window.firebaseSetDoc(ref, defaultState(), { merge: false });
+        await fsSetDoc(ref, defaultState(), { merge: false });
       }
     } catch (e) {
       console.error("RFO reset error:", e);
@@ -181,5 +169,4 @@
     reset,
     normalizeState
   };
-
 })();
