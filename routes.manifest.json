@@ -1,0 +1,56 @@
+{
+  "baseUrl": "https://sharpesystem.pages.dev",
+  "loginUrlRegex": "\\/login\\.html",
+  "public": [
+    "/404.html",
+    "/amicable.html",
+    "/attorney-portal.html",
+    "/forms.html",
+    "/high-conflict-risk-awareness.html",
+    "/home.html",
+    "/index.html",
+    "/insurance-claims.html",
+    "/insurance.html",
+    "/login.html",
+    "/pricing.html",
+    "/signup.html",
+    "/stabilize.html",
+    "/status.html",
+    "/subscribe.html",
+    "/success.html",
+    "/tier1.html",
+    "/trees.html",
+    "/triage.html",
+
+    "/binder/attorney-invite.html",
+    "/binder/attorney-portal.html",
+
+    "/immigration/index.html"
+  ],
+  "protected": [
+    "/billing.html",
+    "/dashboard.html"
+  ],
+  "paid": [
+    "/app.html",
+    "/checklist.html",
+    "/intake.html",
+    "/notes.html",
+    "/snapshot.html",
+    "/timeline.html",
+    "/timeline-v2.html",
+
+    "/start.html",
+
+    "/binder/home.html",
+    "/binder/matter-binder.html",
+
+    "/immigration/intake.html",
+    "/immigration/snapshot.html",
+
+    "/peace/index.html",
+    "/peace/thread.html",
+
+    "/rfo/index.html"
+  ]
+}
