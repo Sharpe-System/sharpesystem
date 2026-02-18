@@ -1,67 +1,209 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Create Account — SharpeSystem</title>
-  <link rel="stylesheet" href="/styles.css" />
+// /snapshot.js
+// Snapshot (paid module).
+// Canon rules:
+// - NO redirects for auth/tier (gate.js owns gating)
+// - NO Firebase CDN imports
+// - Auth state via getAuthStateOnce()
+// - Data access via /db.js and /firebase-config.js helpers only
 
-  <!-- Optional i18n -->
-  <script src="/i18n.js" defer></script>
-</head>
+import { getAuthStateOnce, getUserProfile } from "/firebase-config.js";
+import { ensureUserDoc, readUserDoc } from "/db.js";
 
-<body>
-  <!-- Shared header -->
-  <div id="site-header"></div>
-  <script src="/header-loader.js" defer></script>
-  <script type="module" src="/header-auth.js" defer></script>
+(function () {
+  "use strict";
 
-  <main class="page" style="max-width:920px;margin:0 auto;padding:24px;">
-    <header style="margin-bottom:18px;">
-      <div style="font-weight:700;">SharpeSystem</div>
-      <div class="muted" style="margin-top:4px;">Create an account to sync your intake and unlock tiers.</div>
-    </header>
+  function esc(s) {
+    return String(s ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#39;");
+  }
 
-    <section class="card" style="padding:18px;">
-      <h1 style="margin:0 0 8px 0;">Create account</h1>
-      <p class="muted" style="margin:0 0 18px 0;">Email + password. Tier is set on your user profile.</p>
+  function $(sel, root = document) {
+    return root.querySelector(sel);
+  }
 
-      <div class="rfoField" style="margin-bottom:12px;">
-        <span>Email</span>
-        <input id="email" type="email" autocomplete="email" placeholder="you@example.com" />
+  function parseRisks(risks) {
+    if (!risks) return null;
+    if (typeof risks === "object") return risks;
+    try {
+      return JSON.parse(risks);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function classify(intake) {
+    const caseType = (intake?.caseType || "").toLowerCase();
+    const stage = (intake?.stage || "").toLowerCase();
+    const deadline = (intake?.nextDate || "").trim();
+    const risks = parseRisks(intake?.risks) || {};
+
+    let track = "General";
+    if (caseType === "family") track = "Family / custody / divorce";
+    else if (caseType === "protective_order") track = "Protective order";
+    else if (caseType === "criminal") track = "Criminal";
+    else if (caseType === "civil") track = "Civil";
+    else if (caseType === "housing") track = "Housing";
+    else if (caseType === "employment") track = "Employment";
+    else if (caseType === "admin") track = "Government / benefits";
+    else if (caseType === "unsure") track = "Not sure yet";
+    else if (caseType === "other") track = "Other";
+
+    let urgency = "Normal";
+    if (deadline) urgency = "Deadline anchored";
+    if (stage === "upcoming_hearing") urgency = "Upcoming hearing";
+    if (stage === "responding") urgency = "Response window";
+    if (risks?.safety) urgency = "Safety-sensitive";
+    if (risks?.noContact) urgency = "No-contact constrained";
+
+    // Minimal deterministic "next steps" (informational only; checklist.js will own real flow)
+    const next = [];
+    if (deadline) next.push("Confirm the exact court date/deadline and write it in your Timeline.");
+    if (stage === "responding") next.push("Identify what you received and the response deadline.");
+    if (stage === "upcoming_hearing") next.push("Prepare a one-page hearing outline and start an evidence list.");
+    if (stage === "changing_order") next.push("List the change you want and the facts supporting best interests / necessity.");
+    if (stage === "enforcement") next.push("List violations with dates, and gather supporting screenshots/records.");
+    if (risks?.noContact) next.push("Plan communications assuming strict no-contact boundaries.");
+    if (risks?.money) next.push("Prefer low-cost procedural options and prioritize must-file items.");
+    if (next.length === 0) next.push("Complete Intake if anything is missing, then proceed to Checklist.");
+
+    return { track, urgency, next, risks };
+  }
+
+  function render({ user, profile, intake }) {
+    const box = $(".template-box") || $(".container.content") || document.body;
+    const ctaRow = $(".cta-row", box) || null;
+
+    const c = classify(intake);
+
+    const riskLines = [];
+    const r = c.risks || {};
+    if (r.noContact) riskLines.push("No-contact / restraining order");
+    if (r.safety) riskLines.push("Safety concern");
+    if (r.money) riskLines.push("Fee sensitivity");
+    if (r.language) riskLines.push("Language support");
+    if (r.selfRep) riskLines.push("Self-represented");
+    const where = (r.where || "").trim();
+
+    const facts = (intake?.facts || "").trim();
+    const goal = (intake?.goal || "").trim();
+    const stage = (intake?.stage || "").trim();
+    const caseType = (intake?.caseType || "").trim();
+    const nextDate = (intake?.nextDate || "").trim();
+
+    const html = `
+      <div class="card" style="padding:14px; margin-top:12px;">
+        <div class="row" style="justify-content:space-between; align-items:flex-start;">
+          <div>
+            <div class="muted" style="font-size:13px;">Signed in as</div>
+            <div style="font-weight:800;">${esc(user?.email || "(no email)")}</div>
+          </div>
+          <div class="badge" title="Profile tier">
+            Tier: ${esc(profile?.tier || "free")}
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="grid-2">
+          <div class="card" style="padding:12px;">
+            <div class="muted" style="font-size:13px;">Track</div>
+            <div style="font-weight:850; margin-top:4px;">${esc(c.track)}</div>
+            <div class="muted" style="margin-top:8px;">Urgency</div>
+            <div style="font-weight:850; margin-top:4px;">${esc(c.urgency)}</div>
+          </div>
+
+          <div class="card" style="padding:12px;">
+            <div class="muted" style="font-size:13px;">Where</div>
+            <div style="font-weight:750; margin-top:4px;">${esc(where || "—")}</div>
+            <div class="muted" style="margin-top:8px;">Deadline / court date</div>
+            <div style="font-weight:750; margin-top:4px;">${esc(nextDate || "—")}</div>
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="grid-2">
+          <div class="card" style="padding:12px;">
+            <div class="muted" style="font-size:13px;">Intake</div>
+            <div style="margin-top:8px;"><span class="badge">Case type: ${esc(caseType || "—")}</span></div>
+            <div style="margin-top:8px;"><span class="badge">Stage: ${esc(stage || "—")}</span></div>
+            <div class="muted" style="margin-top:10px;">Goal</div>
+            <div style="margin-top:6px;">${esc(goal || "—")}</div>
+          </div>
+
+          <div class="card" style="padding:12px;">
+            <div class="muted" style="font-size:13px;">Flags</div>
+            ${
+              riskLines.length
+                ? `<ul style="margin:8px 0 0 18px; color:var(--muted);">
+                    ${riskLines.map((x) => `<li>${esc(x)}</li>`).join("")}
+                   </ul>`
+                : `<div style="margin-top:8px;" class="muted">—</div>`
+            }
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="card" style="padding:12px;">
+          <div class="muted" style="font-size:13px;">Facts (plain)</div>
+          <div style="margin-top:8px; white-space:pre-wrap;">${esc(facts || "—")}</div>
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="card" style="padding:12px;">
+          <div class="muted" style="font-size:13px;">Suggested next steps (informational)</div>
+          <ol style="margin:10px 0 0 18px; color:var(--muted);">
+            ${c.next.map((x) => `<li style="margin:6px 0;">${esc(x)}</li>`).join("")}
+          </ol>
+          <div class="muted" style="margin-top:10px; font-size:12px;">
+            Next steps become your Checklist once saved items exist.
+          </div>
+        </div>
       </div>
+    `;
 
-      <div class="rfoField" style="margin-bottom:12px;">
-        <span>Password</span>
-        <input id="password" type="password" autocomplete="new-password" placeholder="At least 6 characters" />
-      </div>
+    // Replace the placeholder "muted" line if present, and keep CTA row intact.
+    const placeholder = $(".muted", box);
+    if (placeholder) {
+      placeholder.outerHTML = html;
+    } else {
+      box.insertAdjacentHTML("beforeend", html);
+    }
 
-      <div class="rfoField" style="margin-bottom:12px;">
-        <span>Plan</span>
-        <select id="tier">
-          <option value="free">Free</option>
-          <option value="basic">Basic</option>
-          <option value="pro">Pro</option>
-          <option value="attorney">Attorney</option>
-        </select>
-      </div>
+    // Ensure CTA row stays at the bottom (if present)
+    if (ctaRow) box.appendChild(ctaRow);
+  }
 
-      <div style="display:flex;gap:10px;align-items:center;margin-top:14px;">
-        <button class="btn" id="btnCreate" type="button">Create account</button>
-        <button class="btn" id="btnLogin" type="button">Log in instead</button>
-        <span id="msg" class="muted" style="margin-left:auto;"></span>
-      </div>
+  async function init() {
+    try {
+      const { user } = await getAuthStateOnce();
+      if (!user) return; // gate.js handles auth redirect
 
-      <div class="muted" style="margin-top:14px;font-size:12px;">
-        If you completed an intake before creating an account, we will sync it from this browser after signup.
-      </div>
-    </section>
+      await ensureUserDoc(user.uid);
 
-    <footer class="muted" style="margin-top:18px;">
-      <a href="/pricing.html">Plans</a> · <a href="/home.html">Home</a>
-    </footer>
-  </main>
+      const [profile, data] = await Promise.all([
+        getUserProfile(user.uid).catch(() => ({})),
+        readUserDoc(user.uid).catch(() => ({})),
+      ]);
 
-  <script type="module" src="/signup.js"></script>
-</body>
-</html>
+      const intake = data?.intake || {};
+
+      render({ user, profile, intake });
+    } catch (e) {
+      console.error(e);
+      const box = document.querySelector(".template-box") || document.body;
+      box.insertAdjacentHTML(
+        "beforeend",
+        `<div class="alert warn" style="margin-top:12px;">Snapshot failed to load. Check console.</div>`
+      );
+    }
+  }
+
+  init();
+})();
