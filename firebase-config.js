@@ -1,15 +1,21 @@
 // /firebase-config.js
 // Frozen AUTH CORE module: initializes Firebase exactly once and exposes
-// a shared auth state promise + helper to read the user doc.
-// Also exports Firestore helpers so feature modules do NOT import Firebase directly.
+// auth + firestore + SAFE helper exports for other modules.
+// Canon rule: Other files may import from HERE, but must NOT import Firebase CDN directly.
 
 import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
+import {
+  getAuth,
+  onAuthStateChanged,
+  signOut,
+} from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
 import {
   getFirestore,
   doc,
   getDoc,
-  setDoc
+  setDoc,
+  updateDoc,
+  collection,
 } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 
 /**
@@ -22,7 +28,7 @@ export const firebaseConfig = {
   projectId: "sharpe-legal",
   storageBucket: "sharpe-legal.firebasestorage.app",
   messagingSenderId: "770027799385",
-  appId: "1:770027799385:web:64c3f7bd4b7a140f5c0248"
+  appId: "1:770027799385:web:64c3f7bd4b7a140f5c0248",
 };
 
 export const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
@@ -55,7 +61,7 @@ export function getAuthStateOnce() {
 
 /**
  * Reads /users/{uid}. Returns null if missing/unreadable.
- * Expected fields (AUTH-owned semantics only):
+ * Expected fields:
  * - tier: "free" | "basic" | "pro" | "attorney"
  * - active: boolean
  */
@@ -69,15 +75,24 @@ export async function getUserProfile(uid) {
   }
 }
 
-/**
- * --- FIRESTORE HELPERS (exported) ---
- * Feature modules MUST use these exports and MUST NOT import Firebase SDK directly.
- */
+/* ------------------------------------------------------------------
+   Canon re-exports:
+   These let other modules use Firebase functionality WITHOUT importing
+   Firebase CDN directly. This keeps all Firebase imports centralized here.
+------------------------------------------------------------------- */
+
+// Auth helpers
+export const authOnAuthStateChanged = onAuthStateChanged;
+export const authSignOut = signOut;
+
+// Firestore helpers
 export const fsDoc = doc;
 export const fsGetDoc = getDoc;
 export const fsSetDoc = setDoc;
+export const fsUpdateDoc = updateDoc;
+export const fsCollection = collection;
 
-// ✅ Compatibility default export (fixes: "does not provide an export named 'default'")
+// ✅ Compatibility default export
 export default {
   firebaseConfig,
   app,
@@ -85,7 +100,11 @@ export default {
   db,
   getAuthStateOnce,
   getUserProfile,
+  authOnAuthStateChanged,
+  authSignOut,
   fsDoc,
   fsGetDoc,
-  fsSetDoc
+  fsSetDoc,
+  fsUpdateDoc,
+  fsCollection,
 };
