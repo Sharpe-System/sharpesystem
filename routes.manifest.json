@@ -3,29 +3,33 @@
   "loginUrlRegex": "\\/login\\.html",
 
   "public": [
-    "/404.html",
-    "/amicable.html",
-    "/attorney-portal.html",
-    "/forms.html",
-    "/high-conflict-risk-awareness.html",
-    "/home.html",
+    "/",
     "/index.html",
-    "/insurance-claims.html",
-    "/insurance.html",
-    "/login.html",
+    "/home.html",
+    "/triage.html",
+    "/trees.html",
+    "/forms.html",
     "/pricing.html",
+    "/login.html",
     "/signup.html",
-    "/stabilize.html",
-    "/status.html",
     "/subscribe.html",
     "/success.html",
-    "/trees.html",
-    "/triage.html",
+    "/status.html",
+    "/stabilize.html",
+    "/amicable.html",
+    "/insurance.html",
+    "/insurance-claims.html",
+    "/high-conflict-risk-awareness.html",
+    "/404.html",
 
     "/binder/attorney-invite.html",
     "/binder/attorney-portal.html",
+    "/attorney-portal.html",
 
-    "/immigration/index.html"
+    "/immigration/index.html",
+
+    "/tools/validizer/",
+    "/tools/canonizer/"
   ],
 
   "protected": [
@@ -41,7 +45,6 @@
     "/snapshot.html",
     "/timeline.html",
     "/timeline-v2.html",
-
     "/start.html",
     "/tier1.html",
 
@@ -54,11 +57,6 @@
     "/peace/index.html",
     "/peace/thread.html",
 
-    "/rfo/index.html",
-
-    "/tools/validizer",
-    "/tools/validizer.html",
-    "/tools/canonizer",
-    "/tools/canonizer.html"
+    "/rfo/index.html"
   ]
 }
