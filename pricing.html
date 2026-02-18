@@ -1,51 +1,68 @@
+<!-- /pricing.html -->
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Plans — SharpeSystem</title>
+  <meta name="description" content="Plans and access levels." />
   <link rel="stylesheet" href="/styles.css" />
 </head>
-<body>
-  <main class="page" style="max-width:980px;margin:0 auto;padding:24px;">
-    <h1 style="margin:0 0 6px 0;">Save your intake + build your account</h1>
-    <p class="muted" style="margin-top:0;">
-      Your intake has been saved locally in this browser. Create an account to sync it across devices and generate filings.
-    </p>
+<body class="shell">
+  <div id="site-header"></div>
 
-    <div class="card" style="padding:18px;margin-top:18px;">
-      <h2 style="margin:0 0 10px 0;">Tier 1 — Intake + Snapshot</h2>
-      <ul class="muted" style="margin:0 0 14px 18px;">
-        <li>Continue intake later</li>
-        <li>Snapshot export</li>
-        <li>Basic checklists</li>
-      </ul>
-      <button class="btn" id="goSignup1">Create account</button>
-    </div>
+  <main class="page">
+    <div class="container content">
+      <section class="template-box">
+        <h1>Plans</h1>
+        <p class="muted">
+          Create an account to save your work and access guided workflows.
+          Informational only.
+        </p>
+      </section>
 
-    <div class="card" style="padding:18px;margin-top:14px;">
-      <h2 style="margin:0 0 10px 0;">Tier 2 — Packet Builder</h2>
-      <ul class="muted" style="margin:0 0 14px 18px;">
-        <li>Guided declarations</li>
-        <li>Form outputs</li>
-        <li>Exhibit index + pagination helpers</li>
-      </ul>
-      <button class="btn" id="goSignup2">Create account</button>
-    </div>
+      <section class="card" style="padding:18px;margin-top:14px;">
+        <h2 style="margin:0 0 10px 0;">Tier 1 — Intake + Snapshot</h2>
+        <ul class="muted" style="margin:0 0 14px 18px;">
+          <li>Continue intake later</li>
+          <li>Snapshot export</li>
+          <li>Basic checklists</li>
+        </ul>
+        <button class="btn" id="goSignup1" type="button">Create account</button>
+      </section>
 
-    <div class="card" style="padding:18px;margin-top:14px;">
-      <h2 style="margin:0 0 10px 0;">Already have an account?</h2>
-      <button class="btn" id="goLogin">Log in</button>
-      <button class="btn" id="goDashboard" style="margin-left:10px;">Back to dashboard</button>
+      <section class="card" style="padding:18px;margin-top:14px;">
+        <h2 style="margin:0 0 10px 0;">Tier 2 — Packet Builder</h2>
+        <ul class="muted" style="margin:0 0 14px 18px;">
+          <li>Guided declarations</li>
+          <li>Form outputs</li>
+          <li>Exhibit index + pagination helpers</li>
+        </ul>
+        <button class="btn" id="goSignup2" type="button">Create account</button>
+      </section>
+
+      <section class="card" style="padding:18px;margin-top:14px;">
+        <h2 style="margin:0 0 10px 0;">Already have an account?</h2>
+        <div class="row" style="gap:10px;flex-wrap:wrap;">
+          <button class="btn" id="goLogin" type="button">Log in</button>
+          <button class="btn" id="goDashboard" type="button">Back to dashboard</button>
+        </div>
+      </section>
     </div>
   </main>
 
-  <script type="module">
+  <script>
     const to = (p) => (window.location.href = p);
     document.getElementById("goSignup1")?.addEventListener("click", () => to("/signup.html?tier=1"));
     document.getElementById("goSignup2")?.addEventListener("click", () => to("/signup.html?tier=2"));
     document.getElementById("goLogin")?.addEventListener("click", () => to("/login.html"));
     document.getElementById("goDashboard")?.addEventListener("click", () => to("/dashboard.html"));
   </script>
+
+  <script src="/ui.js" defer></script>
+  <script src="/header-loader.js" defer></script>
+  <script src="/partials/header.js" defer></script>
+  <script src="/i18n.js" defer></script>
+  <script type="module" src="/gate.js"></script>
 </body>
 </html>
