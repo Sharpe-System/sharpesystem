@@ -4,8 +4,7 @@
 // - Provides logout action
 // - Does not redirect or gate pages (gate.js owns gating)
 
-import { getAuthStateOnce, getUserProfile, auth } from "/firebase-config.js";
-import { signOut } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
+import { getAuthStateOnce, getUserProfile, authSignOut } from "/firebase-config.js";
 
 function qs(sel) { return document.querySelector(sel); }
 
@@ -49,7 +48,7 @@ function show(el, on) {
   if (elLogout) {
     elLogout.addEventListener("click", async (e) => {
       e.preventDefault();
-      try { await signOut(auth); } catch {}
+      try { await authSignOut(); } catch {}
       // No redirect here. If page requires auth, gate.js on reload/navigation will handle.
       window.location.reload();
     }, { once: true });
