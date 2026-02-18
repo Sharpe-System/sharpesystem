@@ -2,72 +2,111 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Matter Binder — Concept</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Concept walkthrough: a neutral matter binder for timelines, documents, and decisions." />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Matter Binder — SharpeSystem</title>
+  <meta name="description" content="Binder workspace." />
   <link rel="stylesheet" href="/styles.css" />
+  <style>
+    .page{min-height:100vh;padding:28px 16px;}
+    .wrap{max-width:1200px;margin:0 auto;}
+    .top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;}
+    .panel{background:var(--panel);border:1px solid var(--border);border-radius:18px;padding:18px;box-shadow:var(--shadow);}
+    h1{margin:0 0 6px;font-size:30px;}
+    .sub{margin:0;color:var(--muted);line-height:1.45;max-width:900px;}
+    .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;}
+    .btn{appearance:none;border:1px solid var(--border);border-radius:12px;padding:12px 14px;cursor:pointer;font-weight:900;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;}
+    .btn.primary{background:var(--accent);color:#071018;}
+    .btn.secondary{background:transparent;color:var(--text);}
+    .grid{display:grid;gap:12px;margin-top:12px;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));}
+    .card{background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:16px;padding:16px;}
+    .card h2{margin:0 0 8px;font-size:18px;}
+    .card p{margin:0;color:var(--muted);line-height:1.45;}
+    .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;}
+    .pill{display:inline-block;margin-top:10px;padding:6px 10px;border-radius:999px;border:1px solid var(--border);color:var(--muted);font-size:12px;}
+    textarea,input{width:100%;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:12px;color:var(--text);padding:10px 12px;}
+    label{display:block;color:var(--muted);font-size:12px;margin:10px 0 6px;}
+  </style>
 </head>
 
-<body>
+<body class="shell" data-require-auth="1" data-require-tier="basic" data-require-active="1">
 
-  <!-- Shared header mount -->
   <div id="site-header"></div>
 
   <main class="page">
-    <div class="container content">
+    <div class="wrap">
 
-      <section class="page-hero" aria-label="Matter binder hero">
-        <h1>Matter Binder</h1>
-        <p class="sub">
-          A neutral container for timelines, documents, and decisions — without advice.
-          This is a conceptual walkthrough (no account, no storage, no portal access yet).
-        </p>
+      <section class="panel">
+        <div class="top">
+          <div>
+            <h1>Matter Binder</h1>
+            <p class="sub">
+              This is the paid binder workspace shell. It is canon-gated and safe to evolve without reworking access control.
+            </p>
+            <span class="pill">Access: <span class="mono">Paid (basic)</span> • Canon-gated</span>
+          </div>
+
+          <div class="row">
+            <a class="btn secondary" href="/binder/home.html">Binder Home</a>
+            <a class="btn secondary" href="/dashboard.html">Dashboard</a>
+            <a class="btn primary" href="/status.html">Status</a>
+          </div>
+        </div>
       </section>
 
-      <section class="card" aria-label="What this does">
-        <h2>What this does</h2>
-        <ul>
-          <li>Centralizes facts, dates, and documents in one place</li>
-          <li>Preserves timelines before details are lost</li>
-          <li>Creates a clean record you can share later</li>
-          <li>Reduces emotional drift by forcing structure</li>
-        </ul>
+      <section class="grid">
 
-        <div class="hr"></div>
-
-        <h2>What this does not do</h2>
-        <ul>
-          <li>Does not provide legal advice</li>
-          <li>Does not recommend strategy</li>
-          <li>Does not replace counsel</li>
-        </ul>
-
-        <div class="note" role="note">
-          <strong>Design principle:</strong> clarity over urgency. records over memory.
+        <div class="card">
+          <h2>Quick Notes</h2>
+          <p style="margin-bottom:10px;">Temporary scratchpad (local only for now). Wire to Firestore later after schema freeze.</p>
+          <label for="binder_notes">Notes</label>
+          <textarea id="binder_notes" rows="10" placeholder="Key facts, exhibit reminders, deadlines, etc."></textarea>
+          <div class="row">
+            <button class="btn secondary" type="button" id="save_notes">Save Local</button>
+            <button class="btn secondary" type="button" id="clear_notes">Clear</button>
+          </div>
         </div>
 
-        <div class="cta-row">
-          <a class="button primary" href="/binder/attorney-invite.html">Attorney invite</a>
-          <a class="button" href="/binder/attorney-portal.html">Attorney portal preview</a>
+        <div class="card">
+          <h2>Structure</h2>
+          <p>
+            Next steps for this page (later): sections, exhibit index, timeline sync, export templates. For now, this shell
+            exists to lock routing + gating so you don’t drift.
+          </p>
         </div>
 
-        <div class="footer" style="margin-top:16px;">
-          <div><strong>Reminder:</strong> Informational only. Not legal advice. Not strategy.</div>
+        <div class="card">
+          <h2>Export (later)</h2>
+          <p>Export will become a real pipeline once binder schema + document templates are finalized.</p>
         </div>
+
       </section>
 
     </div>
   </main>
 
-  <!-- UI hardening (safe on every page) -->
-  <script src="/ui.js" defer></script>
+  <script>
+    (function(){
+      const k = "binder_notes_v1";
+      const ta = document.getElementById("binder_notes");
+      const save = document.getElementById("save_notes");
+      const clear = document.getElementById("clear_notes");
+      try { ta.value = localStorage.getItem(k) || ""; } catch {}
+      save.addEventListener("click", () => {
+        try { localStorage.setItem(k, ta.value || ""); } catch {}
+        save.textContent = "Saved";
+        setTimeout(()=> save.textContent="Save Local", 900);
+      });
+      clear.addEventListener("click", () => {
+        ta.value = "";
+        try { localStorage.removeItem(k); } catch {}
+      });
+    })();
+  </script>
 
-  <!-- Header + controls (canonical: /partials only) -->
+  <script src="/ui.js" defer></script>
   <script src="/header-loader.js" defer></script>
   <script src="/partials/header.js" defer></script>
   <script src="/i18n.js" defer></script>
-
-  <!-- AUTH CORE (required on all pages) -->
   <script type="module" src="/gate.js"></script>
 
 </body>
