@@ -1,89 +1,98 @@
-cd /Users/nathansharpe/Desktop/sharpesystem || exit 1
-mkdir -p scripts
-
-cat > scripts/guardrails.sh <<'EOF'
 #!/bin/bash
-set -eu
+set -euo pipefail
 
 echo "== SharpeSystem Guardrails =="
 
-# 1) Block legacy global firebase bypass in JS source (ignore scripts/)
-echo "[1/3] Checking for legacy global firebase bypass in JS files..."
-if grep -RIn --include="*.js" --exclude-dir="scripts" "window\.firebase" . >/dev/null 2>&1; then
-  echo "FAIL: Found legacy global firebase usage in JS source."
-  grep -RIn --include="*.js" --exclude-dir="scripts" "window\.firebase" .
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$ROOT"
+
+fail() {
+  echo ""
+  echo "FAIL: $1"
   exit 1
-fi
-echo "OK: No legacy global firebase usage in JS source."
-
-# 2) Block Firebase CDN imports outside approved canon files
-echo "[2/3] Checking for Firebase CDN imports outside approved canon files..."
-
-ALLOWED="firebase-config.js gate.js login.js signup.js billing.js peace/peace.js"
-
-is_allowed() {
-  f="$1"
-  for a in $ALLOWED; do
-    if [ "$f" = "$a" ]; then
-      return 0
-    fi
-  done
-  return 1
 }
 
-TMP="/tmp/jsfiles.$$"
-git ls-files "*.js" > "$TMP"
-
-HIT=0
-while IFS= read -r f; do
-  if is_allowed "$f"; then
-    continue
-  fi
-
-  if grep -q "https://www.gstatic.com/firebasejs/" "$f" 2>/dev/null; then
-    echo "FAIL: Firebase CDN import found outside canon: $f"
-    grep -n "https://www.gstatic.com/firebasejs/" "$f" || true
-    HIT=1
-  fi
-done < "$TMP"
-
-rm -f "$TMP"
-
-if [ "$HIT" -ne 0 ]; then
-  echo ""
-  echo "Fix: only these files may import Firebase CDN:"
-  echo "  $ALLOWED"
-  exit 1
+# ---------- 1) Zero-tolerance: legacy globals ----------
+echo "[1/5] Checking for forbidden legacy Firebase globals..."
+if grep -RIn --include="*.js" --exclude-dir="scripts" "window\.firebase" . >/dev/null 2>&1; then
+  echo "Found forbidden legacy Firebase globals:"
+  grep -RIn --include="*.js" --exclude-dir="scripts" "window\.firebase" .
+  fail "window.firebase* usage is forbidden (C7)."
 fi
+echo "OK"
 
-echo "OK: Firebase CDN imports are confined to approved files."
+# ---------- 2) Zero-tolerance: Firebase CDN imports outside firebase-config.js ----------
+echo "[2/5] Checking for Firebase CDN imports outside /firebase-config.js..."
+HITS="$(grep -RIn --include="*.js" "https://www\.gstatic\.com/firebasejs/" . || true)"
 
-# 3) Ensure every HTML route is listed in routes.manifest.json
-echo "[3/3] Checking that all HTML routes are in routes.manifest.json..."
-
-if [ ! -f "routes.manifest.json" ]; then
-  echo "FAIL: routes.manifest.json missing at repo root."
-  exit 1
+if [ -n "$HITS" ]; then
+  BAD="$(echo "$HITS" | grep -vE '^firebase-config\.js:' || true)"
+  if [ -n "$BAD" ]; then
+    echo "$BAD"
+    fail "Firebase CDN import found outside /firebase-config.js (C1)."
+  fi
 fi
+echo "OK"
 
-ALL_HTML="/tmp/allhtml.$$"
-MAN_HTML="/tmp/manhtml.$$"
+# ---------- 3) Zero-tolerance: onAuthStateChanged outside firebase-config.js ----------
+echo "[3/5] Checking for onAuthStateChanged outside /firebase-config.js..."
+HITS="$(grep -RIn --include="*.js" "onAuthStateChanged" . || true)"
+if [ -n "$HITS" ]; then
+  BAD="$(echo "$HITS" | grep -vE '^firebase-config\.js:' || true)"
+  if [ -n "$BAD" ]; then
+    echo "$BAD"
+    fail "onAuthStateChanged found outside /firebase-config.js (C2)."
+  fi
+fi
+echo "OK"
 
-git ls-files "*.html" | sed 's#^#/#' | sort -u > "$ALL_HTML"
+# ---------- 4) Zero-tolerance: auth redirects outside gate.js ----------
+# We restrict to common patterns. Gate.js is allowed to redirect.
+echo "[4/5] Checking for auth redirect patterns outside /gate.js..."
+HITS="$(grep -RIn --include="*.js" "location\.(href|replace)\(\"/login\.html" . || true)"
+if [ -n "$HITS" ]; then
+  BAD="$(echo "$HITS" | grep -vE '^gate\.js:' || true)"
+  if [ -n "$BAD" ]; then
+    echo "$BAD"
+    fail "Login redirects outside /gate.js are forbidden (C3)."
+  fi
+fi
+echo "OK"
+
+# ---------- 5) Manifest integrity: all routable HTML must be listed ----------
+echo "[5/5] Checking routes.manifest.json covers all routable HTML..."
+
+[ -f "routes.manifest.json" ] || fail "routes.manifest.json missing at repo root."
+
+ALL_HTML="/tmp/sharpesystem_allhtml.$$"
+MAN_HTML="/tmp/sharpesystem_manhtml.$$"
+
+# Exclusions: non-routable templates/fragments
+# - page.template.html
+# - anything under /partials/
+git ls-files "*.html" \
+  | grep -vE '(^partials/|/partials/)' \
+  | grep -vE '^page\.template\.html$' \
+  | sed 's#^#/#' \
+  | sort -u > "$ALL_HTML"
 
 node -e '
-  const fs=require("fs");
-  const m=JSON.parse(fs.readFileSync("routes.manifest.json","utf8"));
-  const all=[...(m.public||[]),...(m.protected||[]),...(m.paid||[])];
-  const out=[...new Set(all)].sort();
-  console.log(out.join("\n"));
+  const fs = require("fs");
+  const m = JSON.parse(fs.readFileSync("routes.manifest.json","utf8"));
+  const all = [
+    ...(m.public || []),
+    ...(m.protected || []),
+    ...(m.paid || [])
+  ];
+  const out = [...new Set(all)].sort();
+  process.stdout.write(out.join("\n"));
 ' > "$MAN_HTML"
 
 MISSING=0
 while IFS= read -r route; do
   if ! grep -Fxq "$route" "$MAN_HTML"; then
     if [ "$MISSING" -eq 0 ]; then
-      echo "FAIL: These HTML routes exist in git but are missing from routes.manifest.json:"
+      echo "Missing from routes.manifest.json:"
     fi
     echo " - $route"
     MISSING=1
@@ -92,14 +101,7 @@ done < "$ALL_HTML"
 
 rm -f "$ALL_HTML" "$MAN_HTML"
 
-if [ "$MISSING" -ne 0 ]; then
-  echo ""
-  echo "Fix: add each missing route to public/protected/paid in routes.manifest.json."
-  exit 1
-fi
+[ "$MISSING" -eq 0 ] || fail "routes.manifest.json missing one or more routable HTML routes (C4)."
 
-echo "OK: routes.manifest.json covers all HTML routes."
+echo "OK"
 echo "All guardrails passed."
-EOF
-
-chmod +x scripts/guardrails.sh
