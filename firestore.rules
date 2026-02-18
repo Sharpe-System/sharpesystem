@@ -5,6 +5,7 @@ service cloud.firestore {
     /* =========================
        Helpers
        ========================= */
+
     function signedIn() {
       return request.auth != null;
     }
@@ -13,21 +14,15 @@ service cloud.firestore {
       return signedIn() && request.auth.uid == uid;
     }
 
-    function isValidTier(t) {
-      return t in ["free", "basic", "pro", "attorney"];
+    function isAdmin() {
+      return request.auth != null
+        && request.auth.token.admin == true;
     }
 
-    // Canon user-shape requires these keys to exist.
     function hasCanonUserKeys(d) {
       return d.keys().hasAll(["tier", "active", "role"]);
     }
 
-    // v1 canon role
-    function isValidRole(r) {
-      return r == "user";
-    }
-
-    // Enforce immutable tier/active/role after creation.
     function canonImmutableUnchanged() {
       return request.resource.data.tier == resource.data.tier
           && request.resource.data.active == resource.data.active
@@ -38,39 +33,33 @@ service cloud.firestore {
        USERS
        /users/{uid}
        ========================= */
+
     match /users/{uid} {
 
-      // Read: user can read own doc
-      allow read: if isSelf(uid);
+      // read own user doc
+      allow read: if isSelf(uid) || isAdmin();
 
-      // Create: user can create own doc, but ONLY with canon-safe defaults (no client elevation)
-      // Default recommendation baked in:
-      //   tier = "free"
-      //   active = true
-      //   role = "user"
+      // create own user doc with locked defaults
       allow create: if isSelf(uid)
         && hasCanonUserKeys(request.resource.data)
         && request.resource.data.tier == "free"
         && request.resource.data.active == true
-        && isValidRole(request.resource.data.role);
+        && request.resource.data.role == "user";
 
-      // Update: user can update own doc BUT cannot change tier/active/role client-side
-      // Other profile subfields can change normally (intake/timeline/checklist/etc.)
-      allow update: if isSelf(uid)
-        && hasCanonUserKeys(request.resource.data)
-        && isValidTier(request.resource.data.tier)
-        && (request.resource.data.active is bool)
-        && (request.resource.data.role is string)
-        && canonImmutableUnchanged();
+      // user may update profile/app only (tier/active/role frozen)
+      // admin/webhook may update anything
+      allow update: if (
+          isSelf(uid)
+          && canonImmutableUnchanged()
+        )
+        || isAdmin();
 
-      // Delete: deny (keeps account history stable; adjust later if you want self-delete)
+      // never delete
       allow delete: if false;
     }
 
     /* =========================
        PEACE THREADS
-       /threads/{threadId}
-       and /threads/{threadId}/messages/{messageId}
        ========================= */
 
     function threadDoc(threadId) {
@@ -89,48 +78,37 @@ service cloud.firestore {
 
     match /threads/{threadId} {
 
-      // Only signed-in members can read
       allow read: if isThreadMember(threadId);
 
-      // Create requires ownerUids array and must include request.auth.uid
       allow create: if signedIn()
         && (request.resource.data.ownerUids is list)
         && (request.resource.data.ownerUids.size() > 0)
         && (request.auth.uid in request.resource.data.ownerUids);
 
-      // Update must preserve ownerUids exactly (no membership tampering client-side)
       allow update: if isThreadMember(threadId)
         && (request.resource.data.ownerUids == resource.data.ownerUids);
 
-      // Delete denied (per spec)
       allow delete: if false;
 
-      // Messages subcollection
       match /messages/{messageId} {
 
-        // Read allowed to thread members
         allow read: if isThreadMember(threadId);
 
-        // Create requires senderUid == request.auth.uid AND user is a member
         allow create: if isThreadMember(threadId)
-          && (request.resource.data.senderUid is string)
           && request.resource.data.senderUid == request.auth.uid;
 
-        // Update allowed only if original senderUid == request.auth.uid
-        // Also prevents changing senderUid after the fact.
         allow update: if isThreadMember(threadId)
-          && (resource.data.senderUid is string)
           && resource.data.senderUid == request.auth.uid
           && request.resource.data.senderUid == resource.data.senderUid;
 
-        // No deletes
         allow delete: if false;
       }
     }
 
     /* =========================
-       Default deny
+       DEFAULT DENY
        ========================= */
+
     match /{document=**} {
       allow read, write: if false;
     }
