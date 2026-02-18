@@ -54,6 +54,9 @@
     "/peace/index.html",
     "/peace/thread.html",
 
-    "/rfo/index.html"
+    "/rfo/index.html",
+
+    "/tools/validizer.html",
+    "/tools/canonizer.html"
   ]
 }
