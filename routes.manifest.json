@@ -56,7 +56,9 @@
 
     "/rfo/index.html",
 
+    "/tools/validizer",
     "/tools/validizer.html",
+    "/tools/canonizer",
     "/tools/canonizer.html"
   ]
 }
