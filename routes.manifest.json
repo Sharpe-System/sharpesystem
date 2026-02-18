@@ -1,5 +1,7 @@
-"baseUrl": "https://sharpesystem.pages.dev",
+{
+  "baseUrl": "https://sharpesystem.pages.dev",
   "loginUrlRegex": "\\/login\\.html",
+
   "public": [
     "/404.html",
     "/amicable.html",
@@ -17,7 +19,6 @@
     "/status.html",
     "/subscribe.html",
     "/success.html",
-    "/tier1.html",
     "/trees.html",
     "/triage.html",
 
@@ -26,12 +27,14 @@
 
     "/immigration/index.html"
   ],
+
   "protected": [
-    "/billing.html",
     "/dashboard.html"
   ],
+
   "paid": [
     "/app.html",
+    "/billing.html",
     "/checklist.html",
     "/intake.html",
     "/notes.html",
@@ -40,6 +43,7 @@
     "/timeline-v2.html",
 
     "/start.html",
+    "/tier1.html",
 
     "/binder/home.html",
     "/binder/matter-binder.html",
@@ -53,5 +57,3 @@
     "/rfo/index.html"
   ]
 }
-
-Please advise if I should copy/paste yours or leave unaffected. 
