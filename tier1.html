@@ -2,100 +2,41 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Sharpe Legal — Tier 1</title>
+  <title>Tier Access — SharpeSystem</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Tier-restricted SharpeSystem content." />
   <link rel="stylesheet" href="/styles.css" />
-
-  <style>
-    .page{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:40px 16px;}
-    .box{max-width:920px;width:100%;background:var(--panel);border:1px solid var(--border);border-radius:18px;padding:26px;box-shadow:var(--shadow);}
-    h1{margin:0 0 8px;font-size:30px;}
-    .sub{color:var(--muted);margin:0 0 14px;line-height:1.45;}
-    .grid{display:grid;grid-template-columns:1fr;gap:14px;margin-top:14px;}
-    @media(min-width:900px){.grid{grid-template-columns:1fr 1fr;}}
-    .card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:16px;}
-    .price{font-size:26px;font-weight:900;margin:6px 0 10px;}
-    ul{margin:8px 0 0;padding-left:18px;color:var(--muted);line-height:1.45;}
-    .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;}
-    .btn{appearance:none;border:1px solid var(--border);border-radius:12px;padding:12px 14px;cursor:pointer;font-weight:900;}
-    .btn.primary{background:var(--accent);color:#071018;}
-    .btn.secondary{background:transparent;color:var(--text);}
-    .pill{display:inline-block;margin-top:8px;padding:6px 10px;border-radius:999px;border:1px solid var(--border);color:var(--muted);font-size:12px;}
-  </style>
 </head>
 
-<body>
+<body data-require-auth="1" data-require-tier="basic" data-require-active="1">
+
   <div id="site-header"></div>
-  <script src="/header-loader.js" defer></script>
-  <script type="module" src="/header-auth.js" defer></script>
-  <script src="/i18n.js" defer></script>
 
   <main class="page">
-    <section class="box">
-      <h1>Sharpe Legal — Tier 1</h1>
-      <p class="sub">
-        Tier 1 is structured intake + checklist routing + clean procedural scaffolding.
-        This is your stabilization tier.
-      </p>
+    <div class="container content">
 
-      <div class="grid">
+      <section class="card" style="padding:var(--pad);">
+        <h1>Tier Content</h1>
+        <p class="muted">
+          This content requires an active SharpeSystem subscription.
+        </p>
 
-        <!-- LEFT CARD -->
-        <div class="card">
-          <div class="price">
-            $10<span style="font-size:14px;color:var(--muted);font-weight:800;"> / month</span>
-          </div>
+        <div class="hr"></div>
 
-          <ul>
-            <li>Guided intake</li>
-            <li>Structured timeline builder</li>
-            <li>Next-step checklist</li>
-            <li>Binder roadmap framework</li>
-          </ul>
-
-          <div class="row">
-            <button class="btn primary" type="button"
-              onclick="location.href='/login.html?next=%2Fdashboard.html'">
-              Continue
-            </button>
-
-            <button class="btn secondary" type="button"
-              onclick="location.href='/home.html'">
-              Back to Home
-            </button>
-          </div>
-
-          <span class="pill">Continue → Login → Dashboard</span>
+        <div class="row">
+          <a class="btn primary" href="/subscribe.html">Upgrade</a>
+          <a class="btn" href="/home.html">Back</a>
         </div>
+      </section>
 
-        <!-- RIGHT CARD -->
-        <div class="card">
-          <div style="font-weight:900;margin-bottom:6px;">
-            Already subscribed?
-          </div>
-
-          <ul>
-            <li>Login routes you to your dashboard</li>
-            <li>Dashboard routes to Start → Intake → Snapshot → Timeline</li>
-          </ul>
-
-          <div class="row">
-            <button class="btn secondary" type="button"
-              onclick="location.href='/login.html?next=%2Fdashboard.html'">
-              Log In
-            </button>
-
-            <button class="btn secondary" type="button"
-              onclick="location.href='/billing.html'">
-              Subscribe
-            </button>
-          </div>
-
-          <span class="pill">Dashboard is the only hub.</span>
-        </div>
-
-      </div>
-    </section>
+    </div>
   </main>
+
+  <script src="/ui.js"></script>
+  <script src="/header-loader.js"></script>
+  <script src="/partials/header.js"></script>
+  <script src="/i18n.js"></script>
+  <script type="module" src="/gate.js"></script>
+
 </body>
 </html>
