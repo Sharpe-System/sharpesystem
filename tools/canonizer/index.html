@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <title>Canonizer — SharpeSystem</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Wrap imperfect code into canon-structured pages/modules." />
+  <meta name="description" content="Canon-structure wrapper: fragments or full pages." />
   <link rel="stylesheet" href="/styles.css" />
 </head>
 
@@ -15,7 +15,7 @@
     <div class="container content">
       <section class="card" style="padding:var(--pad);">
         <h1>Canonizer</h1>
-        <p class="muted">Paste imperfect HTML/JS. This tool outputs canon-structured code. No Firebase imports. No gating logic. No redirects.</p>
+        <p class="muted">Paste a fragment or a full page. Canonizer enforces output invariants (no duplicates, no omissions). Tools are gate-exempt.</p>
 
         <div class="grid-2" style="margin-top:14px;">
           <div class="card" style="padding:12px;">
@@ -27,7 +27,7 @@
               <button id="btnCopyOut" class="btn" type="button">Copy output</button>
               <button id="btnDownloadOut" class="btn" type="button">Download output</button>
               <button id="btnClear" class="btn" type="button">Clear</button>
-              <a class="btn" href="/tools/validizer/">Back to Validizer</a>
+              <a class="btn" href="/tools/validizer/">Validizer</a>
             </div>
           </div>
 
@@ -49,8 +49,8 @@
   <script src="/header-loader.js"></script>
   <script src="/partials/header.js"></script>
   <script src="/i18n.js"></script>
-  <script type="module" src="/gate.js"></script>
 
+  <script src="/tools/canon-rules.js" defer></script>
   <script src="/tools/canonizer.js" defer></script>
 </body>
 </html>
