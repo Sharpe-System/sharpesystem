@@ -1,0 +1,121 @@
+<!-- /rfo/exparte-public-print.html -->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>RFO — Ex Parte Print Gate (Public) — SharpeSystem</title>
+  <meta name="description" content="Public readiness check and print gate for ex parte packet." />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+
+<body class="shell">
+  <div id="site-header"></div>
+
+  <main class="page">
+    <div class="container content">
+
+      <section class="card" style="padding:var(--pad);">
+
+        <div class="row" style="justify-content:space-between; gap:12px; flex-wrap:wrap;">
+          <div>
+            <h1 style="margin:0;">Ex Parte — Print Gate</h1>
+            <p class="muted" style="margin:6px 0 0 0;">
+              Public mode verifies packet readiness. Export/print unlocks after login.
+            </p>
+          </div>
+          <div class="row" style="gap:10px;">
+            <a class="btn" href="/rfo/exparte-router.html">Back to Router</a>
+            <a class="btn" href="/rfo/start.html">RFO Start</a>
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
+        <!-- PeacePath -->
+        <section class="card" style="padding:14px; margin-bottom:14px;">
+          <h2 style="margin:0 0 6px 0;">Before filing</h2>
+          <p class="muted" style="margin:0;">
+            Filing ex parte escalates immediately. If agreement or safety planning is possible,
+            consider cooperative paths first.
+          </p>
+          <div class="row" style="margin-top:10px; gap:10px;">
+            <a class="btn" href="/amicable.html">Amicable</a>
+            <a class="btn" href="/peace-path.html">PeacePath</a>
+          </div>
+        </section>
+
+        <h3 style="margin-top:0;">Packet readiness</h3>
+
+        <div class="grid-2" style="gap:12px; margin-top:12px;">
+
+          <div class="card" style="padding:12px;">
+            <h4>Intake</h4>
+            <div id="st_intake" class="muted">Checking…</div>
+          </div>
+
+          <div class="card" style="padding:12px;">
+            <h4>FL-300</h4>
+            <div id="st_fl300" class="muted">Checking…</div>
+          </div>
+
+          <div class="card" style="padding:12px;">
+            <h4>FL-305</h4>
+            <div id="st_fl305" class="muted">Checking…</div>
+          </div>
+
+          <div class="card" style="padding:12px;">
+            <h4>Notice</h4>
+            <div id="st_notice" class="muted">Checking…</div>
+          </div>
+
+          <div class="card" style="padding:12px;">
+            <h4>Declaration</h4>
+            <div id="st_decl" class="muted">Checking…</div>
+          </div>
+
+          <div class="card" style="padding:12px;">
+            <h4>Proposed Orders</h4>
+            <div id="st_prop" class="muted">Checking…</div>
+          </div>
+
+        </div>
+
+        <div class="hr"></div>
+
+        <h3 style="margin-top:0;">Overall status</h3>
+        <div id="overall" class="card" style="padding:14px;">
+          Checking packet…
+        </div>
+
+        <div class="hr"></div>
+
+        <h3 style="margin-top:0;">Public preview</h3>
+
+        <textarea class="input" id="preview" rows="12" readonly></textarea>
+
+        <div class="row" style="margin-top:12px; gap:10px;">
+          <button class="btn" id="copy">Copy Text</button>
+          <a class="btn primary" href="/login.html?next=%2Frfo%2Fexparte-print.html%23import">
+            Log in to Unlock Export
+          </a>
+        </div>
+
+        <div class="small soft" style="margin-top:12px;">
+          Public mode does not generate PDFs or store documents.
+        </div>
+
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Canon public stack -->
+  <script src="/ui.js"></script>
+  <script src="/header-loader.js"></script>
+  <script src="/partials/header.js"></script>
+  <script src="/i18n.js"></script>
+
+  <script src="/rfo/rfo-exparte-public-print.js"></script>
+</body>
+</html>
