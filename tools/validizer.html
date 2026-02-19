@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <title>Validizer — SharpeSystem</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Canon compliance checker." />
+  <meta name="description" content="Deterministic canon checks for pasted HTML/JS before Canonizer." />
   <link rel="stylesheet" href="/styles.css" />
 </head>
 
@@ -16,35 +16,60 @@
       <section class="template-box">
         <h1>Validizer</h1>
         <p class="muted">
-          Paste imperfect HTML or fragments. Runs canon compliance checks.
+          Paste imperfect HTML or page fragments. This tool runs deterministic canon checks and produces a report that can be handed to Canonizer.
         </p>
 
-        <div class="card" style="padding:var(--pad); margin-top:12px;">
-          <label class="muted" for="valIn" style="display:block; margin-bottom:8px;">Input</label>
-          <textarea id="valIn" class="mono" style="width:100%; min-height:220px; resize:vertical;"></textarea>
+        <div class="grid-2" style="gap:12px; margin-top:12px;">
+          <div class="card" style="padding:var(--pad);">
+            <div class="muted" style="margin-bottom:8px;">Input (HTML or fragment)</div>
+            <textarea id="inCode" class="mono" style="width:100%; min-height:260px; resize:vertical;"></textarea>
 
-          <div class="cta-row" style="margin-top:12px; gap:8px;">
-            <button class="button" id="btnValidate" type="button">Validate</button>
-            <button class="button" id="btnCopyReport" type="button">Copy Report</button>
-            <button class="button" id="btnClearVal" type="button">Clear</button>
-            <a class="button" href="/tools/canonizer.html">To Canonizer</a>
+            <div class="cta-row" style="margin-top:12px; flex-wrap:wrap; gap:8px;">
+              <button class="button" id="btnValidate" type="button">Validate</button>
+              <button class="button" id="btnToCanon" type="button">Send to Canonizer</button>
+              <button class="button" id="btnClear" type="button">Clear</button>
+              <button class="button" id="btnDownloadReport" type="button">Download report</button>
+            </div>
+
+            <div class="muted" style="margin-top:10px; font-size:12px;">
+              Canon assumptions: centralized Firebase imports, auth via getAuthStateOnce(), gate ownership, canonical template stack.
+            </div>
           </div>
-        </div>
 
-        <div class="card" style="padding:var(--pad); margin-top:12px;">
-          <div class="muted" style="margin-bottom:8px;">Report</div>
-          <pre id="valReport" class="mono" style="white-space:pre-wrap; word-break:break-word; margin:0;"></pre>
+          <div class="card" style="padding:var(--pad);">
+            <div class="row" style="justify-content:space-between; align-items:center; gap:8px;">
+              <div class="muted">Report</div>
+              <button class="button" id="btnCopyReport" type="button">Copy report</button>
+            </div>
+
+            <pre id="report" class="mono" style="white-space:pre-wrap; word-break:break-word; margin:12px 0 0 0; min-height:220px;"></pre>
+
+            <div class="hr" style="margin:12px 0;"></div>
+
+            <div class="muted">Checks performed</div>
+            <ul class="muted" style="margin:8px 0 0 18px;">
+              <li>C1 Firebase CDN imports (must be only in /firebase-config.js)</li>
+              <li>C2 onAuthStateChanged outside firebase-config.js</li>
+              <li>C3 redirects/gating outside gate.js (heuristic scan)</li>
+              <li>C5 canonical page template stack/order (full HTML only)</li>
+              <li>C6 header-auth duplication patterns (heuristic scan)</li>
+              <li>C7 legacy window.firebase usage</li>
+              <li>Basic HTML stability: doctype/lang/meta/stylesheet/header mount</li>
+            </ul>
+          </div>
         </div>
       </section>
     </div>
   </main>
 
+  <!-- Canonical stack -->
   <script src="/ui.js"></script>
   <script src="/header-loader.js"></script>
   <script src="/partials/header.js"></script>
   <script src="/i18n.js"></script>
   <script type="module" src="/gate.js"></script>
 
+  <!-- Tool logic -->
   <script src="/tools/validizer.js" defer></script>
 </body>
 </html>
