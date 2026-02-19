@@ -2,19 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Canonizer — SharpeSystem Tools</title>
+  <title>Canonizer — SharpeSystem</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Canonize flow specs/fragments into SharpeSystem-compliant pages." />
+  <meta name="description" content="Canon wrapper/refiner (offline, no Firebase imports)." />
   <link rel="stylesheet" href="/styles.css" />
-  <style>
-    .tool-grid { display:grid; grid-template-columns: 1fr; gap:12px; }
-    @media (min-width: 980px) { .tool-grid { grid-template-columns: 1fr 1fr; } }
-    textarea { width:100%; min-height: 420px; }
-    pre { white-space: pre-wrap; word-break: break-word; overflow:auto; }
-    .tool-actions { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
-    .tool-actions .btn { padding:10px 14px; }
-    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
-  </style>
 </head>
 
 <body class="shell">
@@ -22,76 +13,46 @@
 
   <main class="page">
     <div class="container content">
-
-      <section class="card" style="padding:var(--pad);">
+      <section class="template-box">
         <h1>Canonizer</h1>
         <p class="muted">
-          Paste either (A) a flow spec with <span class="mono">[PAGE_META]</span> blocks, or (B) a single HTML fragment.
-          Output is one file per page in canonical SharpeSystem structure.
+          Paste imperfect HTML/JS. This tool outputs canon-structured code. No Firebase imports. No gating logic. No redirects.
         </p>
 
-        <div class="tool-actions" style="margin-top:10px;">
-          <button id="btnCanonize" class="btn" type="button">Canonize</button>
-          <button id="btnCopy" class="btn" type="button">Copy output</button>
-          <span id="report" class="muted" style="margin-left:auto;"></span>
-        </div>
+        <div class="card" style="padding:var(--pad); margin-top:12px;">
+          <label class="muted" for="inCode" style="display:block; margin-bottom:8px;">Input</label>
+          <textarea id="inCode" class="mono" style="width:100%; min-height:220px; resize:vertical;"></textarea>
 
-        <hr class="hr" />
-
-        <div class="tool-grid">
-          <div>
-            <div class="muted" style="font-size:13px; margin-bottom:6px;">Input</div>
-            <textarea id="input" class="mono" spellcheck="false" placeholder="[PAGE_META]
-filePath: /example/start
-routeClass: public
-title: Example — Start
-h1: Example
-oneSentence: One-sentence description.
-
-[HTML_FRAGMENT]
-<section class=&quot;card&quot;>
-  ...
-</section>"></textarea>
-
-            <div class="muted" style="font-size:12px; margin-top:8px;">
-              Shortcut: Cmd/Ctrl + Enter
-            </div>
-          </div>
-
-          <div>
-            <div class="muted" style="font-size:13px; margin-bottom:6px;">Output (copy/paste)</div>
-            <pre id="output" class="mono card" style="padding:12px; min-height:420px;"></pre>
+          <div class="cta-row" style="margin-top:12px; flex-wrap:wrap; gap:8px;">
+            <button class="button" id="btnCanonize" type="button">Canonize</button>
+            <button class="button" id="btnCopyOut" type="button">Copy output</button>
+            <button class="button" id="btnDownloadOut" type="button">Download output</button>
+            <button class="button" id="btnClear" type="button">Clear</button>
+            <a class="button" href="/tools/validizer/">Back to Validizer</a>
           </div>
         </div>
 
+        <div class="card" style="padding:var(--pad); margin-top:12px;">
+          <div class="muted" style="margin-bottom:8px;">Output</div>
+          <pre id="outCode" class="mono" style="white-space:pre-wrap; word-break:break-word; margin:0;"></pre>
+        </div>
+
+        <div class="card" style="padding:var(--pad); margin-top:12px;">
+          <div class="muted" style="margin-bottom:8px;">Canonizer Report</div>
+          <pre id="report" class="mono" style="white-space:pre-wrap; word-break:break-word; margin:0;"></pre>
+        </div>
       </section>
-
-      <section class="card" style="padding:var(--pad); margin-top:12px;">
-        <h3>Flow spec format (required)</h3>
-        <pre class="mono" style="margin:0; white-space:pre-wrap;">[PAGE_META]
-filePath: /path/to/page
-routeClass: public | protected | paid
-title: Page title shown in browser
-h1: Page headline shown on page
-oneSentence: Short description (meta description)
-
-[HTML_FRAGMENT]
-&lt;section class="card"&gt;
-  ...
-&lt;/section&gt;
-
-(repeat for each page)</pre>
-      </section>
-
     </div>
   </main>
 
+  <!-- Canonical stack -->
   <script src="/ui.js"></script>
   <script src="/header-loader.js"></script>
   <script src="/partials/header.js"></script>
   <script src="/i18n.js"></script>
   <script type="module" src="/gate.js"></script>
 
-  <script src="/tools/canonizer.js"></script>
+  <!-- Tool logic (NO Firebase imports) -->
+  <script src="/tools/canonizer.js" defer></script>
 </body>
 </html>
