@@ -1,20 +1,10 @@
 /* /tools/canonizer.js
-   Canonizer (HTML + JSON mode)
+   Canonizer (HTML + JSON mode) — route-first support.
 
-   HARD:
-   - Wrap only fragments.
-   - If input contains <html OR <body OR <main class="page"> treat as full page-like and sanitize, not wrap.
-   - Output invariants (for generated pages) enforced: single doctype, body.shell, header mount, main.page/container,
-     and required script stack.
-
-   TOOL HARD:
-   - No Firebase
-   - No redirects
-   - No network calls
-   - No auth checks
-
-   Handoff:
-   - Reads sessionStorage "shs_validizer_payload_v1"
+   JSON truth:
+   - Prefer "route": "/immigration/"
+   - Derive "file": "immigration/index.html"
+   - Title/description used for <title> and meta description
 */
 
 (function () {
@@ -79,10 +69,8 @@
 
   function stripScriptsAndShellMarkers(s) {
     let t = safeText(s);
-
     t = t.replace(/<\s*script\b[\s\S]*?<\/script\s*>/gi, "");
     t = t.replace(/<div[^>]+id=["']site-header["'][^>]*>\s*<\/div>/gi, "");
-
     t = t.replace(/<!doctype[\s\S]*?>/gi, "");
     t = t.replace(/<\s*html\b[\s\S]*?>/gi, "");
     t = t.replace(/<\/\s*html\s*>/gi, "");
@@ -90,22 +78,17 @@
     t = t.replace(/<\/\s*head\s*>/gi, "");
     t = t.replace(/<\s*body\b[\s\S]*?>/gi, "");
     t = t.replace(/<\/\s*body\s*>/gi, "");
-
     return t.trim();
   }
 
   function extractInnerFromFullPage(fullInput) {
     const html = safeText(fullInput);
-
     const container = /<div\b[^>]*class\s*=\s*["'][^"']*\bcontainer\b[^"']*\bcontent\b[^"']*["'][^>]*>([\s\S]*?)<\/div>/i.exec(html);
     if (container && container[1]) return container[1].trim();
-
     const main = /<main\b[^>]*class\s*=\s*["'][^"']*\bpage\b[^"']*["'][^>]*>([\s\S]*?)<\/main>/i.exec(html);
     if (main && main[1]) return main[1].trim();
-
     const body = /<body\b[^>]*>([\s\S]*?)<\/body>/i.exec(html);
     if (body && body[1]) return body[1].trim();
-
     return html.trim();
   }
 
@@ -160,59 +143,52 @@ ${scripts}
 
   function enforceOutputInvariants(output) {
     const t = safeText(output);
-
-    const doctypeCount = (t.match(/<!doctype\s+html/gi) || []).length;
-    if (doctypeCount !== 1) throw new Error("Output must contain exactly one <!doctype html>.");
-
-    const bodyCount = (t.match(/<body\b[^>]*class=["'][^"']*\bshell\b[^"']*["']/gi) || []).length;
-    if (bodyCount !== 1) throw new Error("Output must contain exactly one <body class=\"shell\">.");
-
-    const headerCount = (t.match(/<div\b[^>]*id=["']site-header["'][^>]*>/gi) || []).length;
-    if (headerCount !== 1) throw new Error("Output must contain exactly one <div id=\"site-header\"></div>.");
-
-    const mainCount = (t.match(/<main\b[^>]*class=["'][^"']*\bpage\b[^"']*["']/gi) || []).length;
-    if (mainCount !== 1) throw new Error("Output must contain exactly one <main class=\"page\">.");
-
-    const containerCount = (t.match(/<div\b[^>]*class=["'][^"']*\bcontainer\b[^"']*\bcontent\b[^"']*["']/gi) || []).length;
-    if (containerCount !== 1) throw new Error("Output must contain exactly one <div class=\"container content\">.");
+    if ((t.match(/<!doctype\s+html/gi) || []).length !== 1) throw new Error("Output must contain exactly one <!doctype html>.");
+    if ((t.match(/<body\b[^>]*class=["'][^"']*\bshell\b[^"']*["']/gi) || []).length !== 1) throw new Error("Output must contain exactly one <body class=\"shell\">.");
+    if ((t.match(/<div\b[^>]*id=["']site-header["'][^>]*>/gi) || []).length !== 1) throw new Error("Output must contain exactly one <div id=\"site-header\"></div>.");
+    if ((t.match(/<main\b[^>]*class=["'][^"']*\bpage\b[^"']*["']/gi) || []).length !== 1) throw new Error("Output must contain exactly one <main class=\"page\">.");
+    if ((t.match(/<div\b[^>]*class=["'][^"']*\bcontainer\b[^"']*\bcontent\b[^"']*["']/gi) || []).length !== 1) throw new Error("Output must contain exactly one <div class=\"container content\">.");
   }
 
   function canonize(inputText) {
     const raw = safeText(inputText || "").trim();
     if (!raw) {
-      return { out: "", report: "Canonizer: no input provided.", mode: "none", filename: "canon-output.html" };
+      return { out: "", report: "Canonizer: no input provided.", mode: "none", filename: "index.html" };
     }
 
-    // JSON mode -> render fragment deterministically
+    // JSON mode (route-first)
     const parsed = tryParseJson(raw);
     if (parsed && isJsonPageSpec(parsed)) {
       let fragment = "";
+      let norm = null;
+
       try {
+        norm = renderer().normalizeSpec(parsed); // enforces route/file consistency
         fragment = renderer().renderFragmentFromJson(parsed);
       } catch (e) {
         return {
           out: "",
           mode: "json-rejected",
-          filename: "canon-output.html",
+          filename: "index.html",
           report:
 `SHARPESYSTEM CANONIZER REPORT
 Time: ${nowISO()}
 Input: json
-Result: REJECTED (invalid JSON spec)
+Result: REJECTED
 Error: ${e && e.message ? e.message : String(e)}`
         };
       }
 
-      const title = (parsed.title ? String(parsed.title) : deriveTitleFromInner(fragment)) || "Page — SharpeSystem";
-      const filename = (parsed.file ? String(parsed.file) : "canon-output.html") || "canon-output.html";
-      const out = canonicalShell(title, String(parsed.oneSentence ?? ""), fragment);
+      const title = (norm.title ? norm.title : deriveTitleFromInner(fragment)) || "Page — SharpeSystem";
+      const desc = norm.oneSentence || "";
+      const out = canonicalShell(title, desc, fragment);
 
       try { enforceOutputInvariants(out); }
       catch (e) {
         return {
           out: "",
           mode: "json-failed",
-          filename,
+          filename: norm.file || "index.html",
           report:
 `SHARPESYSTEM CANONIZER REPORT
 Time: ${nowISO()}
@@ -225,23 +201,25 @@ Error: ${e && e.message ? e.message : String(e)}`
       return {
         out,
         mode: "json->fragment->wrap",
-        filename,
+        filename: norm.file || "index.html",
         report:
 `SHARPESYSTEM CANONIZER REPORT
 Time: ${nowISO()}
 Input: json
 Mode: json->fragment->wrap
+Route: ${norm.route || "(none)"}
+File: ${norm.file || "(none)"}
 Action: rendered fragment deterministically, then wrapped into canonical page shell
 
 Notes:
-- Tool page is gate-exempt; OUTPUT page includes gate.js per canon invariants.
+- Tools are gate-exempt; OUTPUT pages include gate.js per canon invariants.
 - No Firebase imports added.
 - No redirects/auth checks performed by tools.
 - Output invariants enforced.`
       };
     }
 
-    // HTML mode (fragment or full-page-like)
+    // HTML mode
     const fullLike = isFullPageLike(raw);
     let inner = "";
     let mode = "";
@@ -264,7 +242,7 @@ Notes:
       return {
         out: "",
         mode,
-        filename: "canon-output.html",
+        filename: "index.html",
         report:
 `SHARPESYSTEM CANONIZER REPORT
 Time: ${nowISO()}
@@ -277,7 +255,7 @@ Error: ${e && e.message ? e.message : String(e)}`
     return {
       out,
       mode,
-      filename: "canon-output.html",
+      filename: "index.html",
       report:
 `SHARPESYSTEM CANONIZER REPORT
 Time: ${nowISO()}
@@ -286,7 +264,7 @@ Mode: ${mode}
 Action: ${fullLike ? "Sanitized into single canonical shell" : "Wrapped fragment into canonical shell"}
 
 Notes:
-- Tool page is gate-exempt; OUTPUT page includes gate.js per canon invariants.
+- Tools are gate-exempt; OUTPUT pages include gate.js per canon invariants.
 - No Firebase imports added.
 - No redirects/auth checks performed by tools.
 - Output invariants enforced.`
@@ -335,7 +313,7 @@ Click Canonize to generate output.`;
       const res = canonize(inCode.value || "");
       outCode.value = safeText(res.out);
       report.textContent = res.report;
-      outCode.dataset.filename = res.filename || "canon-output.html";
+      outCode.dataset.filename = res.filename || "index.html";
     });
 
     btnCopyOut.addEventListener("click", async () => {
@@ -343,7 +321,7 @@ Click Canonize to generate output.`;
     });
 
     btnDownloadOut.addEventListener("click", () => {
-      const fn = outCode.dataset.filename || "canon-output.html";
+      const fn = outCode.dataset.filename || "index.html";
       download(fn, outCode.value || "", "text/html");
     });
 
@@ -351,7 +329,7 @@ Click Canonize to generate output.`;
       inCode.value = "";
       outCode.value = "";
       report.textContent = "";
-      outCode.dataset.filename = "canon-output.html";
+      outCode.dataset.filename = "index.html";
       try { sessionStorage.removeItem(KEY_PAYLOAD); } catch (_) {}
     });
   }
