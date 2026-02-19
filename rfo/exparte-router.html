@@ -2,56 +2,87 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Ex Parte — Routing</title>
-<link rel="stylesheet" href="/styles.css"/>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>RFO — Ex Parte Router (Public) — SharpeSystem</title>
+  <meta name="description" content="Public ex parte router: deterministically activates required mappings and sends user to first mapping page." />
+  <link rel="stylesheet" href="/styles.css" />
 </head>
 
 <body class="shell">
-<div id="site-header"></div>
-<main class="page"><div class="container content">
+  <div id="site-header"></div>
 
-<section class="card" style="padding:var(--pad);">
-<h1>Ex Parte Forms Activated</h1>
+  <main class="page">
+    <div class="container content">
+      <section class="card" style="padding:var(--pad);">
+        <div class="row" style="justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap;">
+          <div>
+            <h1 style="margin:0;">Ex Parte — Router (Public)</h1>
+            <p class="muted" style="margin:6px 0 0 0;">
+              This activates the ex parte packet plan (one flow, many mappings, one packet).
+            </p>
+          </div>
+          <div class="row" style="gap:10px; flex-wrap:wrap;">
+            <button class="btn" id="btnRecalc" type="button">Recompute</button>
+            <a class="btn" href="/rfo/exparte-notice.html">Back</a>
+          </div>
+        </div>
 
-<p class="muted">
-Based on your answers, the following forms are required for your ex parte packet.
-</p>
+        <div class="hr"></div>
 
-<ul id="formList"></ul>
+        <!-- PeacePath / Amicable -->
+        <section class="card" style="padding:14px; margin:0 0 14px 0;">
+          <h2 style="margin:0 0 6px 0;">Off-ramp</h2>
+          <p class="muted" style="margin:0;">
+            If notice + negotiation can resolve the emergency without court, use these paths.
+          </p>
+          <div class="row" style="margin-top:12px; gap:10px; flex-wrap:wrap;">
+            <a class="btn" href="/amicable.html">Amicable / PeacePath</a>
+            <a class="btn" href="/peace-path.html">PeacePath Messaging</a>
+          </div>
+        </section>
 
-<div class="row" style="margin-top:12px; gap:10px;">
-<a id="startMap" class="btn primary">Start Forms</a>
-</div>
+        <h3 style="margin-top:0;">Activated packet plan</h3>
 
-</section>
+        <div class="grid-2" style="gap:12px;">
+          <section class="card" style="padding:12px;">
+            <h4 style="margin:0 0 8px 0;">Required mappings</h4>
+            <ul id="reqList" style="margin:0; padding-left:18px;"></ul>
+            <div class="small soft" style="margin-top:10px;">
+              This list is written into <code>ss_rfo_exparte_intake_v1</code> (routing.required + routing.firstUrl).
+            </div>
+          </section>
 
-</div></main>
+          <section class="card" style="padding:12px;">
+            <h4 style="margin:0 0 8px 0;">Readiness hints</h4>
+            <div class="muted" id="hintText">Computing…</div>
+            <div class="small soft" style="margin-top:10px;">
+              Print gate will compute readiness from the required keys only.
+            </div>
+          </section>
+        </div>
 
-<script src="/ui.js"></script>
-<script src="/header-loader.js"></script>
-<script src="/partials/header.js"></script>
-<script src="/i18n.js"></script>
+        <div class="hr"></div>
 
-<script>
-(function(){
-const forms=[
-{key:"fl300",label:"FL-300 Request for Order",url:"/rfo/exparte-fl300.html"},
-{key:"fl305",label:"FL-305 Temporary Emergency Orders",url:"/rfo/exparte-fl305.html"},
-{key:"decl",label:"MC-030 Declaration",url:"/rfo/exparte-decl.html"},
-{key:"proposed",label:"Proposed Order",url:"/rfo/exparte-proposed.html"}
-];
+        <div class="row" style="gap:10px; flex-wrap:wrap;">
+          <a class="btn primary" id="btnStart" href="#">Start first required mapping</a>
+          <a class="btn" href="/rfo/exparte-public-print.html">Go to Print Gate (public)</a>
+        </div>
 
-const list=document.getElementById("formList");
-forms.forEach(f=>{
-let li=document.createElement("li");
-li.textContent=f.label;
-list.appendChild(li);
-});
+        <div class="small soft" style="margin-top:12px;">
+          NOTE: Mapping pages will be built next under <code>/rfo/exparte-&lt;map&gt;.html</code>.
+        </div>
+      </section>
+    </div>
+  </main>
 
-document.getElementById("startMap").href=forms[0].url;
-})();
-</script>
+  <!-- Public canonical stack (NO gate.js) -->
+  <script src="/ui.js"></script>
+  <script src="/header-loader.js"></script>
+  <script src="/partials/header.js"></script>
+  <script src="/i18n.js"></script>
+
+  <!-- Owning module -->
+  <script src="/rfo/rfo-exparte-router.js"></script>
 </body>
 </html>
