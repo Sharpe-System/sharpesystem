@@ -1,0 +1,57 @@
+<!-- /rfo/exparte-router.html -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Ex Parte — Routing</title>
+<link rel="stylesheet" href="/styles.css"/>
+</head>
+
+<body class="shell">
+<div id="site-header"></div>
+<main class="page"><div class="container content">
+
+<section class="card" style="padding:var(--pad);">
+<h1>Ex Parte Forms Activated</h1>
+
+<p class="muted">
+Based on your answers, the following forms are required for your ex parte packet.
+</p>
+
+<ul id="formList"></ul>
+
+<div class="row" style="margin-top:12px; gap:10px;">
+<a id="startMap" class="btn primary">Start Forms</a>
+</div>
+
+</section>
+
+</div></main>
+
+<script src="/ui.js"></script>
+<script src="/header-loader.js"></script>
+<script src="/partials/header.js"></script>
+<script src="/i18n.js"></script>
+
+<script>
+(function(){
+const forms=[
+{key:"fl300",label:"FL-300 Request for Order",url:"/rfo/exparte-fl300.html"},
+{key:"fl305",label:"FL-305 Temporary Emergency Orders",url:"/rfo/exparte-fl305.html"},
+{key:"decl",label:"MC-030 Declaration",url:"/rfo/exparte-decl.html"},
+{key:"proposed",label:"Proposed Order",url:"/rfo/exparte-proposed.html"}
+];
+
+const list=document.getElementById("formList");
+forms.forEach(f=>{
+let li=document.createElement("li");
+li.textContent=f.label;
+list.appendChild(li);
+});
+
+document.getElementById("startMap").href=forms[0].url;
+})();
+</script>
+</body>
+</html>
