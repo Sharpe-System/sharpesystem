@@ -1,0 +1,178 @@
+<!-- /rfo/public-print.html -->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>RFO — Print Gate (Public) — SharpeSystem</title>
+  <meta name="description" content="Public print gate: preview readiness, lock export/print until login/subscription. Includes PeacePath off-ramp." />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+
+<body class="shell">
+  <div id="site-header"></div>
+
+  <main class="page">
+    <div class="container content">
+
+      <section class="card" style="padding:var(--pad);">
+        <div class="row" style="justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap;">
+          <div>
+            <h1 style="margin:0;">RFO — Print Gate</h1>
+            <p class="muted" style="margin:6px 0 0 0;">
+              Public mode can preview readiness, but export/print is locked until you log in or subscribe.
+            </p>
+          </div>
+
+          <div class="row" style="gap:10px; flex-wrap:wrap;">
+            <a class="btn" href="/rfo/public-exhibits.html">Back to Exhibits</a>
+            <a class="btn" href="/rfo/start.html">RFO Start</a>
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
+        <!-- PeacePath must be present on every adversarial page -->
+        <section class="card" style="padding:14px; margin:0 0 14px 0;">
+          <h2 style="margin:0 0 6px 0;">Before you file</h2>
+          <p class="muted" style="margin:0;">
+            Filing is escalation. If agreement is possible, consider using your draft + exhibit list to negotiate first.
+            If cooperation is not possible, proceed with filing for clear, enforceable orders.
+          </p>
+          <div class="row" style="margin-top:12px; gap:10px; flex-wrap:wrap;">
+            <a class="btn" href="/amicable.html">Try Amicable (Agreement Path)</a>
+            <a class="btn" href="/peace-path.html">Peace Path (De-escalated Messaging)</a>
+            <a class="btn primary" href="#gate">Continue to print gate</a>
+          </div>
+        </section>
+
+        <div id="gate"></div>
+
+        <h3 style="margin-top:0;">Readiness check</h3>
+        <p class="muted" style="margin-top:6px;">
+          This checks whether your public draft components exist on this device.
+          It does not upload anything.
+        </p>
+
+        <div class="grid-2" style="gap:12px; margin-top:12px;">
+          <div class="card" style="padding:12px;">
+            <h4 style="margin:0 0 6px 0;">Intake</h4>
+            <div class="muted" id="statusIntake">Checking…</div>
+          </div>
+
+          <div class="card" style="padding:12px;">
+            <h4 style="margin:0 0 6px 0;">Draft</h4>
+            <div class="muted" id="statusDraft">Checking…</div>
+          </div>
+
+          <div class="card" style="padding:12px;">
+            <h4 style="margin:0 0 6px 0;">Exhibits</h4>
+            <div class="muted" id="statusExhibits">Checking…</div>
+          </div>
+
+          <div class="card" style="padding:12px;">
+            <h4 style="margin:0 0 6px 0;">Packet steps</h4>
+            <div class="muted" id="statusPacket">Checking…</div>
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
+        <h3 style="margin-top:0;">What you get when unlocked</h3>
+        <div class="grid-2" style="gap:12px; margin-top:12px;">
+          <div class="card" style="padding:12px;">
+            <h4 style="margin:0 0 6px 0;">Print-ready set</h4>
+            <ul style="margin:0; padding-left:18px;">
+              <li>FL-300 mapping (guided)</li>
+              <li>Declaration text (cleaned)</li>
+              <li>Exhibit index</li>
+              <li>Filing checklist (Orange County)</li>
+            </ul>
+          </div>
+          <div class="card" style="padding:12px;">
+            <h4 style="margin:0 0 6px 0;">Export + organization</h4>
+            <ul style="margin:0; padding-left:18px;">
+              <li>PDF export</li>
+              <li>Exhibit bundling (paid mode)</li>
+              <li>Account-based saving</li>
+              <li>Revisions / versioning</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
+        <h3 style="margin-top:0;">Print / Export (Locked)</h3>
+        <p class="muted" style="margin-top:6px;">
+          Public mode cannot print or export PDFs. Unlock to generate a filing-ready output set.
+        </p>
+
+        <section class="card" style="padding:14px; margin-top:12px;">
+          <div class="row" style="justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap;">
+            <div>
+              <h4 style="margin:0 0 6px 0;">Locked — Sign in / Subscribe</h4>
+              <p class="muted" style="margin:0;">
+                Your local draft will remain on this device. After login, you can import it into the paid module and export/print.
+              </p>
+            </div>
+            <div class="row" style="gap:10px; flex-wrap:wrap;">
+              <a class="btn primary" href="/login.html?next=%2Frfo%2Fprint.html">Log in to Unlock</a>
+              <a class="btn" href="/billing.html">Subscribe</a>
+            </div>
+          </div>
+
+          <div class="hr"></div>
+
+          <h4 style="margin:0 0 8px 0;">Public preview (text-only)</h4>
+          <p class="muted" style="margin:0 0 10px 0;">
+            You can copy your draft text now, but PDF generation is locked.
+          </p>
+
+          <label class="field">
+            <span class="label">Draft (read-only preview)</span>
+            <textarea class="input" id="previewDraft" rows="14" readonly></textarea>
+          </label>
+
+          <div class="row" style="margin-top:12px; gap:10px; flex-wrap:wrap;">
+            <button class="btn" id="btnCopyDraft" type="button">Copy Draft Text</button>
+            <button class="btn" id="btnCopyExhibits" type="button">Copy Exhibit Index</button>
+          </div>
+
+          <div class="small soft" style="margin-top:12px;">
+            Note: For strict privacy, public mode does not upload documents. Paid mode may store drafts/exhibits in your account.
+          </div>
+        </section>
+
+        <div class="hr"></div>
+
+        <h3 style="margin-top:0;">Orange County filing guide (preview)</h3>
+        <p class="muted" style="margin-top:6px;">
+          This is a placeholder preview. The paid module will include step-by-step filing + service checklists.
+        </p>
+
+        <div class="card" style="padding:12px; margin-top:12px;">
+          <ol style="margin:0; padding-left:18px;">
+            <li>Confirm your requested orders are specific and enforceable.</li>
+            <li>Assemble your declaration + exhibit index.</li>
+            <li>Print required copies (varies by filing method).</li>
+            <li>File with the court and obtain a hearing date.</li>
+            <li>Serve the other party per rules and file proof of service.</li>
+            <li>Prepare a hearing binder and a short oral outline.</li>
+          </ol>
+        </div>
+
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Public canonical stack (NO gate.js) -->
+  <script src="/ui.js"></script>
+  <script src="/header-loader.js"></script>
+  <script src="/partials/header.js"></script>
+  <script src="/i18n.js"></script>
+
+  <!-- Public print gate logic (localStorage-only) -->
+  <script src="/rfo/rfo-public-print.js"></script>
+</body>
+</html>
