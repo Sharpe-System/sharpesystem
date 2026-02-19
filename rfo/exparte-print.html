@@ -1,4 +1,3 @@
-<!-- /rfo/exparte-print.html -->
 <!doctype html>
 <html lang="en">
 <head>
@@ -17,12 +16,16 @@
 
       <section class="card" style="padding:var(--pad);">
 
-        <div class="row" style="justify-content:space-between; gap:12px;">
+        <div class="row" style="justify-content:space-between; gap:12px; flex-wrap:wrap;">
           <div>
             <h1 style="margin:0;">Ex Parte — Export & Print</h1>
             <p class="muted" style="margin:6px 0 0 0;">
-              Paid mode enables packet export, printing, and account storage.
+              Paid mode exports a court-ready packet JSON (includes MC-030 overflow + pleading attachment when triggered).
             </p>
+          </div>
+          <div class="row" style="gap:10px; flex-wrap:wrap;">
+            <a class="btn" href="/rfo/exparte-public-print.html">Public Print Gate</a>
+            <a class="btn" href="/rfo/exparte-start.html">Ex Parte Start</a>
           </div>
         </div>
 
@@ -40,14 +43,43 @@
           </div>
         </section>
 
-        <h3>Packet preview</h3>
+        <div class="grid-2" style="gap:12px;">
+          <div class="card" style="padding:12px;">
+            <h3 style="margin:0 0 6px 0;">Import status</h3>
+            <div id="importStatus" class="muted">Checking…</div>
+            <div class="small soft" style="margin-top:8px;">
+              If you came from public flow, use <code>#import</code> in the URL.
+            </div>
+          </div>
 
-        <textarea class="input" id="packet" rows="18"></textarea>
-
-        <div class="row" style="margin-top:12px; gap:10px;">
-          <button class="btn primary" id="printBtn">Print</button>
-          <button class="btn" id="saveBtn">Save to Account</button>
+          <div class="card" style="padding:12px;">
+            <h3 style="margin:0 0 6px 0;">Packet readiness</h3>
+            <div id="readyStatus" class="muted">Checking…</div>
+            <div class="small soft" style="margin-top:8px;">
+              Overflow logic: if declaration overflow triggered, pleading attachment is required and included.
+            </div>
+          </div>
         </div>
+
+        <div class="hr"></div>
+
+        <h3 style="margin-top:0;">Packet JSON (export)</h3>
+        <p class="muted" style="margin-top:6px;">
+          This JSON is the single source-of-truth for PDF mapping (FL-300/FL-305) and attachments.
+        </p>
+
+        <textarea class="input" id="packetJson" rows="16" readonly></textarea>
+
+        <div class="row" style="margin-top:12px; gap:10px; flex-wrap:wrap;">
+          <button class="btn primary" id="btnDownloadJson" type="button">Download Packet JSON</button>
+          <button class="btn" id="btnCopyJson" type="button">Copy JSON</button>
+          <button class="btn" id="btnPrint" type="button">Print Text Preview</button>
+        </div>
+
+        <div class="hr"></div>
+
+        <h3 style="margin-top:0;">Text preview (human-readable)</h3>
+        <textarea class="input" id="packetText" rows="14" readonly></textarea>
 
         <div id="status" class="small soft" style="margin-top:12px;"></div>
 
