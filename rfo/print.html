@@ -1,0 +1,97 @@
+<!-- /rfo/print.html -->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>RFO — Print & Export — SharpeSystem</title>
+  <meta name="description" content="Paid print/export: import public draft, save to account, generate print-ready output." />
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="stylesheet" href="/rfo/rfo.css" />
+</head>
+
+<body data-require-auth="1" data-require-tier="basic" data-require-active="1">
+  <div id="site-header"></div>
+
+  <main class="page">
+    <div class="container content">
+
+      <section class="page-hero">
+        <h1>RFO — Print & Export</h1>
+        <p class="sub">Import your public draft from this device, save it to your account, and generate a print-ready packet.</p>
+      </section>
+
+      <!-- PeacePath must be present on every adversarial page -->
+      <section class="card" style="padding:14px;margin:14px 0;">
+        <h2 style="margin:0 0 6px 0;">Before you file</h2>
+        <p class="muted" style="margin:0;">
+          Filing is escalation. If agreement is realistically possible, consider using your draft + exhibit index to resolve this cooperatively first.
+          SharpeSystem supports that path too.
+        </p>
+        <div class="cta-row" style="margin-top:12px;">
+          <a class="button" href="/amicable.html">Try Amicable (Agreement Path)</a>
+          <a class="button" href="/peace-path.html">Peace Path (De-escalated Messaging)</a>
+          <a class="button primary" href="#tools">Continue to print/export</a>
+        </div>
+      </section>
+
+      <section id="tools" class="template-box">
+        <div class="muted" id="msg">Loading…</div>
+
+        <div class="cta-row" style="margin-top:12px; flex-wrap:wrap;">
+          <button class="button primary" id="btnImport" type="button">Import Public Draft (This Device)</button>
+          <button class="button" id="btnSaveAccount" type="button">Save to My Account</button>
+          <button class="button" id="btnClearLocal" type="button">Clear Local Public Draft</button>
+          <a class="button" href="/rfo/index.html">Back to RFO Module</a>
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="grid-2" style="gap:14px;">
+          <section class="card" style="padding:12px;">
+            <h3 style="margin:0 0 8px 0;">Readiness</h3>
+            <div class="muted" id="statusIntake">• Intake: —</div>
+            <div class="muted" id="statusDraft">• Draft: —</div>
+            <div class="muted" id="statusExhibits">• Exhibits: —</div>
+            <div class="muted" id="statusAccount">• Account save: —</div>
+          </section>
+
+          <section class="card" style="padding:12px;">
+            <h3 style="margin:0 0 8px 0;">Export</h3>
+            <p class="muted" style="margin:0 0 10px 0;">
+              Export generates a print-friendly packet view and text downloads. (PDF bundling can be added later.)
+            </p>
+            <div class="cta-row" style="flex-wrap:wrap;">
+              <button class="button primary" id="btnPrint" type="button">Open Print Packet</button>
+              <button class="button" id="btnDownloadPacket" type="button">Download Packet (.txt)</button>
+              <button class="button" id="btnDownloadDraft" type="button">Download Draft (.txt)</button>
+              <button class="button" id="btnDownloadExhibits" type="button">Download Exhibit Index (.txt)</button>
+            </div>
+          </section>
+        </div>
+
+        <div class="hr"></div>
+
+        <section class="card" style="padding:12px;">
+          <h3 style="margin:0 0 8px 0;">Packet preview (editable)</h3>
+          <p class="muted" style="margin:0 0 10px 0;">
+            This is the assembled packet text. You can edit it before printing/downloading.
+          </p>
+          <textarea class="input" id="packetText" rows="20" placeholder="Import a public draft to build the packet…"></textarea>
+        </section>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Canonical footer stack (FROZEN CONTRACT) -->
+  <script src="/ui.js" defer></script>
+  <script src="/header-loader.js" defer></script>
+  <script src="/partials/header.js" defer></script>
+  <script src="/i18n.js" defer></script>
+  <script type="module" src="/gate.js"></script>
+
+  <!-- Paid print/export logic -->
+  <script type="module" src="/rfo/rfo-print.js"></script>
+</body>
+</html>
