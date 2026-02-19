@@ -2,93 +2,90 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Log In — SharpeSystem</title>
-
-    <link rel="stylesheet" href="/styles.css" />
-
-  <!-- AUTH CORE: required on all pages -->
-  <script type="module" src="/gate.js"></script>
-
-  <!-- If you use i18n site-wide, keep it absolute -->
-  <script src="/i18n.js" defer></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Access SharpeSystem dashboard and saved work." />
+  <link rel="stylesheet" href="/styles.css" />
 </head>
 
-<body>
-  <!-- Inline header (replaces broken /header.js) -->
-  <header class="topbar" style="position:sticky;top:0;z-index:10;">
-    <div class="wrap" style="max-width:1100px;margin:0 auto;padding:14px 18px;">
-      <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
-        <div style="font-weight:800;letter-spacing:.2px;">SharpeSystem</div>
+<body class="shell">
+  <div id="site-header"></div>
 
-        <nav class="muted" style="display:flex;gap:12px;flex-wrap:wrap;">
-          <a href="/home.html">Home</a>
-          <a href="/decision-trees.html">Decision Trees</a>
-          <a href="/status.html">Status</a>
-          <a href="/attorneys.html">For Attorneys</a>
-          <a href="/risk-awareness.html">Risk Awareness</a>
-        </nav>
+  <main class="page">
+    <div class="container content">
 
-        <div style="margin-left:auto;display:flex;gap:10px;align-items:center;">
-          <a class="btn" href="/pricing.html" style="text-decoration:none;">Plans</a>
-        </div>
-      </div>
-    </div>
-    <div style="height:1px;background:rgba(255,255,255,.06);"></div>
-  </header>
+      <section class="card" style="padding:var(--pad); max-width:520px; margin:auto;">
+        <h1>Log In</h1>
+        <p class="muted">
+          Access saved work and structured filing tools.
+        </p>
 
-  <main style="max-width:980px;margin:0 auto;padding:28px 18px 40px;">
-    <section class="card" style="padding:22px;">
-      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;">
-        <div>
-          <h1 style="margin:0 0 6px 0;">Log In</h1>
-          <div class="muted" style="margin:0;">
-            Access your dashboard or gated app pages.
-          </div>
-        </div>
-
-        <div class="muted" style="text-align:right;font-size:12px;line-height:1.25;">
-          <div><strong>Tip:</strong> If you completed an intake first, it’s saved in this browser.</div>
-          <div>Create an account to sync it.</div>
-        </div>
-      </div>
-
-      <div style="margin-top:18px;display:grid;grid-template-columns:1fr;gap:12px;max-width:680px;">
-        <label class="rfoField">
+        <label class="input" style="margin-top:12px;">
           <span>Email</span>
-          <input id="email" type="email" autocomplete="email" placeholder="you@example.com" />
+          <input id="email" type="email" autocomplete="email" />
         </label>
 
-        <label class="rfoField">
+        <label class="input">
           <span>Password</span>
-          <input id="password" type="password" autocomplete="current-password" placeholder="••••••••" />
+          <input id="password" type="password" autocomplete="current-password" />
         </label>
 
-        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:6px;">
+        <div class="row" style="margin-top:14px;">
           <button class="btn" id="btnLogin" type="button">Log In</button>
-          <button class="btn" id="btnSignup" type="button">Create account</button>
-
-          <span id="msg" class="muted" style="margin-left:auto;"></span>
+          <button class="btn" id="btnCreate" type="button">Create account</button>
         </div>
 
-        <div class="muted" style="font-size:12px;margin-top:8px;">
-          By continuing, you agree that SharpeSystem is not a law firm and does not provide legal advice.
+        <p id="msg" class="muted" style="margin-top:10px;"></p>
+
+        <hr class="hr" />
+
+        <div class="row">
+          <a class="btn" href="/home.html">Back to Home</a>
         </div>
-      </div>
+      </section>
 
-      <div style="height:1px;background:rgba(255,255,255,.06);margin:18px 0;"></div>
-
-      <div class="muted" style="display:flex;gap:14px;flex-wrap:wrap;">
-        <a href="/home.html">Back to Home</a>
-        <span>·</span>
-        <a href="/pricing.html">Plans</a>
-        <span>·</span>
-        <a href="/dashboard.html">Dashboard</a>
-      </div>
-    </section>
+    </div>
   </main>
 
+  <!-- Canonical stack -->
+  <script src="/ui.js"></script>
+  <script src="/header-loader.js"></script>
+  <script src="/partials/header.js"></script>
+  <script src="/i18n.js"></script>
+  <script type="module" src="/gate.js"></script>
+
   <!-- Login logic -->
-  <script type="module" src="/login.js"></script>
+  <script type="module">
+    import { signIn, signUp } from "/firebase-config.js";
+
+    const email = document.getElementById("email");
+    const password = document.getElementById("password");
+    const msg = document.getElementById("msg");
+
+    function show(m, ok=false){
+      msg.textContent = m;
+      msg.style.color = ok ? "var(--ok)" : "var(--muted)";
+    }
+
+    document.getElementById("btnLogin").onclick = async () => {
+      try {
+        await signIn(email.value.trim(), password.value);
+        show("Login successful", true);
+        location.href = "/dashboard.html";
+      } catch (e) {
+        show(e.message || "Login failed");
+      }
+    };
+
+    document.getElementById("btnCreate").onclick = async () => {
+      try {
+        await signUp(email.value.trim(), password.value);
+        show("Account created", true);
+        location.href = "/dashboard.html";
+      } catch (e) {
+        show(e.message || "Account creation failed");
+      }
+    };
+  </script>
 </body>
 </html>
