@@ -13,9 +13,7 @@
   const KEY_PAYLOAD = "shs_validizer_payload_v1";
 
   function $(id) { return document.getElementById(id); }
-
   function nowISO() { return new Date().toISOString(); }
-
   function safeText(s) { return String(s ?? ""); }
 
   function download(filename, text, mime) {
@@ -58,25 +56,22 @@
   }
 
   function stripCanonicalWrappers(fragmentOrBody) {
-    // Remove duplicated canonical wrappers if someone pasted a full page or partial shell
     let s = safeText(fragmentOrBody);
 
-    // Remove nested <main class="page">...</main> wrappers (keep inner content)
+    // Remove nested <main class="page"> wrappers
     s = s.replace(/<main[^>]*class=["'][^"']*\bpage\b[^"']*["'][^>]*>/gi, "");
     s = s.replace(/<\/main>/gi, "");
 
-    // Remove duplicated container/content wrappers
+    // Remove duplicated container/content wrappers (conservative)
     s = s.replace(/<div[^>]*class=["'][^"']*\bcontainer\b[^"']*["'][^>]*>/gi, "");
     s = s.replace(/<div[^>]*class=["'][^"']*\bcontent\b[^"']*["'][^>]*>/gi, "");
-    s = s.replace(/<\/div>\s*<\/div>/gi, "</div>"); // soft collapse
-    // NOTE: intentionally conservative; goal is “don’t double wrap”.
 
     return s.trim();
   }
 
   function canonicalShell({ title, description, inner }) {
     const t = safeText(title || "Page — SharpeSystem");
-    const d = safeText(description || "");
+    const d = safeText(description || "").replace(/"/g, "&quot;");
     const content = safeText(inner || "");
 
     return `<!doctype html>
@@ -85,7 +80,7 @@
   <meta charset="utf-8" />
   <title>${t}</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="${d.replace(/"/g, "&quot;")}" />
+  <meta name="description" content="${d}" />
   <link rel="stylesheet" href="/styles.css" />
 </head>
 
@@ -95,7 +90,7 @@
   <main class="page">
     <div class="container content">
 
-      ${content}
+${content}
 
     </div>
   </main>
@@ -110,29 +105,24 @@
   }
 
   function deriveTitle(text) {
-    // If a fragment contains <h1>, use that.
     const m = /<h1[^>]*>([\s\S]*?)<\/h1>/i.exec(text);
     if (!m) return "Page — SharpeSystem";
     const raw = m[1].replace(/<[^>]+>/g, "").trim();
-    if (!raw) return "Page — SharpeSystem";
-    return `${raw} — SharpeSystem`;
+    return raw ? `${raw} — SharpeSystem` : "Page — SharpeSystem";
   }
 
   function canonize(input) {
     const raw = safeText(input || "").trim();
-    if (!raw) {
-      return { out: "", report: "Canonizer: no input provided." };
-    }
+    if (!raw) return { out: "", report: "Canonizer: no input provided." };
 
     const isFull = looksLikeFullHtml(raw);
 
     let bodyOrFrag = raw;
     if (isFull) bodyOrFrag = extractBodyContent(raw);
 
-    // Strip duplicate wrappers so output never becomes double-nested
     const cleaned = stripCanonicalWrappers(bodyOrFrag);
 
-    // If what remains still contains site-header mount or scripts, treat as “body paste” and strip again.
+    // Strip obvious canonical mounts/scripts from pasted content
     const safer = cleaned
       .replace(/<div[^>]+id=["']site-header["'][^>]*>\s*<\/div>/gi, "")
       .replace(/<script[\s\S]*?<\/script>/gi, "")
@@ -145,7 +135,7 @@
     reportLines.push("SHARPESYSTEM CANONIZER REPORT");
     reportLines.push("Time: " + nowISO());
     reportLines.push("Input: " + (isFull ? "full-html" : "fragment"));
-    reportLines.push("Action: wrapped content into canonical page shell (no double main/container).");
+    reportLines.push("Action: wrapped content into canonical page shell (avoids double main/container).");
     reportLines.push("");
     reportLines.push("Notes:");
     reportLines.push("- Firebase imports: none added.");
@@ -166,12 +156,11 @@
     const btnClear = $("btnClear");
 
     if (!inCode || !outCode || !report || !btnCanonize || !btnCopyOut || !btnDownloadOut || !btnClear) {
-      console.error("Canonizer UI missing expected elements. Check canonizer.html IDs.");
-      if (report) report.textContent = "Canonizer failed to initialize: UI elements missing. Replace /tools/canonizer.html and /tools/canonizer.js as a matched pair.";
+      console.error("Canonizer UI missing expected elements. Check /tools/canonizer/index.html IDs.");
+      if (report) report.textContent = "Canonizer failed to initialize: UI elements missing. Replace /tools/canonizer/index.html and /tools/canonizer.js as a matched pair.";
       return;
     }
 
-    // Auto-load payload from Validizer handoff (if present)
     const payload = loadValidizerPayload();
     if (payload && typeof payload.input === "string" && payload.input.trim()) {
       inCode.value = payload.input;
@@ -180,23 +169,21 @@
 
     btnCanonize.addEventListener("click", () => {
       const res = canonize(inCode.value);
-      outCode.textContent = res.out;
+      outCode.value = res.out;        // textarea => value
       report.textContent = res.report;
     });
 
     btnCopyOut.addEventListener("click", async () => {
-      const txt = outCode.textContent || "";
-      await safeCopy(txt);
+      await safeCopy(outCode.value || "");
     });
 
     btnDownloadOut.addEventListener("click", () => {
-      const txt = outCode.textContent || "";
-      download("canon-output.html", txt, "text/html");
+      download("canon-output.html", outCode.value || "", "text/html");
     });
 
     btnClear.addEventListener("click", () => {
       inCode.value = "";
-      outCode.textContent = "";
+      outCode.value = "";
       report.textContent = "";
       try { sessionStorage.removeItem(KEY_PAYLOAD); } catch (_) {}
     });
