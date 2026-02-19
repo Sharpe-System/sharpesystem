@@ -1,5 +1,9 @@
 /* /rfo/rfo-public-fl300.js
    Public FL-300 mapper (localStorage only; text blocks only).
+   Fixes:
+   - Conservative "fit budgets" so courthouse PDF printing doesn't truncate as often
+   - Auto-spill to MC-030 when draft exceeds fit budgets
+   - Generates in-form summary + "See attached MC-030" + user-facing check/attachment instructions
    Canon (public):
    - NO gate.js usage
    - NO Firebase imports
@@ -51,6 +55,30 @@
     }
   }
 
+  function getSpillMode() {
+    const auto = $("modeAuto");
+    const max = $("modeMax");
+    if (auto && auto.checked) return "auto";
+    if (max && max.checked) return "maximize";
+    return "auto";
+  }
+
+  function getStrictness() {
+    return safeStr($("fitStrictness")?.value) || "safe";
+  }
+
+  function budgets(strictness) {
+    // These are intentionally conservative to address courthouse PDF cutoffs.
+    // You can tune later by form testing, but safe defaults prevent "looks like 4 lines, prints like 1.5".
+    if (strictness === "aggressive") {
+      return { orders: 900, why: 900, hardCap: 2200 };
+    }
+    if (strictness === "balanced") {
+      return { orders: 650, why: 650, hardCap: 1800 };
+    }
+    return { orders: 450, why: 450, hardCap: 1400 };
+  }
+
   function readInputs() {
     return {
       court: {
@@ -65,6 +93,10 @@
         primary: safeStr($("primaryRequest")?.value),
         urgency: safeStr($("urgency")?.value),
         oneSentence: safeStr($("oneSentence")?.value),
+      },
+      spill: {
+        mode: getSpillMode(),
+        strictness: getStrictness()
       }
     };
   }
@@ -77,6 +109,12 @@
     $("primaryRequest").value = data?.request?.primary || "";
     $("urgency").value = data?.request?.urgency || "";
     $("oneSentence").value = data?.request?.oneSentence || "";
+
+    const mode = data?.spill?.mode || "auto";
+    if ($("modeAuto")) $("modeAuto").checked = mode === "auto";
+    if ($("modeMax")) $("modeMax").checked = mode === "maximize";
+
+    $("fitStrictness").value = data?.spill?.strictness || "safe";
   }
 
   function labelPrimary(primary) {
@@ -90,32 +128,112 @@
   function labelUrgency(urg) {
     return urg === "time_sensitive" ? "time-sensitive" :
       urg === "safety" ? "safety-related" :
+      urg === "standard" ? "standard" :
       "standard";
   }
 
-  function buildFLOrders(inputs) {
+  function splitSentences(text) {
+    const t = safeStr(text);
+    if (!t) return [];
+    // Simple sentence split; good enough for summary selection
+    return t
+      .replace(/\r\n/g, "\n")
+      .split(/(?<=[.!?])\s+/)
+      .map((s) => safeStr(s))
+      .filter(Boolean);
+  }
+
+  function summarize(text, maxChars) {
+    const sentences = splitSentences(text);
+    if (sentences.length === 0) return "";
+
+    const picked = [];
+    let total = 0;
+
+    for (const s of sentences) {
+      // prefer shorter sentences; skip super long ones
+      const ss = s.length > 240 ? (s.slice(0, 236) + "…") : s;
+      const add = (picked.length ? 1 : 0) + ss.length;
+      if (total + add > maxChars) break;
+      picked.push(ss);
+      total += add;
+      if (picked.length >= 3) break;
+    }
+
+    if (picked.length === 0) {
+      const head = sentences[0];
+      return head.length > maxChars ? (head.slice(0, Math.max(0, maxChars - 1)) + "…") : head;
+    }
+
+    return picked.join(" ");
+  }
+
+  function buildAttachLine(caseNumber, forceMC030) {
+    const cn = safeStr(caseNumber);
+    const base = forceMC030
+      ? "Please see attached MC-030 Declaration and exhibit index for supporting facts."
+      : "See attached declaration (MC-030) and exhibit index if applicable.";
+
+    if (cn) return base + " Case No.: " + cn + ".";
+    return base;
+  }
+
+  function mc030Decision(declText, b, mode) {
+    const dt = safeStr(declText);
+    if (!dt) return { required: false, reason: "No declaration text found in Public Draft." };
+
+    // If the narrative is extremely long, always require attachment regardless of maximize mode.
+    if (dt.length > b.hardCap) {
+      return { required: true, reason: `Declaration length (${dt.length} chars) exceeds hard cap (${b.hardCap}).` };
+    }
+
+    if (mode === "auto") {
+      // Auto: require MC-030 if narrative is longer than safe on-form budgets
+      if (dt.length > Math.max(b.orders, b.why)) {
+        return { required: true, reason: `Declaration length (${dt.length} chars) exceeds in-form fit budget.` };
+      }
+      return { required: false, reason: `Declaration length (${dt.length} chars) fits within selected budget.` };
+    }
+
+    // Maximize: allow longer, but still require if it exceeds aggressive packing beyond budgets
+    if (dt.length > Math.round(Math.max(b.orders, b.why) * 1.5)) {
+      return { required: true, reason: `Declaration length (${dt.length} chars) is too long to reliably print in FL-300 fields.` };
+    }
+    return { required: false, reason: `Maximize mode: allowing in-form text (still at risk of cutoff depending on PDF).` };
+  }
+
+  function buildFLOrders(inputs, decision, declText) {
     const primary = safeStr(inputs?.request?.primary);
-    const oneSentence = safeStr(inputs?.request?.oneSentence);
     const urg = safeStr(inputs?.request?.urgency);
+    const oneSentence = safeStr(inputs?.request?.oneSentence);
 
     const lines = [];
     lines.push(`I request the Court issue orders regarding ${labelPrimary(primary)}.`);
 
-    if (oneSentence) {
-      lines.push(oneSentence);
-    } else {
-      lines.push("I request clear, specific orders that are workable and enforceable.");
+    // If MC-030 required, keep orders short + point to MC-030.
+    if (decision.required) {
+      if (oneSentence) lines.push(oneSentence);
+      else lines.push("I request clear, specific, workable, and enforceable orders.");
+      if (urg) lines.push(`This request is ${labelUrgency(urg)}.`);
+      lines.push("Please see attached MC-030 Declaration.");
+      return lines.join(" ");
+    }
+
+    // If MC-030 not required, allow more content, but still keep readable.
+    if (oneSentence) lines.push(oneSentence);
+
+    const dt = safeStr(declText);
+    if (dt) {
+      // Try to pack some facts if available.
+      const extra = summarize(dt, 260);
+      if (extra) lines.push("Summary facts: " + extra);
     }
 
     if (urg) lines.push(`This request is ${labelUrgency(urg)}.`);
-
-    lines.push("See attached declaration (MC-030) and exhibit index for supporting facts.");
-
-    // Keep compact for typical FL-300 fields:
     return lines.join(" ");
   }
 
-  function buildFLWhy(inputs, declText) {
+  function buildFLWhy(inputs, decision, declText, b) {
     const primary = safeStr(inputs?.request?.primary);
     const urg = safeStr(inputs?.request?.urgency);
 
@@ -133,28 +251,51 @@
       urg === "time_sensitive" ? "This request is time-sensitive due to upcoming events/deadlines." :
       "";
 
-    // Pull a tiny sentence from declaration if present, but do not overstuff.
-    let declHint = "";
-    const dt = safeStr(declText);
-    if (dt) {
-      const firstLine = dt.split("\n").find((x) => safeStr(x).length > 0) || "";
-      if (firstLine && firstLine.length < 140) declHint = firstLine;
+    if (decision.required) {
+      const parts = [whyBase];
+      if (urgencyNote) parts.push(urgencyNote);
+      parts.push("Please see attached MC-030 Declaration for full facts and chronology.");
+      return parts.join(" ");
     }
 
+    // If not required, allow more "why" text but respect budgets.
+    const max = b.why;
+    const dt = safeStr(declText);
+    const extra = dt ? summarize(dt, Math.max(200, Math.min(420, max - 120))) : "";
     const parts = [whyBase];
     if (urgencyNote) parts.push(urgencyNote);
-    if (declHint) parts.push("Summary: " + declHint);
-    parts.push("Full facts are in the attached declaration (MC-030).");
-
+    if (extra) parts.push("Key facts: " + extra);
     return parts.join(" ");
   }
 
-  function buildAttachLine(caseNumber) {
-    const cn = safeStr(caseNumber);
-    if (cn) {
-      return "See attached declaration (MC-030) and exhibit index in support of this request. Case No.: " + cn + ".";
+  function buildCheckInstructions(decision, inputs) {
+    const cn = safeStr(inputs?.court?.caseNumber);
+    const lines = [];
+    lines.push("COURT PDF INSTRUCTIONS (PUBLIC MODE)");
+    lines.push("");
+    lines.push("1) Paste the generated blocks into the corresponding FL-300 text fields.");
+    lines.push("2) Use short, printable text in FL-300. Long narrative belongs in MC-030 pages.");
+    lines.push("");
+
+    if (decision.required) {
+      lines.push("MC-030 TRIGGER: YES");
+      lines.push("- Print and attach an MC-030 Declaration containing your full narrative.");
+      lines.push("- In the FL-300 fields, keep text short and include: “Please see attached MC-030 Declaration.”");
+      lines.push("- If the FL-300 has any checkbox/line for attachments/declaration, mark it to indicate you attached a declaration.");
+    } else {
+      lines.push("MC-030 TRIGGER: NO (optional)");
+      lines.push("- You may proceed without MC-030 if your in-form text prints cleanly.");
+      lines.push("- If you want more precision, you can still attach MC-030 and reference it briefly in FL-300.");
     }
-    return "See attached declaration (MC-030) and exhibit index in support of this request.";
+
+    if (cn) {
+      lines.push("");
+      lines.push("Case No.: " + cn);
+    }
+
+    lines.push("");
+    lines.push("Reminder: This is a structured guide, not legal advice. Confirm requirements for your case type and county.");
+    return lines.join("\n");
   }
 
   async function copyText(text) {
@@ -170,28 +311,44 @@
 
   function regen() {
     const inputs = readInputs();
+    const strictness = inputs.spill.strictness;
+    const b = budgets(strictness);
+    const mode = inputs.spill.mode;
+
     const draft = loadJSON(KEY_DRAFT);
     const declText = safeStr(draft?.text);
 
-    $("flOrders").value = buildFLOrders(inputs);
-    $("flWhy").value = buildFLWhy(inputs, declText);
-    $("flAttach").value = buildAttachLine(inputs?.court?.caseNumber);
+    // Decide if MC-030 required
+    const decision = mc030Decision(declText, b, mode);
+
+    // Status UI
+    $("mc030Status").textContent = decision.required ? "✅ MC-030 REQUIRED (spillover triggered)" : "⚠️ MC-030 NOT REQUIRED (optional)";
+    $("mc030Reason").textContent = decision.reason;
+
+    // Outputs
+    const orders = buildFLOrders(inputs, decision, declText);
+    const why = buildFLWhy(inputs, decision, declText, b);
+    const attach = buildAttachLine(inputs?.court?.caseNumber, decision.required);
+    const checks = buildCheckInstructions(decision, inputs);
+
+    $("flOrders").value = orders;
+    $("flWhy").value = why;
+    $("flAttach").value = attach;
+    $("checkInstructions").value = checks;
     $("declText").value = declText || "";
 
+    // Persist
     saveJSON(KEY_FL300, {
-      version: 1,
+      version: 2,
       updatedAt: nowISO(),
       inputs,
-      fl: {
-        orders: $("flOrders").value,
-        why: $("flWhy").value,
-        attach: $("flAttach").value
-      }
+      budgets: b,
+      decision,
+      outputs: { orders, why, attach, checks }
     });
   }
 
   function init() {
-    // Prefer intake values, then prior FL-300 values.
     const intake = loadJSON(KEY_INTAKE);
     const prior = loadJSON(KEY_FL300);
 
@@ -201,9 +358,16 @@
       writeInputs({
         court: intake.court,
         parties: intake.parties,
-        request: intake.request
+        request: intake.request,
+        spill: { mode: "auto", strictness: "safe" }
       });
+    } else {
+      // defaults
+      writeInputs({ spill: { mode: "auto", strictness: "safe" } });
     }
+
+    // Ensure one mode selected
+    if (!$("modeAuto").checked && !$("modeMax").checked) $("modeAuto").checked = true;
 
     regen();
 
@@ -213,48 +377,56 @@
     $("btnCopyWhy")?.addEventListener("click", () => copyText($("flWhy").value));
     $("btnCopyAttach")?.addEventListener("click", () => copyText($("flAttach").value));
     $("btnCopyDecl")?.addEventListener("click", () => copyText($("declText").value));
+    $("btnCopyChecks")?.addEventListener("click", () => copyText($("checkInstructions").value));
 
     $("btnCopyAll")?.addEventListener("click", () => {
       const all = [
-        "FL-300 COPY PACK",
+        "FL-300 COPY PACK (PUBLIC)",
         "",
-        "ORDERS REQUESTED:",
+        "ORDERS REQUESTED (paste into FL-300):",
         safeStr($("flOrders").value),
         "",
-        "WHY SUMMARY:",
+        "WHY SUMMARY (paste into FL-300):",
         safeStr($("flWhy").value),
         "",
-        "ATTACHMENT LINE:",
+        "ATTACHMENT LINE (paste into FL-300):",
         safeStr($("flAttach").value),
         "",
-        "DECLARATION (MC-030 STYLE) TEXT:",
+        "COURT PDF CHECK/ATTACH INSTRUCTIONS:",
+        safeStr($("checkInstructions").value),
+        "",
+        "MC-030 DECLARATION TEXT (print + attach if triggered):",
         safeStr($("declText").value)
       ].join("\n");
       copyText(all);
     });
 
     $("btnSave")?.addEventListener("click", () => {
-      const inputs = readInputs();
+      const prior = loadJSON(KEY_FL300) || {};
       const ok = saveJSON(KEY_FL300, {
-        version: 1,
+        ...(typeof prior === "object" ? prior : {}),
+        version: 2,
         updatedAt: nowISO(),
-        inputs,
-        fl: {
+        inputs: readInputs(),
+        outputs: {
           orders: safeStr($("flOrders").value),
           why: safeStr($("flWhy").value),
-          attach: safeStr($("flAttach").value)
+          attach: safeStr($("flAttach").value),
+          checks: safeStr($("checkInstructions").value)
         }
       });
       if (ok) toast("Saved");
     });
 
-    // Regenerate on key changes
-    ["county", "caseNumber", "petitionerName", "respondentName", "primaryRequest", "urgency", "oneSentence"].forEach((id) => {
+    [
+      "county", "caseNumber", "petitionerName", "respondentName",
+      "primaryRequest", "urgency", "oneSentence",
+      "fitStrictness", "modeAuto", "modeMax"
+    ].forEach((id) => {
       const el = $(id);
       if (!el) return;
       el.addEventListener("change", regen);
       el.addEventListener("input", () => {
-        // light debounce via rAF
         if (el.__ss_rfo_tick) return;
         el.__ss_rfo_tick = true;
         requestAnimationFrame(() => {
