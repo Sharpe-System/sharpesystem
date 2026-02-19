@@ -1,0 +1,35 @@
+{
+  "ca": {
+    "authority": "judicial_council",
+    "baseForms": {
+      "FL-300": {
+        "title": "Request for Order",
+        "path": "assets/forms/ca/jc/FL-300.pdf",
+        "source": "https://courts.ca.gov/system/files?file=2025-07/fl300.pdf"
+      },
+      "FL-305": {
+        "title": "Temporary Emergency Orders",
+        "path": "assets/forms/ca/jc/FL-305.pdf",
+        "source": "https://courts.ca.gov/sites/default/files/courts/default/2024-11/fl305.pdf"
+      }
+    },
+    "counties": {
+      "orange": {
+        "localForms": {
+          "L-1124": {
+            "title": "Declaration re Notice of Ex Parte",
+            "path": "assets/forms/ca/orange/local/L-1124.pdf",
+            "source": "https://www.occourts.org/system/files/general/l1124.pdf"
+          }
+        },
+        "packets": {
+          "RFO": {
+            "title": "OC RFO Packet",
+            "path": "assets/packets/ca/orange/SHC-RFO-07.pdf",
+            "source": "https://www.occourts.org/system/files/selfhelp/shc-rfo-07.pdf"
+          }
+        }
+      }
+    }
+  }
+}
