@@ -1,0 +1,212 @@
+<!-- /rfo/public-service.html -->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>RFO — Service & Proof of Service (Public) — SharpeSystem</title>
+  <meta name="description" content="Public service workflow: decide service method, generate proof-of-service checklist, deadlines, and copy-ready instructions. Includes PeacePath off-ramp." />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+
+<body class="shell">
+  <div id="site-header"></div>
+
+  <main class="page">
+    <div class="container content">
+
+      <section class="card" style="padding:var(--pad);">
+        <div class="row" style="justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap;">
+          <div>
+            <h1 style="margin:0;">Service & Proof of Service (Public)</h1>
+            <p class="muted" style="margin:6px 0 0 0;">
+              Public mode does not file or serve for you. This page tells you exactly what to do, what form to use, and what to bring.
+              (Not legal advice.)
+            </p>
+          </div>
+
+          <div class="row" style="gap:10px; flex-wrap:wrap;">
+            <button class="btn" id="btnCopyAll" type="button">Copy All</button>
+            <button class="btn" id="btnSave" type="button">Save</button>
+            <a class="btn" href="/rfo/start.html">RFO Start</a>
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
+        <!-- PeacePath must be present on every adversarial page -->
+        <section class="card" style="padding:14px; margin:0 0 14px 0;">
+          <h2 style="margin:0 0 6px 0;">Before you serve</h2>
+          <p class="muted" style="margin:0;">
+            Service escalates conflict. If agreement is possible, pivot to a cooperative process before you trigger a formal court timeline.
+          </p>
+          <div class="row" style="margin-top:12px; gap:10px; flex-wrap:wrap;">
+            <a class="btn" href="/amicable.html">Try Amicable (Agreement Path)</a>
+            <a class="btn" href="/peace-path.html">Peace Path (De-escalated Messaging)</a>
+            <a class="btn primary" href="#svc">Continue service workflow</a>
+          </div>
+        </section>
+
+        <div id="svc"></div>
+
+        <section class="card" style="padding:12px; margin:0 0 14px 0;">
+          <h3 style="margin:0 0 6px 0;">What this decides</h3>
+          <ul style="margin:0; padding-left:18px;">
+            <li>Whether you should use <b>FL-330 (Personal Service)</b> or <b>FL-335 (Service by Mail)</b> for Proof of Service</li>
+            <li>Minimum “server” requirements (who can serve)</li>
+            <li>Deadlines checklist (you confirm the exact hearing date/time)</li>
+            <li>Copy-ready “service instructions” you can give to your process server</li>
+          </ul>
+          <div class="small soft" style="margin-top:8px;">
+            IMPORTANT: Always verify court rules and any special orders in your case. This is a structured guide, not legal advice.
+          </div>
+        </section>
+
+        <h3 style="margin-top:0;">Inputs</h3>
+
+        <div class="grid-2" style="gap:12px;">
+          <label class="field">
+            <span class="label">Hearing date</span>
+            <input class="input" id="hearingDate" type="date" />
+          </label>
+          <label class="field">
+            <span class="label">Hearing time</span>
+            <input class="input" id="hearingTime" type="time" />
+          </label>
+        </div>
+
+        <div class="grid-2" style="gap:12px; margin-top:12px;">
+          <label class="field">
+            <span class="label">County</span>
+            <input class="input" id="county" type="text" value="Orange" autocomplete="off" />
+          </label>
+          <label class="field">
+            <span class="label">Case number (optional)</span>
+            <input class="input" id="caseNumber" type="text" placeholder="e.g., 17D009277" autocomplete="off" />
+          </label>
+        </div>
+
+        <div class="grid-2" style="gap:12px; margin-top:12px;">
+          <label class="field">
+            <span class="label">Other party (person to be served)</span>
+            <input class="input" id="servedParty" type="text" placeholder="Full legal name" autocomplete="off" />
+          </label>
+          <label class="field">
+            <span class="label">Relationship / role (optional)</span>
+            <input class="input" id="servedRole" type="text" placeholder="e.g., Petitioner / Respondent" autocomplete="off" />
+          </label>
+        </div>
+
+        <div class="grid-2" style="gap:12px; margin-top:12px;">
+          <label class="field">
+            <span class="label">Service method</span>
+            <select class="input" id="serviceMethod">
+              <option value="">Select…</option>
+              <option value="personal">Personal service (recommended / safest)</option>
+              <option value="mail">Service by mail (allowed only in some situations)</option>
+              <option value="unknown">Not sure (default to personal)</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span class="label">Do you have the other party’s reliable address?</span>
+            <select class="input" id="hasAddress">
+              <option value="">Select…</option>
+              <option value="yes">Yes</option>
+              <option value="no">No</option>
+              <option value="unknown">Not sure</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="grid-2" style="gap:12px; margin-top:12px;">
+          <label class="field">
+            <span class="label">Are there safety/no-contact constraints (DVRO etc.)?</span>
+            <select class="input" id="hasNoContact">
+              <option value="">Select…</option>
+              <option value="yes">Yes</option>
+              <option value="no">No</option>
+              <option value="unknown">Not sure</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span class="label">Server type</span>
+            <select class="input" id="serverType">
+              <option value="">Select…</option>
+              <option value="process_server">Registered process server</option>
+              <option value="adult_friend">Non-party adult (18+) friend/family</option>
+              <option value="sheriff">Sheriff / marshal (if available)</option>
+              <option value="unknown">Not sure</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="hr"></div>
+
+        <h3 style="margin-top:0;">Outputs</h3>
+
+        <div class="grid-2" style="gap:12px;">
+          <section class="card" style="padding:12px;">
+            <h4 style="margin:0 0 8px 0;">Recommended Proof of Service form</h4>
+            <div class="muted" id="posForm">Select inputs to calculate…</div>
+            <div class="small soft" style="margin-top:8px;" id="posNotes"></div>
+          </section>
+
+          <section class="card" style="padding:12px;">
+            <h4 style="margin:0 0 8px 0;">Deadline reminder (estimate)</h4>
+            <div class="muted" id="deadline">Enter hearing date/time…</div>
+            <div class="small soft" style="margin-top:8px;">
+              This is a conservative reminder, not a legal deadline engine. Always verify local rules.
+            </div>
+          </section>
+        </div>
+
+        <section class="card" style="padding:12px; margin-top:12px;">
+          <h4 style="margin:0 0 8px 0;">Service instructions (copy-ready)</h4>
+          <textarea class="input" id="svcInstructions" rows="12" placeholder="Generated…"></textarea>
+          <div class="row" style="margin-top:10px; gap:10px; flex-wrap:wrap;">
+            <button class="btn" id="btnCopyInstructions" type="button">Copy</button>
+          </div>
+        </section>
+
+        <section class="card" style="padding:12px; margin-top:12px;">
+          <h4 style="margin:0 0 8px 0;">What to serve (packet list)</h4>
+          <textarea class="input" id="packetList" rows="10" placeholder="Generated…"></textarea>
+          <div class="row" style="margin-top:10px; gap:10px; flex-wrap:wrap;">
+            <button class="btn" id="btnCopyPacket" type="button">Copy</button>
+          </div>
+        </section>
+
+        <section class="card" style="padding:12px; margin-top:12px;">
+          <h4 style="margin:0 0 8px 0;">Proof of Service checklist</h4>
+          <textarea class="input" id="posChecklist" rows="10" placeholder="Generated…"></textarea>
+          <div class="row" style="margin-top:10px; gap:10px; flex-wrap:wrap;">
+            <button class="btn" id="btnCopyChecklist" type="button">Copy</button>
+          </div>
+        </section>
+
+        <div class="row" style="margin-top:12px; gap:10px; flex-wrap:wrap;">
+          <a class="btn" href="/rfo/public-fl300.html">FL-300 Mapper</a>
+          <a class="btn" href="/rfo/public-exhibits.html">Exhibits</a>
+          <a class="btn primary" href="/rfo/public-print.html">Print Gate</a>
+        </div>
+
+        <div class="small soft" style="margin-top:12px;">
+          Public mode stores locally only. Paid mode can generate print-perfect service packets and save your workflow.
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Public canonical stack (NO gate.js) -->
+  <script src="/ui.js"></script>
+  <script src="/header-loader.js"></script>
+  <script src="/partials/header.js"></script>
+  <script src="/i18n.js"></script>
+
+  <!-- Public service logic (localStorage-only) -->
+  <script src="/rfo/rfo-public-service.js"></script>
+</body>
+</html>
