@@ -1,0 +1,188 @@
+<!-- /rfo/public-fl300.html -->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>RFO — FL-300 Mapper (Public) — SharpeSystem</title>
+  <meta name="description" content="Public FL-300 mapping: copy-ready text blocks for the court's official form + declaration attachment strategy." />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+
+<body class="shell">
+  <div id="site-header"></div>
+
+  <main class="page">
+    <div class="container content">
+
+      <section class="card" style="padding:var(--pad);">
+        <div class="row" style="justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap;">
+          <div>
+            <h1 style="margin:0;">FL-300 Mapper (Public)</h1>
+            <p class="muted" style="margin:6px 0 0 0;">
+              Public mode uses the <b>court’s official PDF</b>. SharpeSystem generates <b>copy-ready</b> text for each key box,
+              and routes your full narrative into an attached declaration (MC-030).
+            </p>
+          </div>
+          <div class="row" style="gap:10px; flex-wrap:wrap;">
+            <button class="btn" id="btnCopyAll" type="button">Copy All</button>
+            <button class="btn" id="btnSave" type="button">Save</button>
+            <a class="btn" href="/rfo/start.html">RFO Start</a>
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
+        <!-- PeacePath must be present on every adversarial page -->
+        <section class="card" style="padding:14px; margin:0 0 14px 0;">
+          <h2 style="margin:0 0 6px 0;">Before you file</h2>
+          <p class="muted" style="margin:0;">
+            Filing is escalation. If agreement is realistically possible, use this mapper to clarify the issues, then pivot to a cooperative path.
+          </p>
+          <div class="row" style="margin-top:12px; gap:10px; flex-wrap:wrap;">
+            <a class="btn" href="/amicable.html">Try Amicable (Agreement Path)</a>
+            <a class="btn" href="/peace-path.html">Peace Path (De-escalated Messaging)</a>
+            <a class="btn primary" href="#map">Continue mapping</a>
+          </div>
+        </section>
+
+        <div id="map"></div>
+
+        <section class="card" style="padding:12px; margin:0 0 14px 0;">
+          <h3 style="margin:0 0 6px 0;">How to use this page</h3>
+          <ol style="margin:0; padding-left:18px;">
+            <li>Open the court’s official FL-300 PDF.</li>
+            <li>For each FL-300 box below, copy the text from SharpeSystem and paste it into the PDF field.</li>
+            <li>Keep FL-300 entries short. Put your full story in the attached declaration (MC-030 style).</li>
+          </ol>
+          <div class="small soft" style="margin-top:8px;">
+            Public mode does not fill PDFs for you. Paid mode generates a print-perfect packet.
+          </div>
+        </section>
+
+        <h3 style="margin-top:0;">Case header (top of FL-300)</h3>
+
+        <div class="grid-2" style="gap:12px;">
+          <label class="field">
+            <span class="label">County (for reference)</span>
+            <input class="input" id="county" type="text" value="Orange" autocomplete="off" />
+          </label>
+          <label class="field">
+            <span class="label">Case number</span>
+            <input class="input" id="caseNumber" type="text" placeholder="e.g., 17D009277" autocomplete="off" />
+          </label>
+        </div>
+
+        <div class="grid-2" style="gap:12px; margin-top:12px;">
+          <label class="field">
+            <span class="label">Petitioner</span>
+            <input class="input" id="petitionerName" type="text" placeholder="Full legal name" autocomplete="off" />
+          </label>
+          <label class="field">
+            <span class="label">Respondent</span>
+            <input class="input" id="respondentName" type="text" placeholder="Full legal name" autocomplete="off" />
+          </label>
+        </div>
+
+        <div class="hr"></div>
+
+        <h3 style="margin-top:0;">What you are requesting (FL-300 core boxes)</h3>
+        <p class="muted" style="margin-top:6px;">
+          These blocks are designed to fit typical FL-300 fields. Your full narrative belongs in the attached declaration.
+        </p>
+
+        <div class="grid-2" style="gap:12px;">
+          <label class="field">
+            <span class="label">Primary request</span>
+            <select class="input" id="primaryRequest">
+              <option value="">Select…</option>
+              <option value="custody_visitation">Custody / Visitation (parenting time)</option>
+              <option value="support_child">Child support</option>
+              <option value="support_spousal">Spousal support</option>
+              <option value="orders_other">Other family-law orders</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span class="label">Urgency</span>
+            <select class="input" id="urgency">
+              <option value="">Select…</option>
+              <option value="standard">Standard notice</option>
+              <option value="time_sensitive">Time-sensitive</option>
+              <option value="safety">Safety-related</option>
+            </select>
+          </label>
+        </div>
+
+        <label class="field" style="margin-top:12px;">
+          <span class="label">One-sentence summary (plain English)</span>
+          <input class="input" id="oneSentence" type="text" placeholder="Example: I need a set weekly schedule with school pickups." autocomplete="off" />
+        </label>
+
+        <div class="grid-2" style="gap:12px; margin-top:12px;">
+          <section class="card" style="padding:12px;">
+            <h4 style="margin:0 0 8px 0;">FL-300: “Orders requested” (copy block)</h4>
+            <textarea class="input" id="flOrders" rows="8" placeholder="Generated…"></textarea>
+            <div class="row" style="margin-top:10px; gap:10px; flex-wrap:wrap;">
+              <button class="btn" id="btnCopyOrders" type="button">Copy</button>
+              <button class="btn" id="btnRegen" type="button">Regenerate</button>
+            </div>
+          </section>
+
+          <section class="card" style="padding:12px;">
+            <h4 style="margin:0 0 8px 0;">FL-300: “Why” summary (copy block)</h4>
+            <textarea class="input" id="flWhy" rows="8" placeholder="Generated…"></textarea>
+            <div class="row" style="margin-top:10px; gap:10px; flex-wrap:wrap;">
+              <button class="btn" id="btnCopyWhy" type="button">Copy</button>
+            </div>
+          </section>
+        </div>
+
+        <section class="card" style="padding:12px; margin-top:12px;">
+          <h4 style="margin:0 0 8px 0;">FL-300: Declaration attachment line (copy block)</h4>
+          <textarea class="input" id="flAttach" rows="4" placeholder="Generated…"></textarea>
+          <div class="row" style="margin-top:10px; gap:10px; flex-wrap:wrap;">
+            <button class="btn" id="btnCopyAttach" type="button">Copy</button>
+          </div>
+          <div class="small soft" style="margin-top:10px;">
+            This is how we avoid the “2–3 lines only” trap: FL-300 stays short; the full narrative goes in MC-030 pages.
+          </div>
+        </section>
+
+        <div class="hr"></div>
+
+        <h3 style="margin-top:0;">Declaration (MC-030 style) — public copy block</h3>
+        <p class="muted" style="margin-top:6px;">
+          This is not a PDF generator. This is a clean, pasteable declaration body you can print separately and attach.
+        </p>
+
+        <label class="field" style="margin-top:12px;">
+          <span class="label">Declaration text (from your Public Draft)</span>
+          <textarea class="input" id="declText" rows="16" placeholder="Pulled from your Public Draft…"></textarea>
+        </label>
+
+        <div class="row" style="margin-top:12px; gap:10px; flex-wrap:wrap;">
+          <button class="btn" id="btnCopyDecl" type="button">Copy Declaration</button>
+          <a class="btn" href="/rfo/public-draft.html#resume">Edit Draft</a>
+          <a class="btn" href="/rfo/public-exhibits.html">Exhibits</a>
+          <a class="btn primary" href="/rfo/public-print.html">Print Gate</a>
+        </div>
+
+        <div class="small soft" style="margin-top:12px;">
+          Public mode stores locally only. Paid mode produces print-perfect “our forms” and a merged packet.
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Public canonical stack (NO gate.js) -->
+  <script src="/ui.js"></script>
+  <script src="/header-loader.js"></script>
+  <script src="/partials/header.js"></script>
+  <script src="/i18n.js"></script>
+
+  <!-- Public FL-300 mapper logic (localStorage-only) -->
+  <script src="/rfo/rfo-public-fl300.js"></script>
+</body>
+</html>
