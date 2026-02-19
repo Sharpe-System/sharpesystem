@@ -1,4 +1,3 @@
-<!-- /rfo/exparte-decl.html -->
 <!doctype html>
 <html lang="en">
 <head>
@@ -44,7 +43,30 @@
           </div>
         </section>
 
-        <h3 style="margin-top:0;">Declaration narrative</h3>
+        <div class="card" style="padding:12px; margin-bottom:12px;">
+          <div class="row" style="justify-content:space-between; gap:12px; flex-wrap:wrap; align-items:flex-start;">
+            <div>
+              <h3 style="margin:0 0 6px 0;">Overflow control</h3>
+              <p class="muted" style="margin:0;">
+                If your declaration is too long for MC-030, SharpeSystem will auto-generate a pleading-paper attachment
+                and reduce MC-030 to a summary + “See attached pleading paper.”
+              </p>
+            </div>
+            <div class="row" style="gap:10px; flex-wrap:wrap;">
+              <label class="row" style="gap:8px; align-items:center; margin:0;">
+                <input type="checkbox" id="autoOverflow" />
+                <span class="muted">Auto-attach pleading paper when long</span>
+              </label>
+              <a class="btn" href="/rfo/pleading-paper.html">Open Pleading Paper</a>
+            </div>
+          </div>
+
+          <div class="small soft" style="margin-top:10px;">
+            Status: <span id="overflowStatus">Checking…</span>
+          </div>
+        </div>
+
+        <h3 style="margin-top:0;">Declaration narrative (source text)</h3>
 
         <label class="field">
           <span class="label">Facts supporting emergency request</span>
@@ -68,6 +90,18 @@
           <span class="label">Requested relief summary</span>
           <textarea class="input" id="relief" rows="6"
             placeholder="Concise statement of requested orders"></textarea>
+        </label>
+
+        <div class="hr"></div>
+
+        <h3 style="margin-top:0;">MC-030 output (what gets mapped into the small MC-030 box)</h3>
+        <p class="muted" style="margin-top:6px;">
+          This is the text that should fit on MC-030. If overflow triggers, this becomes a short summary plus an attachment reference.
+        </p>
+
+        <label class="field" style="margin-top:12px;">
+          <span class="label">MC-030 Text (auto-generated)</span>
+          <textarea class="input" id="mc030Text" rows="8" readonly></textarea>
         </label>
 
         <div class="hr"></div>
