@@ -4,55 +4,68 @@
 
   "public": [
     "/404.html",
-    "/amicable.html",
-    "/attorney-portal.html",
-    "/dmv-id-start.html",
-    "/forms.html",
-    "/high-conflict-risk-awareness.html",
     "/home.html",
-    "/immigration/index.html",
     "/index.html",
-    "/insurance-claims.html",
-    "/insurance.html",
-    "/login.html",
-    "/pricing.html",
-    "/signup.html",
-    "/stabilize.html",
     "/status.html",
+    "/pricing.html",
+    "/login.html",
+    "/signup.html",
     "/subscribe.html",
     "/success.html",
+
     "/trees.html",
     "/triage.html",
+    "/forms.html",
 
+    "/amicable.html",
+    "/stabilize.html",
+    "/high-conflict-risk-awareness.html",
+
+    "/insurance.html",
+    "/insurance-claims.html",
+
+    "/attorney-portal.html",
     "/binder/attorney-invite.html",
     "/binder/attorney-portal.html",
+
+    "/immigration/index.html",
 
     "/tools/validizer.html",
     "/tools/canonizer.html",
     "/tools/validizer/",
-    "/tools/canonizer/"
+    "/tools/canonizer/",
+
+    "/dvro/dvro-start.html",
+    "/dvro/dvro-incident-summary.html",
+    "/dvro/dvro-protections.html",
+    "/dvro/dvro-filing-and-service.html",
+
+    "/rfo/index.html",
+    "/peace/index.html",
+    "/peace/thread.html"
   ],
 
-  "protected": [],
+  "protected": [
+    "/dashboard.html"
+  ],
 
   "paid": [
     "/app.html",
     "/billing.html",
     "/checklist.html",
-    "/dashboard.html",
     "/intake.html",
     "/notes.html",
-    "/peace/index.html",
-    "/peace/thread.html",
-    "/rfo/index.html",
     "/snapshot.html",
-    "/start.html",
-    "/tier1.html",
     "/timeline.html",
     "/timeline-v2.html",
-    "/immigration/intake.html",
-    "/immigration/snapshot.html",
+
+    "/start.html",
+    "/tier1.html",
+
     "/binder/home.html",
-    "/binder/matter-binder.html"
+    "/binder/matter-binder.html",
+
+    "/immigration/intake.html",
+    "/immigration/snapshot.html"
   ]
 }
