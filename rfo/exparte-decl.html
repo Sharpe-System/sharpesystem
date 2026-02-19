@@ -1,0 +1,120 @@
+<!-- /rfo/exparte-decl.html -->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>RFO — Ex Parte Declaration (Public) — SharpeSystem</title>
+  <meta name="description" content="Public MC-030 declaration mapping for ex parte packet (local-only)." />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+
+<body class="shell">
+  <div id="site-header"></div>
+
+  <main class="page">
+    <div class="container content">
+
+      <section class="card" style="padding:var(--pad);">
+
+        <div class="row" style="justify-content:space-between; gap:12px; flex-wrap:wrap;">
+          <div>
+            <h1 style="margin:0;">Ex Parte — Declaration (MC-030)</h1>
+            <p class="muted" style="margin:6px 0 0 0;">
+              Supporting declaration for emergency request. Public mode stores locally only.
+            </p>
+          </div>
+          <div class="row" style="gap:10px;">
+            <button class="btn" id="btnSave" type="button">Save</button>
+            <a class="btn" href="/rfo/exparte-fl305.html">Back to FL-305</a>
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
+        <!-- PeacePath -->
+        <section class="card" style="padding:14px; margin-bottom:14px;">
+          <h2 style="margin:0 0 6px 0;">Off-ramp</h2>
+          <p class="muted" style="margin:0;">
+            If facts can be resolved without emergency orders, cooperative paths may be safer.
+          </p>
+          <div class="row" style="margin-top:10px; gap:10px;">
+            <a class="btn" href="/amicable.html">Amicable</a>
+            <a class="btn" href="/peace-path.html">PeacePath</a>
+          </div>
+        </section>
+
+        <h3 style="margin-top:0;">Declaration narrative</h3>
+
+        <label class="field">
+          <span class="label">Facts supporting emergency request</span>
+          <textarea class="input" id="facts" rows="10"
+            placeholder="Chronological facts showing immediate harm risk"></textarea>
+        </label>
+
+        <label class="field" style="margin-top:12px;">
+          <span class="label">Recent incidents or escalation</span>
+          <textarea class="input" id="recent" rows="6"
+            placeholder="Most recent events leading to ex parte filing"></textarea>
+        </label>
+
+        <label class="field" style="margin-top:12px;">
+          <span class="label">Why emergency orders are necessary now</span>
+          <textarea class="input" id="necessity" rows="6"
+            placeholder="Link facts to requested emergency relief"></textarea>
+        </label>
+
+        <label class="field" style="margin-top:12px;">
+          <span class="label">Requested relief summary</span>
+          <textarea class="input" id="relief" rows="6"
+            placeholder="Concise statement of requested orders"></textarea>
+        </label>
+
+        <div class="hr"></div>
+
+        <h3 style="margin-top:0;">Context preview</h3>
+
+        <div class="card" style="padding:12px;">
+          <div class="small muted">Urgency</div>
+          <div id="urgencyPreview" class="soft"></div>
+        </div>
+
+        <div class="card" style="padding:12px; margin-top:10px;">
+          <div class="small muted">FL-300</div>
+          <div id="fl300Preview" class="soft"></div>
+        </div>
+
+        <div class="card" style="padding:12px; margin-top:10px;">
+          <div class="small muted">FL-305</div>
+          <div id="fl305Preview" class="soft"></div>
+        </div>
+
+        <div class="card" style="padding:12px; margin-top:10px;">
+          <div class="small muted">Notice</div>
+          <div id="noticePreview" class="soft"></div>
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="row" style="gap:10px;">
+          <a class="btn primary" href="/rfo/exparte-proposed.html">Continue to Proposed Order</a>
+        </div>
+
+        <div class="small soft" style="margin-top:12px;">
+          Local-only key: <code>ss_rfo_exparte_decl_v1</code>
+        </div>
+
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Canon public stack -->
+  <script src="/ui.js"></script>
+  <script src="/header-loader.js"></script>
+  <script src="/partials/header.js"></script>
+  <script src="/i18n.js"></script>
+
+  <script src="/rfo/rfo-exparte-decl.js"></script>
+</body>
+</html>
