@@ -5,7 +5,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>RFO — FL-300 Mapper (Public) — SharpeSystem</title>
-  <meta name="description" content="Public FL-300 mapping: copy-ready text blocks for the court's official form + declaration attachment strategy." />
+  <meta name="description" content="Public FL-300 mapping: copy-ready text blocks for the court's official form + automatic MC-030 spillover strategy." />
   <link rel="stylesheet" href="/styles.css" />
 </head>
 
@@ -20,8 +20,8 @@
           <div>
             <h1 style="margin:0;">FL-300 Mapper (Public)</h1>
             <p class="muted" style="margin:6px 0 0 0;">
-              Public mode uses the <b>court’s official PDF</b>. SharpeSystem generates <b>copy-ready</b> text for each key box,
-              and routes your full narrative into an attached declaration (MC-030).
+              Public mode uses the <b>court’s official PDF</b>. SharpeSystem generates <b>copy-ready</b> text that actually prints,
+              and automatically routes overflow into an attached <b>MC-030</b> when needed.
             </p>
           </div>
           <div class="row" style="gap:10px; flex-wrap:wrap;">
@@ -37,7 +37,7 @@
         <section class="card" style="padding:14px; margin:0 0 14px 0;">
           <h2 style="margin:0 0 6px 0;">Before you file</h2>
           <p class="muted" style="margin:0;">
-            Filing is escalation. If agreement is realistically possible, use this mapper to clarify the issues, then pivot to a cooperative path.
+            Filing is escalation. If agreement is realistically possible, use this to clarify your issues, then pivot to a cooperative path.
           </p>
           <div class="row" style="margin-top:12px; gap:10px; flex-wrap:wrap;">
             <a class="btn" href="/amicable.html">Try Amicable (Agreement Path)</a>
@@ -49,14 +49,15 @@
         <div id="map"></div>
 
         <section class="card" style="padding:12px; margin:0 0 14px 0;">
-          <h3 style="margin:0 0 6px 0;">How to use this page</h3>
-          <ol style="margin:0; padding-left:18px;">
-            <li>Open the court’s official FL-300 PDF.</li>
-            <li>For each FL-300 box below, copy the text from SharpeSystem and paste it into the PDF field.</li>
-            <li>Keep FL-300 entries short. Put your full story in the attached declaration (MC-030 style).</li>
-          </ol>
+          <h3 style="margin:0 0 6px 0;">How this solves the “fillable PDF” problem</h3>
+          <ul style="margin:0; padding-left:18px;">
+            <li><b>FL-300 fields lie.</b> They show multiple lines, but print cutoffs are common.</li>
+            <li>This mapper enforces a conservative “fit budget.”</li>
+            <li>If you exceed the budget, it auto-generates a <b>short summary</b> + “See attached MC-030,” and puts the full text into MC-030.</li>
+            <li><b>Public mode does not fill PDFs for you.</b> You paste the blocks into the court PDF and check boxes as instructed.</li>
+          </ul>
           <div class="small soft" style="margin-top:8px;">
-            Public mode does not fill PDFs for you. Paid mode generates a print-perfect packet.
+            Paid tiers can generate print-perfect “our forms.” Public mode stays on the official court PDF.
           </div>
         </section>
 
@@ -86,10 +87,59 @@
 
         <div class="hr"></div>
 
+        <h3 style="margin-top:0;">Spillover settings</h3>
+
+        <div class="grid-2" style="gap:12px;">
+          <section class="card" style="padding:12px;">
+            <h4 style="margin:0 0 8px 0;">Strategy</h4>
+
+            <label class="row" style="gap:10px; align-items:flex-start; margin:0;">
+              <input type="radio" name="spillMode" id="modeAuto" value="auto" />
+              <div>
+                <div><b>Auto-spill to MC-030 when needed</b> (recommended)</div>
+                <div class="muted">Keeps FL-300 printable; pushes overflow into MC-030.</div>
+              </div>
+            </label>
+
+            <label class="row" style="gap:10px; align-items:flex-start; margin:10px 0 0 0;">
+              <input type="radio" name="spillMode" id="modeMax" value="maximize" />
+              <div>
+                <div><b>Maximize in-form text</b> (risk of cutoff)</div>
+                <div class="muted">Tries to pack more into FL-300; still adds MC-030 if wildly long.</div>
+              </div>
+            </label>
+
+            <div class="hr"></div>
+
+            <label class="field" style="margin:0;">
+              <span class="label">Fit strictness</span>
+              <select class="input" id="fitStrictness">
+                <option value="safe">Safe (least cutoff risk)</option>
+                <option value="balanced">Balanced</option>
+                <option value="aggressive">Aggressive (more cutoff risk)</option>
+              </select>
+              <span class="help muted">This adjusts the max characters allowed in FL-300 boxes before spillover.</span>
+            </label>
+          </section>
+
+          <section class="card" style="padding:12px;">
+            <h4 style="margin:0 0 8px 0;">Attachment trigger status</h4>
+            <div class="muted" id="mc030Status">Calculating…</div>
+            <div class="small soft" style="margin-top:8px;" id="mc030Reason"></div>
+
+            <div class="hr"></div>
+
+            <h4 style="margin:0 0 8px 0;">What you must do in the court PDF</h4>
+            <textarea class="input" id="checkInstructions" rows="8" placeholder="Generated…"></textarea>
+            <div class="row" style="margin-top:10px; gap:10px; flex-wrap:wrap;">
+              <button class="btn" id="btnCopyChecks" type="button">Copy</button>
+            </div>
+          </section>
+        </div>
+
+        <div class="hr"></div>
+
         <h3 style="margin-top:0;">What you are requesting (FL-300 core boxes)</h3>
-        <p class="muted" style="margin-top:6px;">
-          These blocks are designed to fit typical FL-300 fields. Your full narrative belongs in the attached declaration.
-        </p>
 
         <div class="grid-2" style="gap:12px;">
           <label class="field">
@@ -117,11 +167,12 @@
         <label class="field" style="margin-top:12px;">
           <span class="label">One-sentence summary (plain English)</span>
           <input class="input" id="oneSentence" type="text" placeholder="Example: I need a set weekly schedule with school pickups." autocomplete="off" />
+          <span class="help muted">Used to keep FL-300 short when your full declaration is long.</span>
         </label>
 
         <div class="grid-2" style="gap:12px; margin-top:12px;">
           <section class="card" style="padding:12px;">
-            <h4 style="margin:0 0 8px 0;">FL-300: “Orders requested” (copy block)</h4>
+            <h4 style="margin:0 0 8px 0;">FL-300: Orders requested (paste into court PDF)</h4>
             <textarea class="input" id="flOrders" rows="8" placeholder="Generated…"></textarea>
             <div class="row" style="margin-top:10px; gap:10px; flex-wrap:wrap;">
               <button class="btn" id="btnCopyOrders" type="button">Copy</button>
@@ -130,7 +181,7 @@
           </section>
 
           <section class="card" style="padding:12px;">
-            <h4 style="margin:0 0 8px 0;">FL-300: “Why” summary (copy block)</h4>
+            <h4 style="margin:0 0 8px 0;">FL-300: Why summary (paste into court PDF)</h4>
             <textarea class="input" id="flWhy" rows="8" placeholder="Generated…"></textarea>
             <div class="row" style="margin-top:10px; gap:10px; flex-wrap:wrap;">
               <button class="btn" id="btnCopyWhy" type="button">Copy</button>
@@ -139,21 +190,19 @@
         </div>
 
         <section class="card" style="padding:12px; margin-top:12px;">
-          <h4 style="margin:0 0 8px 0;">FL-300: Declaration attachment line (copy block)</h4>
+          <h4 style="margin:0 0 8px 0;">FL-300: Attachment line (paste into court PDF)</h4>
           <textarea class="input" id="flAttach" rows="4" placeholder="Generated…"></textarea>
           <div class="row" style="margin-top:10px; gap:10px; flex-wrap:wrap;">
             <button class="btn" id="btnCopyAttach" type="button">Copy</button>
-          </div>
-          <div class="small soft" style="margin-top:10px;">
-            This is how we avoid the “2–3 lines only” trap: FL-300 stays short; the full narrative goes in MC-030 pages.
           </div>
         </section>
 
         <div class="hr"></div>
 
-        <h3 style="margin-top:0;">Declaration (MC-030 style) — public copy block</h3>
+        <h3 style="margin-top:0;">MC-030 declaration (public copy block)</h3>
         <p class="muted" style="margin-top:6px;">
-          This is not a PDF generator. This is a clean, pasteable declaration body you can print separately and attach.
+          If spillover triggers, this is the full narrative you print and attach as MC-030 pages.
+          If spillover does not trigger, you may still attach MC-030 for clarity.
         </p>
 
         <label class="field" style="margin-top:12px;">
@@ -169,7 +218,7 @@
         </div>
 
         <div class="small soft" style="margin-top:12px;">
-          Public mode stores locally only. Paid mode produces print-perfect “our forms” and a merged packet.
+          Public mode stores locally only. Paid mode can generate print-perfect “our forms” and a merged packet.
         </div>
       </section>
 
