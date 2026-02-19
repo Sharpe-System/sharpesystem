@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <title>Canonizer — SharpeSystem</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Canon-structure wrapper: fragments or full pages." />
+  <meta name="description" content="Wrap fragments (or JSON specs) into the canonical SharpeSystem page shell." />
   <link rel="stylesheet" href="/styles.css" />
 </head>
 
@@ -14,8 +14,13 @@
   <main class="page">
     <div class="container content">
       <section class="card" style="padding:var(--pad);">
-        <h1>Canonizer</h1>
-        <p class="muted">Paste a fragment or a full page. Canonizer enforces output invariants (no duplicates, no omissions). Tools are gate-exempt.</p>
+        <div class="row" style="justify-content:space-between; align-items:center; gap:10px;">
+          <div>
+            <h1 style="margin:0;">Canonizer</h1>
+            <p class="muted" style="margin:6px 0 0 0;">Paste a fragment, a full page, or a JSON spec. Canonizer outputs one canonical page shell. Tools are gate-exempt.</p>
+          </div>
+          <button id="btnLangToggle" class="btn" type="button" aria-label="Language toggle (placeholder)">EN / ES</button>
+        </div>
 
         <div class="grid-2" style="margin-top:14px;">
           <div class="card" style="padding:12px;">
@@ -50,7 +55,8 @@
   <script src="/partials/header.js"></script>
   <script src="/i18n.js"></script>
 
-  <script src="/tools/canon-rules.js" defer></script>
+  <script src="/tools/canon-rules.js"></script>
+  <script src="/tools/renderer.js"></script>
   <script src="/tools/canonizer.js" defer></script>
 </body>
 </html>
