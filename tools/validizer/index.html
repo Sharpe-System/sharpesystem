@@ -4,10 +4,9 @@
   <meta charset="utf-8" />
   <title>Validizer — SharpeSystem</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Deterministic canon checks for pasted fragments/pages." />
+  <meta name="description" content="Validate fragments, full pages, or JSON specs against canon rules." />
   <link rel="stylesheet" href="/styles.css" />
 
-  <!-- Deterministic keyboard navigation + visible focus -->
   <style>
     .kbd-order:focus-visible,
     textarea.kbd-order:focus-visible,
@@ -28,18 +27,15 @@
         <div class="row" style="justify-content:space-between; align-items:center; gap:10px;">
           <div>
             <h1 style="margin:0;">Validizer</h1>
-            <p class="muted" style="margin:6px 0 0 0;">Paste fragments or full pages. Validizer checks canon rules and produces a report. It never rewrites your input.</p>
+            <p class="muted" style="margin:6px 0 0 0;">Paste HTML (fragment/full) or JSON spec. Validizer reports compliance. It never rewrites your input.</p>
           </div>
-
-          <!-- Placeholder toggle UI (not yet functional) -->
           <button id="btnLangToggle" class="btn kbd-order" type="button" tabindex="50" aria-label="Language toggle (placeholder)">EN / ES</button>
         </div>
 
         <div class="grid-2" style="margin-top:14px;">
           <div class="card" style="padding:12px;">
-            <div class="muted" style="font-size:13px; margin-bottom:8px;">Input (HTML or fragment)</div>
+            <div class="muted" style="font-size:13px; margin-bottom:8px;">Input</div>
 
-            <!-- Tab 1 -->
             <textarea
               id="inCode"
               class="input kbd-order"
@@ -48,43 +44,21 @@
             ></textarea>
 
             <div class="row" style="margin-top:10px; gap:10px; flex-wrap:wrap;">
-              <!-- Tab 2 -->
               <button id="btnValidate" class="btn primary kbd-order" type="button" tabindex="2">Validate</button>
-
-              <!-- Tab 3 -->
               <a id="btnToCanon" class="btn kbd-order" href="/tools/canonizer/" role="button" tabindex="3">Send to Canonizer</a>
-
-              <!-- Tab 4 -->
               <button id="btnClear" class="btn kbd-order" type="button" tabindex="4">Clear</button>
-
-              <!-- Tab 5 -->
               <button id="btnCopyReport" class="btn kbd-order" type="button" tabindex="5">Copy report</button>
-
-              <!-- Tab 6 -->
               <button id="btnDownloadReport" class="btn kbd-order" type="button" tabindex="6">Download report</button>
             </div>
 
             <div class="muted" style="margin-top:10px; font-size:12px;">
-              Hard rules: tools are gate-exempt (no /gate.js), Firebase-free, redirect-free, deterministic.
+              Tools are gate-exempt: no /gate.js here. JSON mode renders to a fragment deterministically.
             </div>
           </div>
 
           <div class="card" style="padding:12px;">
             <div class="muted" style="font-size:13px; margin-bottom:8px;">Report</div>
             <pre id="report" class="code" style="white-space:pre-wrap; min-height:340px;"></pre>
-
-            <div class="hr"></div>
-
-            <div class="muted" style="font-size:13px; margin-bottom:8px;">Canon checks</div>
-            <ul style="margin:0 0 0 18px; color:var(--muted);">
-              <li>Fragment contract: exactly one &lt;section class="card"&gt; root, no scripts/shells</li>
-              <li>C1 Firebase CDN imports only in /firebase-config.js</li>
-              <li>C2 onAuthStateChanged only in /firebase-config.js</li>
-              <li>C3 redirect-like calls forbidden outside gate.js</li>
-              <li>C6 header/auth duplication heuristics</li>
-              <li>C7 no window.firebase</li>
-              <li>Full HTML pages: canonical stack/order check</li>
-            </ul>
           </div>
         </div>
       </section>
@@ -96,8 +70,9 @@
   <script src="/partials/header.js"></script>
   <script src="/i18n.js"></script>
 
-  <!-- Shared canon rules (single source) -->
-  <script src="/tools/canon-rules.js" defer></script>
+  <script src="/tools/canon-rules.js"></script>
+  <script src="/tools/renderer.js"></script>
+
   <script src="/tools/validizer.js" defer></script>
 </body>
 </html>
