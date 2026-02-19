@@ -1,91 +1,79 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <title>Log In — SharpeSystem</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Access SharpeSystem dashboard and saved work." />
-  <link rel="stylesheet" href="/styles.css" />
-</head>
+// /login.js
+// Canon rules:
+// - NO Firebase CDN imports here (only /firebase-config.js may import Firebase CDN)
+// - NO onAuthStateChanged here (must be only in /firebase-config.js)
+// - gate.js owns gating/redirects; this page only performs sign-in and then navigates
 
-<body class="shell">
-  <div id="site-header"></div>
+import { authSignIn } from "/firebase-config.js";
 
-  <main class="page">
-    <div class="container content">
+(function () {
+  "use strict";
 
-      <section class="card" style="padding:var(--pad); max-width:520px; margin:auto;">
-        <h1>Log In</h1>
-        <p class="muted">
-          Access saved work and structured filing tools.
-        </p>
+  const $ = (sel) => document.querySelector(sel);
 
-        <label class="input" style="margin-top:12px;">
-          <span>Email</span>
-          <input id="email" type="email" autocomplete="email" />
-        </label>
+  const msg = $("#msg");
+  const btnLogin = $("#btnLogin");
+  const btnSignup = $("#btnSignup");
 
-        <label class="input">
-          <span>Password</span>
-          <input id="password" type="password" autocomplete="current-password" />
-        </label>
+  const setMsg = (text, isError = false) => {
+    if (!msg) return;
+    msg.textContent = text || "";
+    msg.style.color = isError ? "#ffb4b4" : "";
+  };
 
-        <div class="row" style="margin-top:14px;">
-          <button class="btn" id="btnLogin" type="button">Log In</button>
-          <button class="btn" id="btnCreate" type="button">Create account</button>
-        </div>
+  const getParam = (name) => {
+    try {
+      return new URLSearchParams(location.search).get(name);
+    } catch (_) {
+      return null;
+    }
+  };
 
-        <p id="msg" class="muted" style="margin-top:10px;"></p>
+  const safeNextUrl = () => {
+    // gate.js passes `next` as a URL-encoded path. Only allow same-origin paths.
+    const next = getParam("next");
+    if (next && next.startsWith("/") && !next.startsWith("//")) return next;
+    return "/dashboard.html";
+  };
 
-        <hr class="hr" />
+  const doLogin = async () => {
+    const email = String($("#email")?.value || "").trim();
+    const password = String($("#password")?.value || "");
 
-        <div class="row">
-          <a class="btn" href="/home.html">Back to Home</a>
-        </div>
-      </section>
-
-    </div>
-  </main>
-
-  <!-- Canonical stack -->
-  <script src="/ui.js"></script>
-  <script src="/header-loader.js"></script>
-  <script src="/partials/header.js"></script>
-  <script src="/i18n.js"></script>
-  <script type="module" src="/gate.js"></script>
-
-  <!-- Login logic -->
-  <script type="module">
-    import { signIn, signUp } from "/firebase-config.js";
-
-    const email = document.getElementById("email");
-    const password = document.getElementById("password");
-    const msg = document.getElementById("msg");
-
-    function show(m, ok=false){
-      msg.textContent = m;
-      msg.style.color = ok ? "var(--ok)" : "var(--muted)";
+    if (!email || !password) {
+      setMsg("Email and password required.", true);
+      return;
     }
 
-    document.getElementById("btnLogin").onclick = async () => {
-      try {
-        await signIn(email.value.trim(), password.value);
-        show("Login successful", true);
-        location.href = "/dashboard.html";
-      } catch (e) {
-        show(e.message || "Login failed");
-      }
-    };
+    try {
+      setMsg("Signing in…");
+      btnLogin?.setAttribute("disabled", "disabled");
+      await authSignIn(email, password);
+      window.location.href = safeNextUrl();
+    } catch (err) {
+      console.error("Login failed", err);
+      const code = err?.code ? String(err.code) : "";
 
-    document.getElementById("btnCreate").onclick = async () => {
-      try {
-        await signUp(email.value.trim(), password.value);
-        show("Account created", true);
-        location.href = "/dashboard.html";
-      } catch (e) {
-        show(e.message || "Account creation failed");
+      if (
+        code.includes("auth/invalid-credential") ||
+        code.includes("auth/wrong-password") ||
+        code.includes("auth/user-not-found")
+      ) {
+        setMsg("Invalid email or password.", true);
+      } else if (code.includes("auth/too-many-requests")) {
+        setMsg("Too many attempts. Wait a bit and try again.", true);
+      } else {
+        const msgText = err?.message ? String(err.message) : "Login failed.";
+        setMsg(code ? `${code}: ${msgText}` : msgText, true);
       }
-    };
-  </script>
-</body>
-</html>
+    } finally {
+      btnLogin?.removeAttribute("disabled");
+    }
+  };
+
+  btnLogin?.addEventListener("click", doLogin);
+  btnSignup?.addEventListener("click", () => (window.location.href = "/signup.html"));
+  $("#password")?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") doLogin();
+  });
+})();
