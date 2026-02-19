@@ -1,76 +1,53 @@
-<!-- /home.html -->
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Home — SharpeSystem</title>
+  <title>What needs to be done? — SharpeSystem</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Procedural orientation and decision support for high-stakes situations. Informational only." />
+  <meta name="description" content="" />
   <link rel="stylesheet" href="/styles.css" />
 </head>
 <body class="shell">
-  <div id="site-header"></div>
+<div id="site-header"></div>
+<main class="page">
+  <div class="container content">
 
-  <main class="page">
-    <div class="container content">
+    <section class="card" style="padding:var(--pad);">
+    
+            <h1>What needs to be done?</h1>
+            <p class="muted">
+              Guided preparation for court and agency documents.
+            </p>
+    
+            <div class="grid-3" style="gap:14px; margin-top:14px;">
+    
+              <a class="card" href="/rfo/index.html" style="text-decoration:none;">
+                <h3>Prepare a court document</h3>
+                <p class="muted">
+                  Start or modify a filing such as custody, visitation, or support.
+                </p>
+              </a>
+    
+              <a class="card" href="/respond/index.html" style="text-decoration:none;">
+                <h3>Respond to a legal issue</h3>
+                <p class="muted">
+                  Served papers, hearings, or enforcement situations.
+                </p>
+              </a>
+    
+              <a class="card" href="/peace/index.html" style="text-decoration:none;">
+                <h3>Resolve without court</h3>
+                <p class="muted">
+                  Agreements, cooperative plans, and de-escalation paths.
+                </p>
+              </a>
 
-      <section class="page-hero" aria-label="Home hero">
-        <h1>SharpeSystem</h1>
-        <p class="lede">
-          Let’s start where you are.<br />
-          Where would you like to begin?
-        </p>
-
-        <div class="note" role="note">
-          <strong>Scope:</strong> Educational only. Procedural orientation and structured drafting support —
-          not legal advice, not legal strategy, and not jurisdiction-specific rules.
-          If you have immediate safety concerns, contact local emergency services.
-        </div>
-      </section>
-
-      <section class="template-box" aria-label="Start here">
-        <h2>Start here</h2>
-        <p class="muted">
-          If you are dealing with a court matter, custody issue, modification request,
-          or need to prepare a structured filing, begin with the Request for Order pathway.
-        </p>
-
-        <div class="cta-row">
-          <a class="button primary" href="/rfo/">Start Request for Order (RFO)</a>
-          <a class="button" href="/triage.html">I’m not sure what I need</a>
-        </div>
-
-        <div class="link-row" aria-label="Secondary links">
-          <a id="authLink" href="/login.html?next=/dashboard.html">Log in</a>
-          <span class="sep">·</span>
-          <a href="/status.html">Status</a>
-          <span class="sep">·</span>
-          <a href="/high-conflict-risk-awareness.html">Risk Awareness</a>
-        </div>
-      </section>
-
-      <section class="template-box" aria-label="Platform context">
-        <h2>About SharpeSystem</h2>
-        <p>
-          SharpeSystem is a structured decision framework for navigating complex systems.
-          Legal processes are currently the most developed branch. Additional branches —
-          including healthcare, immigration, education, and licensing pathways — are being built.
-        </p>
-
-        <ul>
-          <li><strong>Request for Order (RFO)</strong> — structured preparation and drafting workflow</li>
-          <li><strong>Triage</strong> — classify what you’re dealing with before acting</li>
-          <li><strong>Decision Trees</strong> — guided pathways for defined procedural systems</li>
-        </ul>
-      </section>
-
-    </div>
-  </main>
-
-  <script src="/ui.js" defer></script>
-  <script src="/header-loader.js" defer></script>
-  <script src="/partials/header.js" defer></script>
-  <script src="/i18n.js" defer></script>
-  <script type="module" src="/gate.js"></script>
+  </div>
+</main>
+<script src="/ui.js"></script>
+<script src="/header-loader.js"></script>
+<script src="/partials/header.js"></script>
+<script src="/i18n.js"></script>
+<script type="module" src="/gate.js"></script>
 </body>
 </html>
