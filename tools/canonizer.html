@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <title>Canonizer — SharpeSystem</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Canon wrapper/refiner (offline, no Firebase imports)." />
+  <meta name="description" content="Canon-structure wrapper: fragments or full pages." />
   <link rel="stylesheet" href="/styles.css" />
 </head>
 
@@ -13,46 +13,44 @@
 
   <main class="page">
     <div class="container content">
-      <section class="template-box">
+      <section class="card" style="padding:var(--pad);">
         <h1>Canonizer</h1>
-        <p class="muted">
-          Paste imperfect HTML/JS. This tool outputs canon-structured code. No Firebase imports. No gating logic. No redirects.
-        </p>
+        <p class="muted">Paste a fragment or a full page. Canonizer enforces output invariants (no duplicates, no omissions). Tools are gate-exempt.</p>
 
-        <div class="card" style="padding:var(--pad); margin-top:12px;">
-          <label class="muted" for="inCode" style="display:block; margin-bottom:8px;">Input</label>
-          <textarea id="inCode" class="mono" style="width:100%; min-height:220px; resize:vertical;"></textarea>
+        <div class="grid-2" style="margin-top:14px;">
+          <div class="card" style="padding:12px;">
+            <div class="muted" style="font-size:13px; margin-bottom:8px;">Input</div>
+            <textarea id="inCode" class="input" style="width:100%; min-height:260px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;"></textarea>
 
-          <div class="cta-row" style="margin-top:12px; flex-wrap:wrap; gap:8px;">
-            <button class="button" id="btnCanonize" type="button">Canonize</button>
-            <button class="button" id="btnCopyOut" type="button">Copy output</button>
-            <button class="button" id="btnDownloadOut" type="button">Download output</button>
-            <button class="button" id="btnClear" type="button">Clear</button>
-            <a class="button" href="/tools/validizer/">Back to Validizer</a>
+            <div class="row" style="margin-top:10px; gap:10px; flex-wrap:wrap;">
+              <button id="btnCanonize" class="btn primary" type="button">Canonize</button>
+              <button id="btnCopyOut" class="btn" type="button">Copy output</button>
+              <button id="btnDownloadOut" class="btn" type="button">Download output</button>
+              <button id="btnClear" class="btn" type="button">Clear</button>
+              <a class="btn" href="/tools/validizer/">Validizer</a>
+            </div>
+          </div>
+
+          <div class="card" style="padding:12px;">
+            <div class="muted" style="font-size:13px; margin-bottom:8px;">Output</div>
+            <textarea id="outCode" class="input" style="width:100%; min-height:260px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;"></textarea>
           </div>
         </div>
 
-        <div class="card" style="padding:var(--pad); margin-top:12px;">
-          <div class="muted" style="margin-bottom:8px;">Output</div>
-          <pre id="outCode" class="mono" style="white-space:pre-wrap; word-break:break-word; margin:0;"></pre>
-        </div>
-
-        <div class="card" style="padding:var(--pad); margin-top:12px;">
-          <div class="muted" style="margin-bottom:8px;">Canonizer Report</div>
-          <pre id="report" class="mono" style="white-space:pre-wrap; word-break:break-word; margin:0;"></pre>
+        <div class="card" style="padding:12px; margin-top:12px;">
+          <div class="muted" style="font-size:13px; margin-bottom:8px;">Canonizer Report</div>
+          <pre id="report" class="code" style="white-space:pre-wrap;"></pre>
         </div>
       </section>
     </div>
   </main>
 
-  <!-- Canonical stack -->
   <script src="/ui.js"></script>
   <script src="/header-loader.js"></script>
   <script src="/partials/header.js"></script>
   <script src="/i18n.js"></script>
-  <script type="module" src="/gate.js"></script>
 
-  <!-- Tool logic (NO Firebase imports) -->
+  <script src="/tools/canon-rules.js" defer></script>
   <script src="/tools/canonizer.js" defer></script>
 </body>
 </html>
