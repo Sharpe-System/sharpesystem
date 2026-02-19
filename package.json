@@ -1,11 +1,7 @@
 {
   "scripts": {
     "canon-guard": "node scripts/canon-guard.js",
-    "test": "npm run canon-guard",
-    "pdf:inspect": "node tools/pdf/inspect-fields.js",
-    "pdf:fill": "node tools/pdf/fill.js",
-    "pdf:fill:reg": "node tools/pdf/fill-from-registry.js",
-    "exparte:pdf": "node tools/pdf/build-exparte-pdfs.js"
+    "test": "npm run canon-guard"
   },
   "dependencies": {
     "pdf-lib": "^1.17.1"
