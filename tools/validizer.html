@@ -6,6 +6,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="description" content="Deterministic canon checks for pasted fragments/pages." />
   <link rel="stylesheet" href="/styles.css" />
+
+  <!-- Deterministic keyboard navigation + visible focus -->
+  <style>
+    .kbd-order:focus-visible,
+    textarea.kbd-order:focus-visible,
+    a.kbd-order:focus-visible,
+    button.kbd-order:focus-visible {
+      outline: 3px solid currentColor;
+      outline-offset: 3px;
+    }
+  </style>
 </head>
 
 <body class="shell">
@@ -14,19 +25,43 @@
   <main class="page">
     <div class="container content">
       <section class="card" style="padding:var(--pad);">
-        <h1>Validizer</h1>
-        <p class="muted">Paste fragments or full pages. Validizer checks canon rules and produces a report. It never rewrites your input.</p>
+        <div class="row" style="justify-content:space-between; align-items:center; gap:10px;">
+          <div>
+            <h1 style="margin:0;">Validizer</h1>
+            <p class="muted" style="margin:6px 0 0 0;">Paste fragments or full pages. Validizer checks canon rules and produces a report. It never rewrites your input.</p>
+          </div>
+
+          <!-- Placeholder toggle UI (not yet functional) -->
+          <button id="btnLangToggle" class="btn kbd-order" type="button" tabindex="50" aria-label="Language toggle (placeholder)">EN / ES</button>
+        </div>
 
         <div class="grid-2" style="margin-top:14px;">
           <div class="card" style="padding:12px;">
             <div class="muted" style="font-size:13px; margin-bottom:8px;">Input (HTML or fragment)</div>
-            <textarea id="inCode" class="input" style="width:100%; min-height:280px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;"></textarea>
+
+            <!-- Tab 1 -->
+            <textarea
+              id="inCode"
+              class="input kbd-order"
+              tabindex="1"
+              style="width:100%; min-height:280px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;"
+            ></textarea>
 
             <div class="row" style="margin-top:10px; gap:10px; flex-wrap:wrap;">
-              <button id="btnValidate" class="btn primary" type="button">Validate</button>
-              <button id="btnClear" class="btn" type="button">Clear</button>
-              <button id="btnCopyReport" class="btn" type="button">Copy report</button>
-              <button id="btnDownloadReport" class="btn" type="button">Download report</button>
+              <!-- Tab 2 -->
+              <button id="btnValidate" class="btn primary kbd-order" type="button" tabindex="2">Validate</button>
+
+              <!-- Tab 3 -->
+              <a id="btnToCanon" class="btn kbd-order" href="/tools/canonizer/" role="button" tabindex="3">Send to Canonizer</a>
+
+              <!-- Tab 4 -->
+              <button id="btnClear" class="btn kbd-order" type="button" tabindex="4">Clear</button>
+
+              <!-- Tab 5 -->
+              <button id="btnCopyReport" class="btn kbd-order" type="button" tabindex="5">Copy report</button>
+
+              <!-- Tab 6 -->
+              <button id="btnDownloadReport" class="btn kbd-order" type="button" tabindex="6">Download report</button>
             </div>
 
             <div class="muted" style="margin-top:10px; font-size:12px;">
