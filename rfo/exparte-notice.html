@@ -1,0 +1,71 @@
+<!-- /rfo/exparte-notice.html -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Ex Parte — Notice</title>
+<link rel="stylesheet" href="/styles.css"/>
+</head>
+
+<body class="shell">
+<div id="site-header"></div>
+<main class="page"><div class="container content">
+
+<section class="card" style="padding:var(--pad);">
+<h1>Ex Parte — Notice to Other Party</h1>
+
+<p class="muted">
+Courts require notice to the other party unless impossible or unsafe.
+</p>
+
+<label class="field">
+<span class="label">Was notice given?</span>
+<select id="noticeGiven" class="input">
+<option value="">Select…</option>
+<option value="yes">Yes</option>
+<option value="no">No</option>
+<option value="attempted">Attempted</option>
+</select>
+</label>
+
+<label class="field" style="margin-top:12px;">
+<span class="label">How was notice given or attempted?</span>
+<textarea id="noticeMethod" class="input" rows="4"></textarea>
+</label>
+
+<label class="field" style="margin-top:12px;">
+<span class="label">When?</span>
+<input id="noticeTime" class="input" type="text"/>
+</label>
+
+<div class="row" style="margin-top:12px; gap:10px;">
+<a class="btn primary" href="/rfo/exparte-router.html">Continue</a>
+</div>
+
+</section>
+
+</div></main>
+
+<script src="/ui.js"></script>
+<script src="/header-loader.js"></script>
+<script src="/partials/header.js"></script>
+<script src="/i18n.js"></script>
+
+<script>
+(function(){
+const KEY="ss_rfo_exparte_notice_v1";
+function save(){
+const d={
+noticeGiven:noticeGiven.value,
+noticeMethod:noticeMethod.value,
+noticeTime:noticeTime.value
+};
+localStorage.setItem(KEY,JSON.stringify(d));
+}
+document.addEventListener("change",save);
+document.addEventListener("input",save);
+})();
+</script>
+</body>
+</html>
