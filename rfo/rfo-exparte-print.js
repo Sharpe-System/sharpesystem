@@ -1,12 +1,10 @@
 /* /rfo/rfo-exparte-print.js
-   Paid Ex Parte Export / Import
+   Paid Ex Parte Export / Import + Worker PDF generation (county-specific via registry)
 
    Canon:
    - No redirects/tier checks (gate.js owns gating)
    - No Firebase CDN imports here
    - Auth state via getAuthStateOnce()
-   - Local import from localStorage (public keys)
-   - Export JSON includes mc030Text + overflow + pleading attachment when triggered
 */
 
 import { getAuthStateOnce } from "/firebase-config.js";
@@ -107,54 +105,55 @@ function buildTextPreview(packet) {
   const prop = packet?.slices?.proposed || {};
   const plead = packet?.attachments?.pleadingPaper || null;
 
-  if (fl300.ordersRequested) {
-    lines.push("FL-300 — Orders Requested:");
-    lines.push(fl300.ordersRequested, "");
-  }
-  if (fl305.orders) {
-    lines.push("FL-305 — Temporary Emergency Orders:");
-    lines.push(fl305.orders, "");
-  }
-  if (decl.mc030Text) {
-    lines.push("MC-030 TEXT (mapped):");
-    lines.push(decl.mc030Text, "");
-  }
+  if (fl300.ordersRequested) lines.push("FL-300 — Orders Requested:", fl300.ordersRequested, "");
+  if (fl305.orders) lines.push("FL-305 — Temporary Emergency Orders:", fl305.orders, "");
+  if (decl.mc030Text) lines.push("MC-030 TEXT:", decl.mc030Text, "");
   if (notice.noticeGiven) {
     lines.push("NOTICE:");
     lines.push(`Given: ${notice.noticeGiven || ""} | Method: ${notice.noticeMethod || ""} | When: ${notice.noticeWhen || ""}`);
     if (notice.noticeWhyNot) lines.push(`Why not: ${notice.noticeWhyNot}`);
     lines.push("");
   }
-  if (prop.orders) {
-    lines.push("PROPOSED ORDER:");
-    lines.push(prop.orders, "");
-  }
+  if (prop.orders) lines.push("PROPOSED ORDER:", prop.orders, "");
   if (decl.overflow?.triggered) {
     lines.push("ATTACHMENT:");
-    lines.push("Pleading paper declaration is REQUIRED (overflow triggered).");
-    if (plead?.body) {
-      lines.push("", "PLEADING PAPER (body):", plead.body);
-    }
+    lines.push("Pleading paper declaration REQUIRED (overflow triggered).");
+    if (plead?.body) lines.push("", "PLEADING PAPER:", plead.body);
     lines.push("");
   }
 
   return lines.join("\n").trim();
 }
 
-function downloadText(text, filename, mime = "text/plain") {
-  const blob = new Blob([text], { type: mime });
+async function downloadPdfViaWorker(formId, packet) {
+  const res = await fetch(`/api/pdf/exparte?form=${encodeURIComponent(formId)}`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ packet })
+  });
+
+  if (!res.ok) {
+    let msg = `PDF generation failed (${res.status}).`;
+    try {
+      const j = await res.json();
+      if (j?.error) msg = j.error;
+    } catch (_) {}
+    throw new Error(msg);
+  }
+
+  const blob = await res.blob();
   const url = URL.createObjectURL(blob);
+
+  // Trigger a normal download/open
   const a = document.createElement("a");
   a.href = url;
-  a.download = filename;
+  a.download = ""; // let server Content-Disposition name it
   document.body.appendChild(a);
   a.click();
   a.remove();
-  URL.revokeObjectURL(url);
-}
 
-function downloadJson(obj, filename) {
-  downloadText(JSON.stringify(obj, null, 2), filename, "application/json");
+  // Cleanup later (Safari can be sensitive; delay helps)
+  setTimeout(() => URL.revokeObjectURL(url), 1500);
 }
 
 async function init() {
@@ -163,7 +162,6 @@ async function init() {
     $("status").textContent = "Login required.";
     $("importStatus").textContent = "Not logged in.";
     $("readyStatus").textContent = "Not logged in.";
-    $("cmdText").textContent = "Login required.";
     return;
   }
 
@@ -189,29 +187,43 @@ async function init() {
   $("packetJson").value = jsonText;
   $("packetText").value = buildTextPreview(packet);
 
-  const defaultPacketFilename = "ss-exparte-packet.json";
-  const cmd = `# 1) Save the downloaded JSON as: out/${defaultPacketFilename}\n` +
-              `# 2) From repo root:\n` +
-              `npm run exparte:pdf -- out/${defaultPacketFilename}\n` +
-              `# Output PDFs:\n` +
-              `#   out/exparte/FL-300.filled.pdf\n` +
-              `#   out/exparte/FL-305.filled.pdf\n`;
-
-  $("cmdText").textContent = cmd;
-
-  $("btnDownloadJson").onclick = () => {
-    downloadJson(packet, defaultPacketFilename);
-    $("status").textContent = `Downloaded ${defaultPacketFilename}. Put it in out/ then run the mapper command.`;
-  };
-
   $("btnCopyJson").onclick = async () => {
     await navigator.clipboard.writeText(jsonText);
     $("status").textContent = "Copied packet JSON.";
   };
 
-  $("btnDownloadCmd").onclick = () => {
-    downloadText(cmd, "make-exparte-pdfs.txt");
-    $("status").textContent = "Downloaded mapper command instructions.";
+  $("btnGen300").onclick = async () => {
+    try {
+      $("status").textContent = "Generating FL-300…";
+      await downloadPdfViaWorker("FL-300", packet);
+      $("status").textContent = "FL-300 download started.";
+    } catch (e) {
+      $("status").textContent = e.message || "FL-300 generation failed.";
+    }
+  };
+
+  $("btnGen305").onclick = async () => {
+    try {
+      $("status").textContent = "Generating FL-305…";
+      await downloadPdfViaWorker("FL-305", packet);
+      $("status").textContent = "FL-305 download started.";
+    } catch (e) {
+      $("status").textContent = e.message || "FL-305 generation failed.";
+    }
+  };
+
+  $("btnGenBoth").onclick = async () => {
+    try {
+      $("status").textContent = "Generating FL-300…";
+      await downloadPdfViaWorker("FL-300", packet);
+      // small delay prevents Safari from swallowing the second download
+      await new Promise((r) => setTimeout(r, 900));
+      $("status").textContent = "Generating FL-305…";
+      await downloadPdfViaWorker("FL-305", packet);
+      $("status").textContent = "Downloads started.";
+    } catch (e) {
+      $("status").textContent = e.message || "Generation failed.";
+    }
   };
 
   $("status").textContent = "Loaded.";
