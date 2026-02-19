@@ -1,0 +1,63 @@
+<!-- /rfo/exparte-explain.html -->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Ex Parte — Is This Appropriate?</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body class="shell">
+<div id="site-header"></div>
+<main class="page"><div class="container content">
+
+<section class="card" style="padding:var(--pad);">
+<h1>Ex Parte — Decision Check</h1>
+
+<p class="muted">
+Ex parte orders require immediate harm risk. Courts may deny requests that
+should proceed through normal RFO notice timelines.
+</p>
+
+<ul>
+<li>Immediate danger or removal risk</li>
+<li>Serious harm if delayed</li>
+<li>Notice impractical or insufficient</li>
+</ul>
+
+<label class="field">
+<span class="label">Does this meet emergency standard?</span>
+<select id="meetsStandard" class="input">
+<option value="">Select…</option>
+<option value="yes">Yes</option>
+<option value="unsure">Not sure</option>
+<option value="no">No</option>
+</select>
+</label>
+
+<div class="row" style="margin-top:12px; gap:10px;">
+<a class="btn" href="/amicable.html">Try non-emergency</a>
+<a class="btn primary" href="/rfo/exparte-notice.html">Continue</a>
+</div>
+
+</section>
+
+</div></main>
+
+<script src="/ui.js"></script>
+<script src="/header-loader.js"></script>
+<script src="/partials/header.js"></script>
+<script src="/i18n.js"></script>
+
+<script>
+(function(){
+const KEY="ss_rfo_exparte_intake_v1";
+document.getElementById("meetsStandard").addEventListener("change",e=>{
+let d=JSON.parse(localStorage.getItem(KEY)||"{}");
+d.meetsStandard=e.target.value;
+localStorage.setItem(KEY,JSON.stringify(d));
+});
+})();
+</script>
+</body>
+</html>
