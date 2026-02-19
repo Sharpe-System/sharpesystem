@@ -5,7 +5,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>RFO — Ex Parte Start (Public) — SharpeSystem</title>
-  <meta name="description" content="Determine if ex parte emergency orders are appropriate and start the ex parte bundle." />
+  <meta name="description" content="Public ex parte start: urgency screening and intake seed (local-only)." />
   <link rel="stylesheet" href="/styles.css" />
 </head>
 
@@ -14,75 +14,74 @@
 
   <main class="page">
     <div class="container content">
-
       <section class="card" style="padding:var(--pad);">
-        <h1>Ex Parte Emergency Orders — Start</h1>
-        <p class="muted">
-          Ex parte requests are for urgent situations requiring immediate court action before normal notice periods.
-          This flow determines eligibility and activates the required forms.
-        </p>
-
-        <!-- PeacePath -->
-        <section class="card" style="padding:14px; margin-top:12px;">
-          <h2 style="margin:0 0 6px 0;">Before emergency filing</h2>
-          <p class="muted" style="margin:0;">
-            Ex parte filings are high-conflict. If the issue can wait for standard RFO scheduling,
-            or can be resolved cooperatively, that path is safer and often more effective.
-          </p>
-          <div class="row" style="margin-top:12px; gap:10px;">
-            <a class="btn" href="/amicable.html">Amicable Path</a>
-            <a class="btn" href="/peace-path.html">Peace Path</a>
+        <div class="row" style="justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap;">
+          <div>
+            <h1 style="margin:0;">Ex Parte — Start (Public)</h1>
+            <p class="muted" style="margin:6px 0 0 0;">
+              Public mode stores locally only. This starts the emergency screening and seeds the ex parte packet. (Not legal advice.)
+            </p>
           </div>
-        </section>
+          <div class="row" style="gap:10px; flex-wrap:wrap;">
+            <button class="btn" id="btnSave" type="button">Save</button>
+            <a class="btn" href="/rfo/start.html">RFO Start</a>
+          </div>
+        </div>
 
         <div class="hr"></div>
 
-        <h3>Urgency screening</h3>
+        <!-- PeacePath / Amicable (required on every page) -->
+        <section class="card" style="padding:14px; margin:0 0 14px 0;">
+          <h2 style="margin:0 0 6px 0;">Off-ramp</h2>
+          <p class="muted" style="margin:0;">
+            Ex parte is escalation. If this can be solved cooperatively, use the off-ramps first.
+          </p>
+          <div class="row" style="margin-top:12px; gap:10px; flex-wrap:wrap;">
+            <a class="btn" href="/amicable.html">Amicable / PeacePath</a>
+            <a class="btn" href="/peace-path.html">PeacePath Messaging</a>
+          </div>
+        </section>
+
+        <h3 style="margin-top:0;">Urgency screening</h3>
 
         <label class="field">
-          <span class="label">What makes this urgent?</span>
-          <select id="urgencyType" class="input">
+          <span class="label">Urgency category</span>
+          <select class="input" id="urgencyType">
             <option value="">Select…</option>
             <option value="safety">Immediate safety risk</option>
-            <option value="child_removal">Child removal / withholding risk</option>
+            <option value="withholding">Child withholding / imminent interference</option>
             <option value="medical">Medical / health emergency</option>
-            <option value="housing">Housing / relocation emergency</option>
+            <option value="relocation">Relocation / concealment risk</option>
+            <option value="housing">Housing / shelter emergency</option>
             <option value="other">Other serious harm</option>
           </select>
+          <span class="help muted">If you’re unsure, proceed—this flow will force a decision checkpoint.</span>
         </label>
 
         <label class="field" style="margin-top:12px;">
-          <span class="label">Why can’t this wait for normal RFO timing?</span>
-          <textarea id="urgencyWhy" class="input" rows="6"></textarea>
+          <span class="label">Why can’t this wait for standard notice?</span>
+          <textarea class="input" id="urgencyWhy" rows="7" placeholder="Plain English: what happens if the court waits?"></textarea>
         </label>
 
-        <div class="row" style="margin-top:12px; gap:10px;">
+        <div class="row" style="margin-top:12px; gap:10px; flex-wrap:wrap;">
           <a class="btn primary" href="/rfo/exparte-explain.html">Continue</a>
+          <a class="btn" href="/rfo/public-fl300.html">Standard RFO instead</a>
         </div>
 
+        <div class="small soft" style="margin-top:12px;">
+          Local-only storage key: <code>ss_rfo_exparte_intake_v1</code>
+        </div>
       </section>
-
     </div>
   </main>
 
+  <!-- Public canonical stack (NO gate.js) -->
   <script src="/ui.js"></script>
   <script src="/header-loader.js"></script>
   <script src="/partials/header.js"></script>
   <script src="/i18n.js"></script>
 
-  <script>
-  (function(){
-    const KEY="ss_rfo_exparte_intake_v1";
-    function save(){
-      const data={
-        urgencyType:document.getElementById("urgencyType").value,
-        urgencyWhy:document.getElementById("urgencyWhy").value
-      };
-      localStorage.setItem(KEY,JSON.stringify(data));
-    }
-    document.addEventListener("change",save);
-    document.addEventListener("input",save);
-  })();
-  </script>
+  <!-- Owning module -->
+  <script src="/rfo/rfo-exparte-start.js"></script>
 </body>
 </html>
