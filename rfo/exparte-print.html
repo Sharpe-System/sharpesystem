@@ -1,0 +1,68 @@
+<!-- /rfo/exparte-print.html -->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>RFO — Ex Parte Export (Paid) — SharpeSystem</title>
+  <meta name="description" content="Paid ex parte packet export and print." />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+
+<body class="shell">
+  <div id="site-header"></div>
+
+  <main class="page">
+    <div class="container content">
+
+      <section class="card" style="padding:var(--pad);">
+
+        <div class="row" style="justify-content:space-between; gap:12px;">
+          <div>
+            <h1 style="margin:0;">Ex Parte — Export & Print</h1>
+            <p class="muted" style="margin:6px 0 0 0;">
+              Paid mode enables packet export, printing, and account storage.
+            </p>
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
+        <!-- PeacePath -->
+        <section class="card" style="padding:14px; margin-bottom:14px;">
+          <h2 style="margin:0 0 6px 0;">Before filing</h2>
+          <p class="muted" style="margin:0;">
+            Emergency filings escalate quickly. Confirm necessity before proceeding.
+          </p>
+          <div class="row" style="margin-top:10px; gap:10px;">
+            <a class="btn" href="/amicable.html">Amicable</a>
+            <a class="btn" href="/peace-path.html">PeacePath</a>
+          </div>
+        </section>
+
+        <h3>Packet preview</h3>
+
+        <textarea class="input" id="packet" rows="18"></textarea>
+
+        <div class="row" style="margin-top:12px; gap:10px;">
+          <button class="btn primary" id="printBtn">Print</button>
+          <button class="btn" id="saveBtn">Save to Account</button>
+        </div>
+
+        <div id="status" class="small soft" style="margin-top:12px;"></div>
+
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Canon paid stack -->
+  <script src="/ui.js"></script>
+  <script src="/header-loader.js"></script>
+  <script src="/partials/header.js"></script>
+  <script src="/i18n.js"></script>
+  <script src="/gate.js"></script>
+
+  <script type="module" src="/rfo/rfo-exparte-print.js"></script>
+</body>
+</html>
