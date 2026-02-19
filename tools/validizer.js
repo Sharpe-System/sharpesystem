@@ -12,9 +12,7 @@
   const KEY_PAYLOAD = "shs_validizer_payload_v1";
 
   function $(id) { return document.getElementById(id); }
-
   function nowISO() { return new Date().toISOString(); }
-
   function safeText(s) { return String(s ?? ""); }
 
   function download(filename, text, mime) {
@@ -43,9 +41,6 @@
   }
 
   function checkTemplateStack(html) {
-    // Only meaningful for full HTML pages.
-    // Required canonical stack (order-sensitive):
-    // ui.js, header-loader.js, /partials/header.js, i18n.js, gate.js (module)
     const want = [
       /<script[^>]+src=["']\/ui\.js["'][^>]*>\s*<\/script>/i,
       /<script[^>]+src=["']\/header-loader\.js["'][^>]*>\s*<\/script>/i,
@@ -62,9 +57,7 @@
     const okAll = found.every(x => x.ok);
     let okOrder = false;
 
-    if (okAll) {
-      okOrder = found.every((x, i) => i === 0 || x.index > found[i - 1].index);
-    }
+    if (okAll) okOrder = found.every((x, i) => i === 0 || x.index > found[i - 1].index);
 
     const missing = [];
     if (!found[0].ok) missing.push("ui.js");
@@ -91,7 +84,6 @@
       });
     }
 
-    // Basic stability checks (only enforce hard when full HTML)
     const hasCharset = /<meta\s+charset=["']utf-8["']/i.test(text);
     const hasViewport = /<meta[^>]+name=["']viewport["']/i.test(text);
     const hasLang = /<html[^>]+lang=["'][^"']+["']/i.test(text);
@@ -108,7 +100,6 @@
       add("STABLE-SKIP", "MINOR", true, "basic HTML stability checks skipped (fragment input)", "");
     }
 
-    // Canon checks
     const firebaseCDN = /https:\/\/www\.gstatic\.com\/firebasejs/i;
     add("C1", "CRITICAL", !firebaseCDN.test(text), "No Firebase CDN imports (must be only in /firebase-config.js)", "Found firebasejs CDN reference");
 
@@ -118,14 +109,12 @@
     const winFirebase = /\bwindow\.firebase\b/i;
     add("C7", "CRITICAL", !winFirebase.test(text), "No legacy window.firebase usage", "Found window.firebase usage");
 
-    // Redirect/gating heuristics (not perfect, still useful)
     const redirects = /\b(location\.href|location\.replace|window\.location)\b/i;
     add("C3-HEUR", "MAJOR", !redirects.test(text), "No redirect-like calls in this pasted code (gate.js owns gating/redirects)", "Found redirect-like usage");
 
     const headerAuthDupes = /\b(ensureAuth|renderUser|authState|headerAuth|data-auth-|userTier|tierGate)\b/i;
     add("C6-HEUR", "MAJOR", !headerAuthDupes.test(text), "Avoid duplicating header-auth logic in pages/modules", "Found header-auth style hooks");
 
-    // Template stack check (only for full HTML)
     if (isFullHtml) {
       const stack = checkTemplateStack(text);
       add("C5", "MAJOR", stack.okAll, "Canonical script stack present", stack.okAll ? "" : ("Missing: " + stack.missing.join(", ")));
@@ -134,7 +123,6 @@
       add("C5", "MINOR", true, "Template stack check skipped (fragment input)", "");
     }
 
-    // Score
     const penalty = findings.reduce((acc, f) => {
       if (f.status === "PASS") return acc;
       if (f.severity === "CRITICAL") return acc + 18;
@@ -145,13 +133,7 @@
 
     const score = Math.max(0, Math.min(100, Math.round(100 - penalty)));
 
-    return {
-      tool: "Validizer",
-      at: nowISO(),
-      score,
-      summary: { inputType: isFullHtml ? "full-html" : "fragment" },
-      findings
-    };
+    return { tool: "Validizer", at: nowISO(), score, summary: { inputType: isFullHtml ? "full-html" : "fragment" }, findings };
   }
 
   function formatReport(obj) {
@@ -198,18 +180,17 @@
     const inCode = $("inCode");
     const btnValidate = $("btnValidate");
     const btnToCanon = $("btnToCanon");
-    const btnCopyReport = $("btnCopyReport");
+    const btnCopyReport = $("btnCopyReport");          // optional but expected by UI
     const btnDownloadReport = $("btnDownloadReport");
     const btnClear = $("btnClear");
 
-    // Hard-stop if HTML and JS are mismatched again
-    if (!inCode || !btnValidate || !btnToCanon || !btnCopyReport || !btnDownloadReport || !btnClear) {
-      console.error("Validizer UI missing expected elements. Check validizer.html IDs.");
-      setReport("Validizer failed to initialize: UI elements missing. Replace /tools/validizer.html and /tools/validizer.js as a matched pair.");
+    // Require only the core controls; copy is optional (but we’ll wire it if present)
+    if (!inCode || !btnValidate || !btnToCanon || !btnDownloadReport || !btnClear) {
+      console.error("Validizer UI missing expected elements. Check /tools/validizer/index.html IDs.");
+      setReport("Validizer failed to initialize: UI elements missing. Replace /tools/validizer/index.html and /tools/validizer.js as a matched pair.");
       return;
     }
 
-    // Auto-load previous session (nice UX)
     const prior = loadPayload();
     if (prior && typeof prior.input === "string" && prior.input.trim()) {
       inCode.value = prior.input;
@@ -229,22 +210,18 @@
       const obj = runChecks(input);
       const txt = formatReport(obj);
       savePayload({ at: obj.at, report: obj, reportText: txt, input });
-
-      // Prefer extensionless route if present, otherwise fall back.
-      const tryA = "/tools/canonizer/";
-      const tryB = "/tools/canonizer.html";
-      // Navigate to A; if site doesn’t support, user can use B.
-      window.location.href = tryA;
-      // (No async check here; this stays deterministic and simple.)
+      window.location.href = "/tools/canonizer/";
     });
 
-    btnCopyReport.addEventListener("click", async () => {
-      const txt = $("report").textContent || "";
-      await safeCopy(txt);
-    });
+    if (btnCopyReport) {
+      btnCopyReport.addEventListener("click", async () => {
+        const txt = $("report")?.textContent || "";
+        await safeCopy(txt);
+      });
+    }
 
     btnDownloadReport.addEventListener("click", () => {
-      const txt = $("report").textContent || "";
+      const txt = $("report")?.textContent || "";
       download("validizer-report.txt", txt, "text/plain");
     });
 
