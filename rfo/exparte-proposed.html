@@ -1,0 +1,110 @@
+<!-- /rfo/exparte-proposed.html -->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>RFO — Ex Parte Proposed Orders (Public) — SharpeSystem</title>
+  <meta name="description" content="Public proposed order mapping for ex parte packet (local-only)." />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+
+<body class="shell">
+  <div id="site-header"></div>
+
+  <main class="page">
+    <div class="container content">
+
+      <section class="card" style="padding:var(--pad);">
+
+        <div class="row" style="justify-content:space-between; gap:12px; flex-wrap:wrap;">
+          <div>
+            <h1 style="margin:0;">Ex Parte — Proposed Orders</h1>
+            <p class="muted" style="margin:6px 0 0 0;">
+              Draft the exact temporary orders requested. Public mode stores locally only.
+            </p>
+          </div>
+          <div class="row" style="gap:10px;">
+            <button class="btn" id="btnSave" type="button">Save</button>
+            <a class="btn" href="/rfo/exparte-decl.html">Back to Declaration</a>
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
+        <!-- PeacePath -->
+        <section class="card" style="padding:14px; margin-bottom:14px;">
+          <h2 style="margin:0 0 6px 0;">Off-ramp</h2>
+          <p class="muted" style="margin:0;">
+            If temporary relief can be agreed without court, cooperative paths may resolve faster.
+          </p>
+          <div class="row" style="margin-top:10px; gap:10px;">
+            <a class="btn" href="/amicable.html">Amicable</a>
+            <a class="btn" href="/peace-path.html">PeacePath</a>
+          </div>
+        </section>
+
+        <h3 style="margin-top:0;">Proposed order language</h3>
+
+        <label class="field">
+          <span class="label">Temporary orders requested</span>
+          <textarea class="input" id="orders" rows="10"
+            placeholder="Example: Respondent shall immediately return the minor child to Petitioner pending hearing."></textarea>
+        </label>
+
+        <label class="field" style="margin-top:12px;">
+          <span class="label">Who must comply</span>
+          <input class="input" id="party" type="text"
+            placeholder="Name of restrained or directed party">
+        </label>
+
+        <label class="field" style="margin-top:12px;">
+          <span class="label">Effective immediately until</span>
+          <input class="input" id="duration" type="text"
+            placeholder="Hearing date / court order / specific date">
+        </label>
+
+        <label class="field" style="margin-top:12px;">
+          <span class="label">Enforcement / scope details</span>
+          <textarea class="input" id="scope" rows="6"
+            placeholder="Geographic scope, contact limits, custody scope"></textarea>
+        </label>
+
+        <div class="hr"></div>
+
+        <h3 style="margin-top:0;">Context preview</h3>
+
+        <div class="card" style="padding:12px;">
+          <div class="small muted">FL-305 orders</div>
+          <div id="fl305Preview" class="soft"></div>
+        </div>
+
+        <div class="card" style="padding:12px; margin-top:10px;">
+          <div class="small muted">Declaration relief</div>
+          <div id="declPreview" class="soft"></div>
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="row" style="gap:10px;">
+          <a class="btn primary" href="/rfo/exparte-public-print.html">Continue to Ex Parte Print</a>
+        </div>
+
+        <div class="small soft" style="margin-top:12px;">
+          Local-only key: <code>ss_rfo_exparte_proposed_v1</code>
+        </div>
+
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Canon public stack -->
+  <script src="/ui.js"></script>
+  <script src="/header-loader.js"></script>
+  <script src="/partials/header.js"></script>
+  <script src="/i18n.js"></script>
+
+  <script src="/rfo/rfo-exparte-proposed.js"></script>
+</body>
+</html>
