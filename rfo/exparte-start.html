@@ -1,0 +1,88 @@
+<!-- /rfo/exparte-start.html -->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>RFO — Ex Parte Start (Public) — SharpeSystem</title>
+  <meta name="description" content="Determine if ex parte emergency orders are appropriate and start the ex parte bundle." />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+
+<body class="shell">
+  <div id="site-header"></div>
+
+  <main class="page">
+    <div class="container content">
+
+      <section class="card" style="padding:var(--pad);">
+        <h1>Ex Parte Emergency Orders — Start</h1>
+        <p class="muted">
+          Ex parte requests are for urgent situations requiring immediate court action before normal notice periods.
+          This flow determines eligibility and activates the required forms.
+        </p>
+
+        <!-- PeacePath -->
+        <section class="card" style="padding:14px; margin-top:12px;">
+          <h2 style="margin:0 0 6px 0;">Before emergency filing</h2>
+          <p class="muted" style="margin:0;">
+            Ex parte filings are high-conflict. If the issue can wait for standard RFO scheduling,
+            or can be resolved cooperatively, that path is safer and often more effective.
+          </p>
+          <div class="row" style="margin-top:12px; gap:10px;">
+            <a class="btn" href="/amicable.html">Amicable Path</a>
+            <a class="btn" href="/peace-path.html">Peace Path</a>
+          </div>
+        </section>
+
+        <div class="hr"></div>
+
+        <h3>Urgency screening</h3>
+
+        <label class="field">
+          <span class="label">What makes this urgent?</span>
+          <select id="urgencyType" class="input">
+            <option value="">Select…</option>
+            <option value="safety">Immediate safety risk</option>
+            <option value="child_removal">Child removal / withholding risk</option>
+            <option value="medical">Medical / health emergency</option>
+            <option value="housing">Housing / relocation emergency</option>
+            <option value="other">Other serious harm</option>
+          </select>
+        </label>
+
+        <label class="field" style="margin-top:12px;">
+          <span class="label">Why can’t this wait for normal RFO timing?</span>
+          <textarea id="urgencyWhy" class="input" rows="6"></textarea>
+        </label>
+
+        <div class="row" style="margin-top:12px; gap:10px;">
+          <a class="btn primary" href="/rfo/exparte-explain.html">Continue</a>
+        </div>
+
+      </section>
+
+    </div>
+  </main>
+
+  <script src="/ui.js"></script>
+  <script src="/header-loader.js"></script>
+  <script src="/partials/header.js"></script>
+  <script src="/i18n.js"></script>
+
+  <script>
+  (function(){
+    const KEY="ss_rfo_exparte_intake_v1";
+    function save(){
+      const data={
+        urgencyType:document.getElementById("urgencyType").value,
+        urgencyWhy:document.getElementById("urgencyWhy").value
+      };
+      localStorage.setItem(KEY,JSON.stringify(data));
+    }
+    document.addEventListener("change",save);
+    document.addEventListener("input",save);
+  })();
+  </script>
+</body>
+</html>
