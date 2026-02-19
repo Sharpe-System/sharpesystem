@@ -1,5 +1,6 @@
 /* /rfo/rfo-exparte-print.js
    Paid Ex Parte Export / Import
+
    Canon:
    - No redirects/tier checks (gate.js owns gating)
    - No Firebase CDN imports here
@@ -51,7 +52,6 @@ function buildPacket(userUid) {
   const proposed = loadJson(KEYS.proposed) || {};
   const pleading = loadJson(KEYS.pleading) || null;
 
-  // Ensure declaration contains mc030Text + overflow metadata (even if older save)
   const mc030Text = decl.mc030Text || "";
   const overflow = decl.overflow || { triggered: false, pleadingKey: null };
 
@@ -78,29 +78,19 @@ function buildPacket(userUid) {
       county: intake?.jurisdiction?.county || "orange",
       court: intake?.jurisdiction?.court || "Superior Court of California"
     },
-    user: {
-      uid: userUid || null
-    },
+    user: { uid: userUid || null },
     slices: {
       intake,
       fl300,
       fl305,
       notice,
-      decl: {
-        ...decl,
-        mc030Text,
-        overflow
-      },
+      decl: { ...decl, mc030Text, overflow },
       proposed
     },
     attachments: {
-      // Only include pleading paper if overflow triggered
       pleadingPaper: overflowTriggered ? (pleading || null) : null
     },
-    readiness: {
-      ...readiness,
-      ready
-    }
+    readiness: { ...readiness, ready }
   };
 
   return { packet, ready, overflowTriggered, pleadingIncluded };
@@ -108,8 +98,7 @@ function buildPacket(userUid) {
 
 function buildTextPreview(packet) {
   const lines = [];
-  lines.push("EX PARTE PACKET (PAID PREVIEW)");
-  lines.push("");
+  lines.push("EX PARTE PACKET (PAID PREVIEW)", "");
 
   const fl300 = packet?.slices?.fl300 || {};
   const fl305 = packet?.slices?.fl305 || {};
@@ -120,44 +109,31 @@ function buildTextPreview(packet) {
 
   if (fl300.ordersRequested) {
     lines.push("FL-300 — Orders Requested:");
-    lines.push(fl300.ordersRequested);
-    lines.push("");
+    lines.push(fl300.ordersRequested, "");
   }
-
   if (fl305.orders) {
     lines.push("FL-305 — Temporary Emergency Orders:");
-    lines.push(fl305.orders);
-    lines.push("");
+    lines.push(fl305.orders, "");
   }
-
   if (decl.mc030Text) {
     lines.push("MC-030 TEXT (mapped):");
-    lines.push(decl.mc030Text);
-    lines.push("");
+    lines.push(decl.mc030Text, "");
   }
-
   if (notice.noticeGiven) {
     lines.push("NOTICE:");
-    lines.push(
-      `Given: ${notice.noticeGiven || ""} | Method: ${notice.noticeMethod || ""} | When: ${notice.noticeWhen || ""}`
-    );
+    lines.push(`Given: ${notice.noticeGiven || ""} | Method: ${notice.noticeMethod || ""} | When: ${notice.noticeWhen || ""}`);
     if (notice.noticeWhyNot) lines.push(`Why not: ${notice.noticeWhyNot}`);
     lines.push("");
   }
-
   if (prop.orders) {
     lines.push("PROPOSED ORDER:");
-    lines.push(prop.orders);
-    lines.push("");
+    lines.push(prop.orders, "");
   }
-
   if (decl.overflow?.triggered) {
     lines.push("ATTACHMENT:");
     lines.push("Pleading paper declaration is REQUIRED (overflow triggered).");
     if (plead?.body) {
-      lines.push("");
-      lines.push("PLEADING PAPER (body):");
-      lines.push(plead.body);
+      lines.push("", "PLEADING PAPER (body):", plead.body);
     }
     lines.push("");
   }
@@ -165,9 +141,8 @@ function buildTextPreview(packet) {
   return lines.join("\n").trim();
 }
 
-function downloadJson(obj, filename) {
-  const json = JSON.stringify(obj, null, 2);
-  const blob = new Blob([json], { type: "application/json" });
+function downloadText(text, filename, mime = "text/plain") {
+  const blob = new Blob([text], { type: mime });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
@@ -178,12 +153,17 @@ function downloadJson(obj, filename) {
   URL.revokeObjectURL(url);
 }
 
+function downloadJson(obj, filename) {
+  downloadText(JSON.stringify(obj, null, 2), filename, "application/json");
+}
+
 async function init() {
   const user = await getAuthStateOnce();
   if (!user) {
     $("status").textContent = "Login required.";
     $("importStatus").textContent = "Not logged in.";
     $("readyStatus").textContent = "Not logged in.";
+    $("cmdText").textContent = "Login required.";
     return;
   }
 
@@ -194,7 +174,6 @@ async function init() {
 
   const { packet, ready, overflowTriggered, pleadingIncluded } = buildPacket(user.uid);
 
-  // Readiness messaging
   if (ready) {
     $("readyStatus").textContent = "READY — packet complete.";
     $("readyStatus").style.color = "#0a0";
@@ -210,10 +189,19 @@ async function init() {
   $("packetJson").value = jsonText;
   $("packetText").value = buildTextPreview(packet);
 
+  const defaultPacketFilename = "ss-exparte-packet.json";
+  const cmd = `# 1) Save the downloaded JSON as: out/${defaultPacketFilename}\n` +
+              `# 2) From repo root:\n` +
+              `npm run exparte:pdf -- out/${defaultPacketFilename}\n` +
+              `# Output PDFs:\n` +
+              `#   out/exparte/FL-300.filled.pdf\n` +
+              `#   out/exparte/FL-305.filled.pdf\n`;
+
+  $("cmdText").textContent = cmd;
+
   $("btnDownloadJson").onclick = () => {
-    const ts = nowIso().replaceAll(":", "-");
-    downloadJson(packet, `ss-exparte-packet-${ts}.json`);
-    $("status").textContent = "Downloaded packet JSON.";
+    downloadJson(packet, defaultPacketFilename);
+    $("status").textContent = `Downloaded ${defaultPacketFilename}. Put it in out/ then run the mapper command.`;
   };
 
   $("btnCopyJson").onclick = async () => {
@@ -221,8 +209,9 @@ async function init() {
     $("status").textContent = "Copied packet JSON.";
   };
 
-  $("btnPrint").onclick = () => {
-    window.print();
+  $("btnDownloadCmd").onclick = () => {
+    downloadText(cmd, "make-exparte-pdfs.txt");
+    $("status").textContent = "Downloaded mapper command instructions.";
   };
 
   $("status").textContent = "Loaded.";
