@@ -1,11 +1,10 @@
-<!-- /rfo/public-fl300.html -->
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>RFO — FL-300 Mapper (Public) — SharpeSystem</title>
-  <meta name="description" content="Public FL-300 mapping: copy-ready text blocks for the court's official form + automatic MC-030 spillover strategy." />
+  <title>RFO — FL-300 (Public) — SharpeSystem</title>
+  <meta name="description" content="Public FL-300 mapping (local-only) with MC-030 overflow handling." />
   <link rel="stylesheet" href="/styles.css" />
 </head>
 
@@ -16,222 +15,147 @@
     <div class="container content">
 
       <section class="card" style="padding:var(--pad);">
-        <div class="row" style="justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap;">
+        <div class="row" style="justify-content:space-between; gap:12px; flex-wrap:wrap;">
           <div>
-            <h1 style="margin:0;">FL-300 Mapper (Public)</h1>
+            <h1 style="margin:0;">RFO — FL-300 (Public)</h1>
             <p class="muted" style="margin:6px 0 0 0;">
-              Public mode uses the <b>court’s official PDF</b>. SharpeSystem generates <b>copy-ready</b> text that actually prints,
-              and automatically routes overflow into an attached <b>MC-030</b> when needed.
+              Public mode uses the court’s exact forms. Long declarations auto-attach pleading paper.
             </p>
           </div>
-          <div class="row" style="gap:10px; flex-wrap:wrap;">
-            <button class="btn" id="btnCopyAll" type="button">Copy All</button>
+          <div class="row" style="gap:10px;">
             <button class="btn" id="btnSave" type="button">Save</button>
-            <a class="btn" href="/rfo/start.html">RFO Start</a>
+            <a class="btn" href="/rfo/public-print.html">Print Gate</a>
           </div>
         </div>
 
         <div class="hr"></div>
 
-        <!-- PeacePath must be present on every adversarial page -->
-        <section class="card" style="padding:14px; margin:0 0 14px 0;">
+        <!-- PeacePath -->
+        <section class="card" style="padding:14px; margin-bottom:14px;">
           <h2 style="margin:0 0 6px 0;">Before you file</h2>
           <p class="muted" style="margin:0;">
-            Filing is escalation. If agreement is realistically possible, use this to clarify your issues, then pivot to a cooperative path.
+            Filing is escalation. If agreement is possible, consider amicable routes first.
           </p>
-          <div class="row" style="margin-top:12px; gap:10px; flex-wrap:wrap;">
-            <a class="btn" href="/amicable.html">Try Amicable (Agreement Path)</a>
-            <a class="btn" href="/peace-path.html">Peace Path (De-escalated Messaging)</a>
-            <a class="btn primary" href="#map">Continue mapping</a>
+          <div class="row" style="margin-top:10px; gap:10px;">
+            <a class="btn" href="/amicable.html">Amicable</a>
+            <a class="btn" href="/peace-path.html">PeacePath</a>
           </div>
         </section>
 
-        <div id="map"></div>
-
-        <section class="card" style="padding:12px; margin:0 0 14px 0;">
-          <h3 style="margin:0 0 6px 0;">How this solves the “fillable PDF” problem</h3>
-          <ul style="margin:0; padding-left:18px;">
-            <li><b>FL-300 fields lie.</b> They show multiple lines, but print cutoffs are common.</li>
-            <li>This mapper enforces a conservative “fit budget.”</li>
-            <li>If you exceed the budget, it auto-generates a <b>short summary</b> + “See attached MC-030,” and puts the full text into MC-030.</li>
-            <li><b>Public mode does not fill PDFs for you.</b> You paste the blocks into the court PDF and check boxes as instructed.</li>
-          </ul>
-          <div class="small soft" style="margin-top:8px;">
-            Paid tiers can generate print-perfect “our forms.” Public mode stays on the official court PDF.
-          </div>
-        </section>
-
-        <h3 style="margin-top:0;">Case header (top of FL-300)</h3>
+        <h3 style="margin-top:0;">Case / parties (minimal)</h3>
 
         <div class="grid-2" style="gap:12px;">
           <label class="field">
-            <span class="label">County (for reference)</span>
-            <input class="input" id="county" type="text" value="Orange" autocomplete="off" />
+            <span class="label">Case Number</span>
+            <input class="input" id="caseNumber" type="text" placeholder="17D009277" />
           </label>
-          <label class="field">
-            <span class="label">Case number</span>
-            <input class="input" id="caseNumber" type="text" placeholder="e.g., 17D009277" autocomplete="off" />
-          </label>
-        </div>
 
-        <div class="grid-2" style="gap:12px; margin-top:12px;">
+          <label class="field">
+            <span class="label">County</span>
+            <input class="input" id="county" type="text" placeholder="Orange" />
+          </label>
+
           <label class="field">
             <span class="label">Petitioner</span>
-            <input class="input" id="petitionerName" type="text" placeholder="Full legal name" autocomplete="off" />
+            <input class="input" id="petitioner" type="text" placeholder="Full legal name" />
           </label>
+
           <label class="field">
             <span class="label">Respondent</span>
-            <input class="input" id="respondentName" type="text" placeholder="Full legal name" autocomplete="off" />
+            <input class="input" id="respondent" type="text" placeholder="Full legal name" />
           </label>
         </div>
 
         <div class="hr"></div>
 
-        <h3 style="margin-top:0;">Spillover settings</h3>
+        <h3 style="margin-top:0;">Orders requested (short)</h3>
 
-        <div class="grid-2" style="gap:12px;">
-          <section class="card" style="padding:12px;">
-            <h4 style="margin:0 0 8px 0;">Strategy</h4>
-
-            <label class="row" style="gap:10px; align-items:flex-start; margin:0;">
-              <input type="radio" name="spillMode" id="modeAuto" value="auto" />
-              <div>
-                <div><b>Auto-spill to MC-030 when needed</b> (recommended)</div>
-                <div class="muted">Keeps FL-300 printable; pushes overflow into MC-030.</div>
-              </div>
-            </label>
-
-            <label class="row" style="gap:10px; align-items:flex-start; margin:10px 0 0 0;">
-              <input type="radio" name="spillMode" id="modeMax" value="maximize" />
-              <div>
-                <div><b>Maximize in-form text</b> (risk of cutoff)</div>
-                <div class="muted">Tries to pack more into FL-300; still adds MC-030 if wildly long.</div>
-              </div>
-            </label>
-
-            <div class="hr"></div>
-
-            <label class="field" style="margin:0;">
-              <span class="label">Fit strictness</span>
-              <select class="input" id="fitStrictness">
-                <option value="safe">Safe (least cutoff risk)</option>
-                <option value="balanced">Balanced</option>
-                <option value="aggressive">Aggressive (more cutoff risk)</option>
-              </select>
-              <span class="help muted">This adjusts the max characters allowed in FL-300 boxes before spillover.</span>
-            </label>
-          </section>
-
-          <section class="card" style="padding:12px;">
-            <h4 style="margin:0 0 8px 0;">Attachment trigger status</h4>
-            <div class="muted" id="mc030Status">Calculating…</div>
-            <div class="small soft" style="margin-top:8px;" id="mc030Reason"></div>
-
-            <div class="hr"></div>
-
-            <h4 style="margin:0 0 8px 0;">What you must do in the court PDF</h4>
-            <textarea class="input" id="checkInstructions" rows="8" placeholder="Generated…"></textarea>
-            <div class="row" style="margin-top:10px; gap:10px; flex-wrap:wrap;">
-              <button class="btn" id="btnCopyChecks" type="button">Copy</button>
-            </div>
-          </section>
-        </div>
-
-        <div class="hr"></div>
-
-        <h3 style="margin-top:0;">What you are requesting (FL-300 core boxes)</h3>
-
-        <div class="grid-2" style="gap:12px;">
-          <label class="field">
-            <span class="label">Primary request</span>
-            <select class="input" id="primaryRequest">
-              <option value="">Select…</option>
-              <option value="custody_visitation">Custody / Visitation (parenting time)</option>
-              <option value="support_child">Child support</option>
-              <option value="support_spousal">Spousal support</option>
-              <option value="orders_other">Other family-law orders</option>
-            </select>
-          </label>
-
-          <label class="field">
-            <span class="label">Urgency</span>
-            <select class="input" id="urgency">
-              <option value="">Select…</option>
-              <option value="standard">Standard notice</option>
-              <option value="time_sensitive">Time-sensitive</option>
-              <option value="safety">Safety-related</option>
-            </select>
-          </label>
-        </div>
-
-        <label class="field" style="margin-top:12px;">
-          <span class="label">One-sentence summary (plain English)</span>
-          <input class="input" id="oneSentence" type="text" placeholder="Example: I need a set weekly schedule with school pickups." autocomplete="off" />
-          <span class="help muted">Used to keep FL-300 short when your full declaration is long.</span>
+        <label class="field">
+          <span class="label">Orders requested (plain English)</span>
+          <textarea class="input" id="ordersRequested" rows="5"
+            placeholder="Custody/visitation/support/fees/other orders you want"></textarea>
         </label>
 
-        <div class="grid-2" style="gap:12px; margin-top:12px;">
-          <section class="card" style="padding:12px;">
-            <h4 style="margin:0 0 8px 0;">FL-300: Orders requested (paste into court PDF)</h4>
-            <textarea class="input" id="flOrders" rows="8" placeholder="Generated…"></textarea>
-            <div class="row" style="margin-top:10px; gap:10px; flex-wrap:wrap;">
-              <button class="btn" id="btnCopyOrders" type="button">Copy</button>
-              <button class="btn" id="btnRegen" type="button">Regenerate</button>
-            </div>
-          </section>
+        <label class="field" style="margin-top:12px;">
+          <span class="label">Why the order is needed (short)</span>
+          <textarea class="input" id="whyNeeded" rows="5"
+            placeholder="Short explanation—long declaration goes below"></textarea>
+        </label>
 
-          <section class="card" style="padding:12px;">
-            <h4 style="margin:0 0 8px 0;">FL-300: Why summary (paste into court PDF)</h4>
-            <textarea class="input" id="flWhy" rows="8" placeholder="Generated…"></textarea>
-            <div class="row" style="margin-top:10px; gap:10px; flex-wrap:wrap;">
-              <button class="btn" id="btnCopyWhy" type="button">Copy</button>
-            </div>
-          </section>
-        </div>
+        <div class="hr"></div>
 
-        <section class="card" style="padding:12px; margin-top:12px;">
-          <h4 style="margin:0 0 8px 0;">FL-300: Attachment line (paste into court PDF)</h4>
-          <textarea class="input" id="flAttach" rows="4" placeholder="Generated…"></textarea>
-          <div class="row" style="margin-top:10px; gap:10px; flex-wrap:wrap;">
-            <button class="btn" id="btnCopyAttach" type="button">Copy</button>
+        <h3 style="margin-top:0;">Declaration (MC-030 overflow aware)</h3>
+
+        <div class="card" style="padding:12px; margin-bottom:12px;">
+          <div class="row" style="justify-content:space-between; gap:12px; flex-wrap:wrap; align-items:flex-start;">
+            <div>
+              <h4 style="margin:0 0 6px 0;">Overflow control</h4>
+              <p class="muted" style="margin:0;">
+                If your declaration is too long for MC-030, SharpeSystem will auto-generate a pleading paper attachment and
+                reduce MC-030 to a summary + “See attached pleading paper.”
+              </p>
+            </div>
+            <div class="row" style="gap:10px; flex-wrap:wrap;">
+              <label class="row" style="gap:8px; align-items:center; margin:0;">
+                <input type="checkbox" id="autoOverflow" />
+                <span class="muted">Auto-attach pleading paper when long</span>
+              </label>
+              <a class="btn" href="/rfo/pleading-paper.html">Open Pleading Paper</a>
+            </div>
           </div>
-        </section>
+          <div class="small soft" style="margin-top:10px;">
+            Status: <span id="overflowStatus">Checking…</span>
+          </div>
+        </div>
+
+        <label class="field">
+          <span class="label">Facts (long form)</span>
+          <textarea class="input" id="facts" rows="8"
+            placeholder="Chronological facts and context"></textarea>
+        </label>
+
+        <label class="field" style="margin-top:12px;">
+          <span class="label">Recent incidents (long form)</span>
+          <textarea class="input" id="recent" rows="6"
+            placeholder="Most recent developments"></textarea>
+        </label>
+
+        <label class="field" style="margin-top:12px;">
+          <span class="label">Necessity (long form)</span>
+          <textarea class="input" id="necessity" rows="6"
+            placeholder="Why the court must act"></textarea>
+        </label>
+
+        <label class="field" style="margin-top:12px;">
+          <span class="label">Relief (long form)</span>
+          <textarea class="input" id="relief" rows="6"
+            placeholder="Exact relief requested"></textarea>
+        </label>
 
         <div class="hr"></div>
 
-        <h3 style="margin-top:0;">MC-030 declaration (public copy block)</h3>
-        <p class="muted" style="margin-top:6px;">
-          If spillover triggers, this is the full narrative you print and attach as MC-030 pages.
-          If spillover does not trigger, you may still attach MC-030 for clarity.
-        </p>
-
-        <label class="field" style="margin-top:12px;">
-          <span class="label">Declaration text (from your Public Draft)</span>
-          <textarea class="input" id="declText" rows="16" placeholder="Pulled from your Public Draft…"></textarea>
+        <h3 style="margin-top:0;">MC-030 output</h3>
+        <label class="field">
+          <span class="label">MC-030 Text (auto-generated)</span>
+          <textarea class="input" id="mc030Text" rows="8" readonly></textarea>
         </label>
-
-        <div class="row" style="margin-top:12px; gap:10px; flex-wrap:wrap;">
-          <button class="btn" id="btnCopyDecl" type="button">Copy Declaration</button>
-          <a class="btn" href="/rfo/public-draft.html#resume">Edit Draft</a>
-          <a class="btn" href="/rfo/public-exhibits.html">Exhibits</a>
-          <a class="btn primary" href="/rfo/public-print.html">Print Gate</a>
-        </div>
 
         <div class="small soft" style="margin-top:12px;">
-          Public mode stores locally only. Paid mode can generate print-perfect “our forms” and a merged packet.
+          Keys: <code>ss_rfo_fl300_v1</code>, <code>ss_rfo_decl_v1</code>, <code>ss_pleading_paper_v1</code>
         </div>
+
       </section>
 
     </div>
   </main>
 
-  <!-- Public canonical stack (NO gate.js) -->
+  <!-- Canon public stack -->
   <script src="/ui.js"></script>
   <script src="/header-loader.js"></script>
   <script src="/partials/header.js"></script>
   <script src="/i18n.js"></script>
 
-  <!-- Public FL-300 mapper logic (localStorage-only) -->
+  <script src="/rfo/rfo-overflow.js"></script>
   <script src="/rfo/rfo-public-fl300.js"></script>
 </body>
 </html>
