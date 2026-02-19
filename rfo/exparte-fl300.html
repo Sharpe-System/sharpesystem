@@ -1,0 +1,110 @@
+<!-- /rfo/exparte-fl300.html -->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>RFO — Ex Parte FL-300 Mapping (Public) — SharpeSystem</title>
+  <meta name="description" content="Public mapping for FL-300 emergency request slice (local-only)." />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+
+<body class="shell">
+  <div id="site-header"></div>
+
+  <main class="page">
+    <div class="container content">
+
+      <section class="card" style="padding:var(--pad);">
+
+        <div class="row" style="justify-content:space-between; gap:12px; flex-wrap:wrap;">
+          <div>
+            <h1 style="margin:0;">Ex Parte — FL-300 Mapping (Public)</h1>
+            <p class="muted" style="margin:6px 0 0 0;">
+              Emergency request framing for FL-300. Public mode stores locally only.
+            </p>
+          </div>
+          <div class="row" style="gap:10px; flex-wrap:wrap;">
+            <button class="btn" id="btnSave" type="button">Save</button>
+            <a class="btn" href="/rfo/exparte-router.html">Back to Router</a>
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
+        <!-- PeacePath -->
+        <section class="card" style="padding:14px; margin-bottom:14px;">
+          <h2 style="margin:0 0 6px 0;">Off-ramp</h2>
+          <p class="muted" style="margin:0;">
+            If emergency relief can be avoided through agreement, use cooperative options.
+          </p>
+          <div class="row" style="margin-top:10px; gap:10px;">
+            <a class="btn" href="/amicable.html">Amicable</a>
+            <a class="btn" href="/peace-path.html">PeacePath</a>
+          </div>
+        </section>
+
+        <h3 style="margin-top:0;">Requested emergency orders</h3>
+
+        <label class="field">
+          <span class="label">What temporary orders are needed immediately?</span>
+          <textarea class="input" id="ordersRequested" rows="6"
+            placeholder="Example: Temporary custody, no contact, return of child, medical consent authority"></textarea>
+        </label>
+
+        <label class="field" style="margin-top:12px;">
+          <span class="label">Who is at risk and how?</span>
+          <textarea class="input" id="riskStatement" rows="6"
+            placeholder="Plain description of immediate harm risk"></textarea>
+        </label>
+
+        <label class="field" style="margin-top:12px;">
+          <span class="label">What will happen without immediate orders?</span>
+          <textarea class="input" id="harmIfDelayed" rows="6"
+            placeholder="Why waiting for normal notice is unsafe"></textarea>
+        </label>
+
+        <label class="field" style="margin-top:12px;">
+          <span class="label">Requested duration of emergency orders</span>
+          <input class="input" id="duration" type="text"
+            placeholder="Until hearing / specific date / temporary period">
+        </label>
+
+        <div class="hr"></div>
+
+        <h3 style="margin-top:0;">Auto-imported context</h3>
+
+        <div class="card" style="padding:12px;">
+          <div class="small muted">Urgency summary (from intake)</div>
+          <div id="urgencyPreview" class="soft"></div>
+        </div>
+
+        <div class="card" style="padding:12px; margin-top:10px;">
+          <div class="small muted">Notice summary (from notice page)</div>
+          <div id="noticePreview" class="soft"></div>
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="row" style="gap:10px;">
+          <a class="btn primary" href="/rfo/exparte-fl305.html">Continue to FL-305</a>
+        </div>
+
+        <div class="small soft" style="margin-top:12px;">
+          Local-only key: <code>ss_rfo_exparte_fl300_v1</code>
+        </div>
+
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Canon public stack -->
+  <script src="/ui.js"></script>
+  <script src="/header-loader.js"></script>
+  <script src="/partials/header.js"></script>
+  <script src="/i18n.js"></script>
+
+  <script src="/rfo/rfo-exparte-fl300.js"></script>
+</body>
+</html>
