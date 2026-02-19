@@ -1,11 +1,11 @@
 /* /tools/canonizer.js
-   Canonizer v2 (canon-locked)
+   Canonizer v3 (canon-locked + Validizer handoff loader)
 
    HARD:
    - Wrap ONLY fragments.
    - If input contains <html OR <body OR <main class="page"> treat as full page and SANITIZE, not wrap.
    - Output invariants are NON-NEGOTIABLE: exactly one doctype, body.shell, header mount, main.page/container,
-     and required script stack including gate.js (in output), with no duplicates/omissions.
+     and required script stack including gate.js (in OUTPUT), with no duplicates/omissions.
 
    TOOL HARD:
    - No Firebase
@@ -13,10 +13,16 @@
    - No network calls
    - No auth checks
    - Uses shared canon rules from /tools/canon-rules.js
+
+   HANDOFF:
+   - Reads sessionStorage key SHS_CANON_PAYLOAD written by Validizer
+   - Loads payload.input into #inCode
 */
 
 (function () {
   "use strict";
+
+  const PAYLOAD_KEY = "SHS_CANON_PAYLOAD";
 
   function $(id) { return document.getElementById(id); }
   function nowISO() { return new Date().toISOString(); }
@@ -107,15 +113,14 @@
   }
 
   function normalizeForFragmentOnly(inner) {
-    // Remove any nested main/container wrappers that could double-wrap
     let t = safeText(inner);
 
+    // Remove nested <main> wrappers if present
     t = t.replace(/<\s*main\b[^>]*>/gi, "");
     t = t.replace(/<\/\s*main\s*>/gi, "");
 
-    // Remove nested container/content wrappers (conservative)
+    // Remove nested container/content wrapper opens (conservative)
     t = t.replace(/<div\b[^>]*class\s*=\s*["'][^"']*\bcontainer\b[^"']*\bcontent\b[^"']*["'][^>]*>/gi, "");
-    t = t.replace(/<\/div>/gi, (m) => m); // leave div closing alone; we cannot safely remove without parsing
 
     return t.trim();
   }
@@ -128,7 +133,7 @@
     const scripts = out.scriptStack.map((s) => {
       if (s.type === "module") return `<script type="module" src="${s.src}"></script>`;
       return `<script src="${s.src}"></script>`;
-    }).join("\n  ");
+    }).join("\n");
 
     return `<!doctype html>
 <html lang="${out.lang}">
@@ -158,26 +163,21 @@ ${scripts}
     return raw ? `${raw} — SharpeSystem` : "Page — SharpeSystem";
   }
 
-  function enforceNoDuplicateInvariants(output, canon) {
+  function enforceNoDuplicateInvariants(output) {
     const t = safeText(output);
 
-    // Exactly one doctype
     const doctypeCount = (t.match(/<!doctype\s+html/gi) || []).length;
     if (doctypeCount !== 1) throw new Error("Invariant violation: output must contain exactly one <!doctype html>.");
 
-    // Exactly one body.shell
     const bodyCount = (t.match(/<body\b[^>]*class=["'][^"']*\bshell\b[^"']*["']/gi) || []).length;
     if (bodyCount !== 1) throw new Error("Invariant violation: output must contain exactly one <body class=\"shell\">.");
 
-    // Exactly one header mount
     const headMountCount = (t.match(/<div\b[^>]*id=["']site-header["'][^>]*>/gi) || []).length;
     if (headMountCount !== 1) throw new Error("Invariant violation: output must contain exactly one <div id=\"site-header\"></div>.");
 
-    // Exactly one main.page
     const mainCount = (t.match(/<main\b[^>]*class=["'][^"']*\bpage\b[^"']*["']/gi) || []).length;
     if (mainCount !== 1) throw new Error("Invariant violation: output must contain exactly one <main class=\"page\">.");
 
-    // Exactly one container content
     const containerCount = (t.match(/<div\b[^>]*class=["'][^"']*\bcontainer\b[^"']*\bcontent\b[^"']*["']/gi) || []).length;
     if (containerCount !== 1) throw new Error("Invariant violation: output must contain exactly one <div class=\"container content\">.");
   }
@@ -190,20 +190,18 @@ ${scripts}
     }
 
     const fullLike = isFullPageLike(raw);
-
     let inner;
     let mode;
 
     if (fullLike) {
-      // HARD: sanitize full pages, do NOT wrap the entire page
       mode = "sanitize-full-page";
       inner = extractInnerFromFullPage(raw);
       inner = stripScriptsAndShellMarkers(inner);
       inner = normalizeForFragmentOnly(inner);
     } else {
-      // HARD: fragments only
       mode = "wrap-fragment";
-      // Enforce fragment contract: exactly one section.card and nothing else
+
+      // Enforce fragment contract strictly
       const forbids = canon.fragment.forbidPatterns || [];
       for (const fp of forbids) {
         if (fp.re.test(raw)) {
@@ -256,9 +254,8 @@ Message: Fragment must not contain content outside the single <section class="ca
     const title = deriveTitleFromInner(inner);
     const out = canonicalShell(canon, title, "", inner);
 
-    // HARD: verify output invariants
     try {
-      enforceNoDuplicateInvariants(out, canon);
+      enforceNoDuplicateInvariants(out);
     } catch (e) {
       return {
         out: "",
@@ -282,10 +279,34 @@ Action: ${fullLike ? "Sanitized into single canonical shell" : "Wrapped fragment
 Notes:
 - Tools pages are gate-exempt; Canonizer OUTPUT still injects gate.js (required invariant).
 - No Firebase imports added.
-- No redirects/gating logic added (output contains gate.js only as the canonical stack element).
+- No redirects/auth checks performed by tools.
 - Output invariants enforced: single doctype/body.shell/header mount/main.page/container content + full script stack.`;
 
     return { out, report, mode };
+  }
+
+  function loadFromValidizerHandoff(inCode, reportEl) {
+    try {
+      const raw = sessionStorage.getItem(PAYLOAD_KEY);
+      if (!raw) return false;
+
+      const payload = JSON.parse(raw);
+      const input = safeText(payload && payload.input ? payload.input : "");
+      if (!input) return false;
+
+      inCode.value = input;
+
+      if (reportEl) {
+        reportEl.textContent =
+`Loaded input from Validizer handoff.
+Time: ${safeText(payload.at || "")}
+
+(Click Canonize to generate output.)`;
+      }
+      return true;
+    } catch (_) {
+      return false;
+    }
   }
 
   function init() {
@@ -302,6 +323,9 @@ Notes:
       if (report) report.textContent = "Canonizer failed to initialize: UI elements missing.";
       return;
     }
+
+    // NEW: prefill from Validizer handoff if present
+    loadFromValidizerHandoff(inCode, report);
 
     btnCanonize.addEventListener("click", () => {
       const res = canonize(inCode.value || "");
@@ -321,6 +345,7 @@ Notes:
       inCode.value = "";
       setOut(outCode, "");
       report.textContent = "";
+      try { sessionStorage.removeItem(PAYLOAD_KEY); } catch (_) {}
     });
   }
 
