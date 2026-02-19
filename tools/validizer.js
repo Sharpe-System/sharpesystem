@@ -1,19 +1,25 @@
 /* /tools/validizer.js
-   Deterministic canon checks.
-   Canon rules (high level):
-   - No Firebase CDN imports (only /firebase-config.js owns Firebase imports)
-   - No onAuthStateChanged usage in pages/modules (only /firebase-config.js)
-   - No redirects/gating in pages/modules (gate.js owns)
+   Validizer v2 (canon-locked)
+   - Deterministic
+   - No Firebase
+   - No redirects
+   - No network calls
+   - No auth checks
+   - Uses shared canon rules from /tools/canon-rules.js
 */
 
 (function () {
   "use strict";
 
-  const KEY_PAYLOAD = "shs_validizer_payload_v1";
-
   function $(id) { return document.getElementById(id); }
   function nowISO() { return new Date().toISOString(); }
   function safeText(s) { return String(s ?? ""); }
+
+  function getCanon() {
+    const c = window.SHARPE_CANON_RULES;
+    if (!c) throw new Error("Missing SHARPE_CANON_RULES. Ensure /tools/canon-rules.js is loaded before validizer.js.");
+    return c;
+  }
 
   function download(filename, text, mime) {
     const blob = new Blob([text], { type: mime || "text/plain" });
@@ -28,26 +34,62 @@
   }
 
   async function safeCopy(text) {
-    try {
-      await navigator.clipboard.writeText(text);
-      return true;
-    } catch (_) {
-      return false;
-    }
+    try { await navigator.clipboard.writeText(text); return true; }
+    catch (_) { return false; }
   }
 
   function detectIsFullHtml(text) {
-    return /<!doctype\s+html/i.test(text) || /<html[\s>]/i.test(text);
+    const t = safeText(text);
+    return /<!doctype\s+html/i.test(t) || /<html[\s>]/i.test(t) || /<head[\s>]/i.test(t);
   }
 
-  function checkTemplateStack(html) {
-    const want = [
-      /<script[^>]+src=["']\/ui\.js["'][^>]*>\s*<\/script>/i,
-      /<script[^>]+src=["']\/header-loader\.js["'][^>]*>\s*<\/script>/i,
-      /<script[^>]+src=["']\/partials\/header\.js["'][^>]*>\s*<\/script>/i,
-      /<script[^>]+src=["']\/i18n\.js["'][^>]*>\s*<\/script>/i,
-      /<script[^>]+type=["']module["'][^>]+src=["']\/gate\.js["'][^>]*>\s*<\/script>/i,
-    ];
+  function extractBody(text) {
+    const t = safeText(text);
+    const m = /<body[^>]*>([\s\S]*?)<\/body>/i.exec(t);
+    return m ? m[1] : t;
+  }
+
+  function normalizeSpace(s) {
+    return safeText(s).replace(/\s+/g, " ").trim();
+  }
+
+  function validateFragmentContract(fragment, canon) {
+    const t = safeText(fragment);
+
+    // Forbidden patterns
+    const forbids = canon.fragment.forbidPatterns || [];
+    for (const fp of forbids) {
+      if (fp.re.test(t)) {
+        return { ok: false, rule: fp.id, msg: fp.msg };
+      }
+    }
+
+    // Require exactly one root <section class="card"> ... </section>
+    if (canon.fragment.requireSingleRootSectionCard) {
+      const matches = [...t.matchAll(/<section\b[^>]*class\s*=\s*["'][^"']*\bcard\b[^"']*["'][^>]*>[\s\S]*?<\/section>/gi)];
+      if (matches.length !== 1) {
+        return { ok: false, rule: "FRAG_ONE_CARD_SECTION", msg: "Fragment must contain exactly one <section class=\"card\">...</section> root." };
+      }
+
+      // Ensure nothing non-whitespace exists outside that one section
+      const only = normalizeSpace(t.replace(matches[0][0], ""));
+      if (only !== "") {
+        return { ok: false, rule: "FRAG_NO_OUTSIDE_CONTENT", msg: "Fragment must not contain content outside the single <section class=\"card\"> root." };
+      }
+    }
+
+    return { ok: true };
+  }
+
+  function checkTemplateStack(fullHtml, canon) {
+    const html = safeText(fullHtml);
+
+    const want = canon.output.scriptStack.map((s) => {
+      if (s.type === "module") {
+        return new RegExp(`<script[^>]+type=["']module["'][^>]+src=["']${s.src.replace(/\./g, "\\.")}["'][^>]*>\\s*<\\/script>`, "i");
+      }
+      return new RegExp(`<script[^>]+src=["']${s.src.replace(/\./g, "\\.")}["'][^>]*>\\s*<\\/script>`, "i");
+    });
 
     const found = want.map((re) => {
       const m = re.exec(html);
@@ -56,20 +98,18 @@
 
     const okAll = found.every(x => x.ok);
     let okOrder = false;
-
     if (okAll) okOrder = found.every((x, i) => i === 0 || x.index > found[i - 1].index);
 
     const missing = [];
-    if (!found[0].ok) missing.push("ui.js");
-    if (!found[1].ok) missing.push("header-loader.js");
-    if (!found[2].ok) missing.push("partials/header.js");
-    if (!found[3].ok) missing.push("i18n.js");
-    if (!found[4].ok) missing.push("gate.js (module)");
+    for (let i = 0; i < found.length; i++) {
+      if (!found[i].ok) missing.push(canon.output.scriptStack[i].src + (canon.output.scriptStack[i].type === "module" ? " (module)" : ""));
+    }
 
     return { okAll, okOrder, missing };
   }
 
   function runChecks(input) {
+    const canon = getCanon();
     const text = safeText(input);
     const isFullHtml = detectIsFullHtml(text);
 
@@ -84,48 +124,47 @@
       });
     }
 
-    const hasCharset = /<meta\s+charset=["']utf-8["']/i.test(text);
-    const hasViewport = /<meta[^>]+name=["']viewport["']/i.test(text);
-    const hasLang = /<html[^>]+lang=["'][^"']+["']/i.test(text);
-    const hasStyles = /<link[^>]+rel=["']stylesheet["'][^>]+href=["']\/styles\.css["']/i.test(text);
-    const hasHeaderMount = /<div\s+id=["']site-header["']\s*>\s*<\/div>/i.test(text);
-
-    if (isFullHtml) {
-      add("STABLE-META-CHARSET", "MAJOR", hasCharset, "meta charset utf-8 present", hasCharset ? "" : "Missing <meta charset=\"utf-8\">");
-      add("STABLE-VIEWPORT", "MAJOR", hasViewport, "meta viewport present", hasViewport ? "" : "Missing <meta name=\"viewport\" ...>");
-      add("STABLE-LANG", "MINOR", hasLang, "html lang present", hasLang ? "" : "Missing <html lang=\"...\">");
-      add("STABLE-STYLES", "MAJOR", hasStyles, "styles.css linked", hasStyles ? "" : "Missing <link rel=\"stylesheet\" href=\"/styles.css\">");
-      add("STABLE-HEADER-MOUNT", "MINOR", hasHeaderMount, "header mount present", hasHeaderMount ? "" : "Missing <div id=\"site-header\"></div>");
+    // Fragment contract enforcement (HARD)
+    if (!isFullHtml) {
+      const frag = validateFragmentContract(text, canon);
+      add("FRAG-CONTRACT", "CRITICAL", frag.ok, frag.ok ? "Fragment contract satisfied" : frag.msg, frag.ok ? "" : frag.rule);
     } else {
-      add("STABLE-SKIP", "MINOR", true, "basic HTML stability checks skipped (fragment input)", "");
+      add("FRAG-CONTRACT", "MINOR", true, "Fragment contract skipped (full HTML input)", "");
     }
 
-    const firebaseCDN = /https:\/\/www\.gstatic\.com\/firebasejs/i;
-    add("C1", "CRITICAL", !firebaseCDN.test(text), "No Firebase CDN imports (must be only in /firebase-config.js)", "Found firebasejs CDN reference");
+    // Shared structural/security rules
+    for (const r of canon.rules) {
+      const pass = !!r.test(text);
+      add(r.id, r.severity, pass, r.desc, pass ? "" : r.evidence);
+    }
 
-    const onAuth = /\bonAuthStateChanged\b/i;
-    add("C2", "CRITICAL", !onAuth.test(text), "No onAuthStateChanged usage here (must be only in /firebase-config.js)", "Found onAuthStateChanged reference");
-
-    const winFirebase = /\bwindow\.firebase\b/i;
-    add("C7", "CRITICAL", !winFirebase.test(text), "No legacy window.firebase usage", "Found window.firebase usage");
-
-    const redirects = /\b(location\.href|location\.replace|window\.location)\b/i;
-    add("C3-HEUR", "MAJOR", !redirects.test(text), "No redirect-like calls in this pasted code (gate.js owns gating/redirects)", "Found redirect-like usage");
-
-    const headerAuthDupes = /\b(ensureAuth|renderUser|authState|headerAuth|data-auth-|userTier|tierGate)\b/i;
-    add("C6-HEUR", "MAJOR", !headerAuthDupes.test(text), "Avoid duplicating header-auth logic in pages/modules", "Found header-auth style hooks");
-
+    // Full HTML stability + stack/order (HARD-ish)
     if (isFullHtml) {
-      const stack = checkTemplateStack(text);
+      const hasDoctype = /<!doctype\s+html/i.test(text);
+      const hasLang = /<html[^>]+lang=["']en["']/i.test(text);
+      const hasBodyShell = /<body[^>]+class=["'][^"']*\bshell\b[^"']*["']/i.test(text);
+      const hasHeaderMount = /<div\s+id=["']site-header["']\s*>\s*<\/div>/i.test(text);
+      const hasMainPage = /<main[^>]+class=["'][^"']*\bpage\b[^"']*["']/i.test(text);
+      const hasContainer = /<div[^>]+class=["'][^"']*\bcontainer\b[^"']*\bcontent\b[^"']*["']/i.test(text);
+
+      add("SHELL-DOCTYPE", "MAJOR", hasDoctype, "DOCTYPE present", hasDoctype ? "" : "Missing <!doctype html>");
+      add("SHELL-LANG", "MAJOR", hasLang, "html lang=\"en\" present", hasLang ? "" : "Missing <html lang=\"en\">");
+      add("SHELL-BODY", "MAJOR", hasBodyShell, "body.shell present", hasBodyShell ? "" : "Missing body class=\"shell\"");
+      add("SHELL-HEADER", "MAJOR", hasHeaderMount, "#site-header mount present", hasHeaderMount ? "" : "Missing <div id=\"site-header\"></div>");
+      add("SHELL-MAIN", "MAJOR", hasMainPage, "main.page present", hasMainPage ? "" : "Missing <main class=\"page\">");
+      add("SHELL-CONTAINER", "MAJOR", hasContainer, "container content present", hasContainer ? "" : "Missing <div class=\"container content\">");
+
+      const stack = checkTemplateStack(text, canon);
       add("C5", "MAJOR", stack.okAll, "Canonical script stack present", stack.okAll ? "" : ("Missing: " + stack.missing.join(", ")));
       add("C5-ORDER", "MAJOR", stack.okOrder, "Canonical script stack order correct", stack.okOrder ? "" : "Scripts present but order differs from canon");
     } else {
       add("C5", "MINOR", true, "Template stack check skipped (fragment input)", "");
     }
 
+    // Score
     const penalty = findings.reduce((acc, f) => {
       if (f.status === "PASS") return acc;
-      if (f.severity === "CRITICAL") return acc + 18;
+      if (f.severity === "CRITICAL") return acc + 20;
       if (f.severity === "MAJOR") return acc + 10;
       if (f.severity === "MINOR") return acc + 4;
       return acc;
@@ -152,83 +191,36 @@
     return lines.join("\n");
   }
 
-  function setReport(text) {
-    const el = $("report");
-    if (!el) return;
-    el.textContent = safeText(text);
-  }
-
-  function savePayload(payload) {
-    try { sessionStorage.setItem(KEY_PAYLOAD, JSON.stringify(payload)); } catch (_) {}
-  }
-
-  function loadPayload() {
-    try {
-      const raw = sessionStorage.getItem(KEY_PAYLOAD);
-      if (!raw) return null;
-      return JSON.parse(raw);
-    } catch (_) {
-      return null;
-    }
-  }
-
-  function clearPayload() {
-    try { sessionStorage.removeItem(KEY_PAYLOAD); } catch (_) {}
-  }
-
   function init() {
     const inCode = $("inCode");
+    const report = $("report");
     const btnValidate = $("btnValidate");
-    const btnToCanon = $("btnToCanon");
-    const btnCopyReport = $("btnCopyReport");          // optional but expected by UI
-    const btnDownloadReport = $("btnDownloadReport");
     const btnClear = $("btnClear");
+    const btnCopyReport = $("btnCopyReport");
+    const btnDownloadReport = $("btnDownloadReport");
 
-    // Require only the core controls; copy is optional (but we’ll wire it if present)
-    if (!inCode || !btnValidate || !btnToCanon || !btnDownloadReport || !btnClear) {
-      console.error("Validizer UI missing expected elements. Check /tools/validizer/index.html IDs.");
-      setReport("Validizer failed to initialize: UI elements missing. Replace /tools/validizer/index.html and /tools/validizer.js as a matched pair.");
+    if (!inCode || !report || !btnValidate || !btnClear || !btnCopyReport || !btnDownloadReport) {
+      console.error("Validizer UI missing expected elements. Replace /tools/validizer.html or /tools/validizer/index.html with the canon-matched version.");
+      if (report) report.textContent = "Validizer failed to initialize: UI elements missing. Replace /tools/validizer*.html and /tools/validizer.js as a matched pair.";
       return;
     }
 
-    const prior = loadPayload();
-    if (prior && typeof prior.input === "string" && prior.input.trim()) {
-      inCode.value = prior.input;
-      if (prior.reportText) setReport(prior.reportText);
-    }
-
     btnValidate.addEventListener("click", () => {
-      const input = inCode.value || "";
-      const obj = runChecks(input);
-      const txt = formatReport(obj);
-      setReport(txt);
-      savePayload({ at: obj.at, report: obj, reportText: txt, input });
-    });
-
-    btnToCanon.addEventListener("click", () => {
-      const input = inCode.value || "";
-      const obj = runChecks(input);
-      const txt = formatReport(obj);
-      savePayload({ at: obj.at, report: obj, reportText: txt, input });
-      window.location.href = "/tools/canonizer/";
-    });
-
-    if (btnCopyReport) {
-      btnCopyReport.addEventListener("click", async () => {
-        const txt = $("report")?.textContent || "";
-        await safeCopy(txt);
-      });
-    }
-
-    btnDownloadReport.addEventListener("click", () => {
-      const txt = $("report")?.textContent || "";
-      download("validizer-report.txt", txt, "text/plain");
+      const obj = runChecks(inCode.value || "");
+      report.textContent = formatReport(obj);
     });
 
     btnClear.addEventListener("click", () => {
       inCode.value = "";
-      setReport("");
-      clearPayload();
+      report.textContent = "";
+    });
+
+    btnCopyReport.addEventListener("click", async () => {
+      await safeCopy(report.textContent || "");
+    });
+
+    btnDownloadReport.addEventListener("click", () => {
+      download("validizer-report.txt", report.textContent || "", "text/plain");
     });
   }
 
