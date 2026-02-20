@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>All Pages — SharpeSystem</title>
+  <meta name="robots" content="noindex,nofollow" />
+  <style>
+    :root { color-scheme: light dark; }
+    body { margin: 0; font: 15px/1.45 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+    header { padding: 18px 16px; border-bottom: 1px solid rgba(127,127,127,.25); position: sticky; top: 0; backdrop-filter: blur(10px); }
+    h1 { margin: 0 0 8px; font-size: 18px; }
+    .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    input { width: min(680px, 100%); padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(127,127,127,.35); background: transparent; }
+    button { padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(127,127,127,.35); background: transparent; cursor: pointer; }
+    main { padding: 14px 16px 40px; }
+    .meta { opacity: .8; font-size: 13px; margin-top: 6px; }
+    ul { list-style: none; padding: 0; margin: 12px 0 0; display: grid; gap: 6px; }
+    li { padding: 8px 10px; border: 1px solid rgba(127,127,127,.25); border-radius: 10px; }
+    a { text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; font-size: 12.5px; }
+    .pill { display:inline-block; padding: 2px 8px; border-radius: 999px; border: 1px solid rgba(127,127,127,.35); opacity:.85; font-size:12px; }
+    .warn { margin-top: 10px; padding: 10px 12px; border-radius: 12px; border: 1px solid rgba(255,127,127,.45); }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>All Pages</h1>
+    <div class="row">
+      <input id="q" type="search" placeholder="Filter (e.g., rfo, dvro, intake, billing)" autocomplete="off" />
+      <button id="reload" type="button">Reload</button>
+      <span class="pill" id="count">0</span>
+    </div>
+    <div class="meta">
+      Source: <code>/pages.json</code> (generated from <code>git ls-files</code>)
+    </div>
+    <div id="warn" class="warn" hidden></div>
+  </header>
+
+  <main>
+    <ul id="list"></ul>
+  </main>
+
+  <script>
+    (function () {
+      "use strict";
+
+      const $ = (s) => document.querySelector(s);
+
+      const listEl = $("#list");
+      const qEl = $("#q");
+      const countEl = $("#count");
+      const warnEl = $("#warn");
+
+      let all = [];
+
+      function showWarn(msg) {
+        warnEl.hidden = false;
+        warnEl.textContent = msg;
+      }
+      function clearWarn() {
+        warnEl.hidden = true;
+        warnEl.textContent = "";
+      }
+
+      function normPath(p) {
+        if (!p) return null;
+        // Ensure leading slash
+        if (!p.startsWith("/")) p = "/" + p;
+        // Normalize Windows slashes if any
+        p = p.replaceAll("\\", "/");
+        return p;
+      }
+
+      function isHtmlLike(p) {
+        return (
+          p.endsWith(".html") ||
+          p.endsWith(".htm")
+        );
+      }
+
+      function render() {
+        const term = (qEl.value || "").trim().toLowerCase();
+        const filtered = !term
+          ? all
+          : all.filter((p) => p.toLowerCase().includes(term));
+
+        listEl.innerHTML = "";
+        countEl.textContent = String(filtered.length);
+
+        for (const p of filtered) {
+          const li = document.createElement("li");
+          const a = document.createElement("a");
+          a.href = p;
+          a.textContent = p;
+          li.appendChild(a);
+          listEl.appendChild(li);
+        }
+      }
+
+      async function load() {
+        clearWarn();
+        listEl.innerHTML = "";
+        countEl.textContent = "…";
+
+        try {
+          const res = await fetch("/pages.json", { cache: "no-store" });
+          if (!res.ok) {
+            showWarn("Missing /pages.json. Generate it via the Node script (below) and commit it.");
+            all = [];
+            countEl.textContent = "0";
+            return;
+          }
+
+          const data = await res.json();
+          if (!data || !Array.isArray(data.files)) {
+            showWarn("/pages.json format invalid. Expected: { files: [...] }");
+            all = [];
+            countEl.textContent = "0";
+            return;
+          }
+
+          all = data.files
+            .map(normPath)
+            .filter(Boolean)
+            .filter(isHtmlLike)
+            .sort((a, b) => a.localeCompare(b));
+
+          render();
+        } catch (e) {
+          showWarn("Failed to load /pages.json: " + (e && e.message ? e.message : String(e)));
+          all = [];
+          countEl.textContent = "0";
+        }
+      }
+
+      qEl.addEventListener("input", render);
+      $("#reload").addEventListener("click", load);
+
+      load();
+    })();
+  </script>
+</body>
+</html>
