@@ -2,40 +2,47 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>SharpeSystem</title>
+  <title>SharpEsystem</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="SharpeSystem — structured legal navigation and tools." />
+  <meta name="description" content="SharpEsystem — guided preparation for documents, workflows, and submissions." />
   <link rel="stylesheet" href="/styles.css" />
+  <style>
+    .landing-wrap{min-height:72vh;display:grid;place-items:center;padding:28px 16px;}
+    .landing-card{max-width:980px;width:100%;border:1px solid var(--border);border-radius:var(--radius);
+      background:rgba(255,255,255,.03);padding:28px;box-shadow:var(--shadow);}
+    .wordmark{font-family:Georgia, "Times New Roman", Times, serif;font-weight:700;letter-spacing:-.02em;
+      line-height:1;margin:0;font-size:clamp(54px, 7vw, 96px);text-align:center;}
+    .wordmark .e{color:#ED1C24;} /* Red Cross red */
+    .subline{margin-top:14px;text-align:center;font-size:clamp(16px, 2.2vw, 20px);color:var(--soft);}
+    .cta{margin-top:22px;display:flex;justify-content:center;}
+    .cta a{font-size:18px;padding:12px 16px;}
+  </style>
 </head>
 
-<body>
-
+<body class="shell">
   <div id="site-header"></div>
 
   <main class="page">
-    <div class="container content">
+    <div class="landing-wrap">
+      <section class="landing-card">
+        <h1 class="wordmark" aria-label="SharpEsystem">
+          Sharp<span class="e">E</span>system
+        </h1>
 
-      <section class="card" style="padding:var(--pad);">
-        <h1>SharpeSystem</h1>
-        <p class="muted">
-          Structured legal workflows, tools, and guided processes.
-        </p>
+        <div class="subline">We’re glad you’re here.</div>
 
-        <div class="hr"></div>
-
-        <div class="row">
-          <a class="btn primary" href="/home.html">Enter</a>
+        <div class="cta">
+          <a class="btn primary" href="/intake.html">We start the journey together</a>
         </div>
       </section>
-
     </div>
   </main>
 
-  <script src="/ui.js"></script>
-  <script src="/header-loader.js"></script>
-  <script src="/partials/header.js"></script>
-  <script src="/i18n.js"></script>
+  <script src="/ui.js" defer></script>
+  <script src="/header-loader.js" defer></script>
+  <script src="/partials/header.js" defer></script>
+  <script src="/i18n.js" defer></script>
+  <!-- Public page: gate optional; keeping it ON is fine if you want uniform behavior -->
   <script type="module" src="/gate.js"></script>
-
 </body>
 </html>
