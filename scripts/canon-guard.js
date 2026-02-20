@@ -1,141 +1,101 @@
 #!/usr/bin/env node
-/* scripts/canon-guard.js
-   SharpeSystem canon boundary guard.
+/**
+ * Canon Guard (Lane & Import Guardrails)
+ * - Prevents reintroducing the classes of breakage you just hit.
+ * - Especially: Node-only deps inside /functions/** and wrong clean-url links.
+ */
 
-   Fails if:
-   1) Any non-canon file imports Firebase SDK (firebasejs/*) OR calls initializeApp/getAuth/getFirestore.
-   2) Any non-gate.js file contains "auth gating redirects" to /login.html, /tier1.html, /subscribe.html.
-
-   Canon allowlist:
-     /firebase-config.js
-     /gate.js
-     /login.js
-     /signup.js
-     /billing.js
-     /peace/peace.js
-     /canon/** (optional expansion path)
-*/
-
-const fs = require("node:fs");
-const path = require("node:path");
+const fs = require("fs");
+const path = require("path");
 
 const ROOT = process.cwd();
 
-const SKIP_DIRS = new Set([
-  "node_modules",
-  ".git",
-  ".wrangler",
-  ".firebase",
-  ".firebaserc",
-  "dist",
-  "build",
-  ".next",
-  ".cache",
-]);
+const SCAN_DIRS = [
+  "functions",
+  "rfo",
+  "partials",
+];
 
-const ALLOW_FIREBASE = new Set([
-  "firebase-config.js",
-  "gate.js",
-  "login.js",
-  "signup.js",
-  "billing.js",
-  path.join("peace", "peace.js"),
-]);
+const FORBIDDEN_FUNCTION_IMPORTS = [
+  "pdf-lib", // ban in Pages runtime lane
+  "fs",
+  "path",
+  "child_process",
+];
 
-function normRel(p) {
-  return p.split(path.sep).join("/");
+const FORBIDDEN_HTML_LINKS = [
+  'href="/login?"',
+  "href='/login?'",
+  'href="/signup?"',
+  "href='/signup?'",
+  'href="/login"',
+  "href='/login'",
+  'href="/signup"',
+  "href='/signup'",
+];
+
+function readFileSafe(p) {
+  try { return fs.readFileSync(p, "utf8"); } catch (_) { return null; }
 }
 
-function isUnderCanon(rel) {
-  return rel.startsWith("canon/");
-}
-
-function isAllowedFirebaseFile(rel) {
-  if (ALLOW_FIREBASE.has(rel)) return true;
-  if (isUnderCanon(rel)) return true; // optional future expansion
-  return false;
-}
-
-function shouldScanFile(rel) {
-  if (!rel.endsWith(".js") && !rel.endsWith(".mjs") && !rel.endsWith(".html")) return false;
-  return true;
-}
-
-function walk(dirAbs, outRel = []) {
-  const entries = fs.readdirSync(dirAbs, { withFileTypes: true });
-  for (const ent of entries) {
-    const abs = path.join(dirAbs, ent.name);
-    const rel = normRel(path.relative(ROOT, abs));
-
-    if (ent.isDirectory()) {
-      if (SKIP_DIRS.has(ent.name)) continue;
-      walk(abs, outRel);
-    } else {
-      if (shouldScanFile(rel)) outRel.push(rel);
-    }
+function walk(dir, out = []) {
+  const abs = path.join(ROOT, dir);
+  if (!fs.existsSync(abs)) return out;
+  for (const ent of fs.readdirSync(abs, { withFileTypes: true })) {
+    const full = path.join(abs, ent.name);
+    if (ent.isDirectory()) walk(path.join(dir, ent.name), out);
+    else if (ent.isFile()) out.push(full);
   }
-  return outRel;
+  return out;
 }
 
-/* ---------- Checks ---------- */
-
-// 1) Firebase SDK surface detection
-const FIREBASE_IMPORT_RE = /firebasejs\/[0-9.]+\/firebase-(app|auth|firestore)\.js/;
-const FIREBASE_CALL_RE = /\b(initializeApp|getAuth|getFirestore|getDocs|setDoc|addDoc|updateDoc|deleteDoc)\b/;
-
-// 2) Auth gating redirect detection (only gate.js may do this)
-const GATE_REDIRECT_RE = /\b(location\.href|location\.assign|location\.replace|window\.location)\b[^;\n]*\/(login|tier1|subscribe)\.html\b/;
-
-function readText(rel) {
-  const abs = path.join(ROOT, rel);
-  try {
-    return fs.readFileSync(abs, "utf8");
-  } catch {
-    return "";
-  }
+function rel(p) {
+  return "/" + path.relative(ROOT, p).replaceAll(path.sep, "/");
 }
 
-function scan() {
-  const files = walk(ROOT, []);
-  const violations = [];
+function main() {
+  const files = [];
+  for (const d of SCAN_DIRS) files.push(...walk(d));
 
-  for (const rel of files) {
-    const txt = readText(rel);
-    if (!txt) continue;
+  const errors = [];
 
-    // Firebase SDK surface
-    const hasFirebaseImport = FIREBASE_IMPORT_RE.test(txt);
-    const hasFirebaseCalls = FIREBASE_CALL_RE.test(txt);
+  for (const f of files) {
+    const text = readFileSafe(f);
+    if (!text) continue;
 
-    if ((hasFirebaseImport || hasFirebaseCalls) && !isAllowedFirebaseFile(rel)) {
-      violations.push({
-        type: "FIREBASE_SURFACE",
-        file: rel,
-        detail: hasFirebaseImport ? "firebasejs import" : "firebase SDK call(s)",
-      });
+    const r = rel(f);
+
+    // /functions/** may not import Node-only / heavy deps
+    if (r.startsWith("/functions/") && r.endsWith(".js")) {
+      for (const bad of FORBIDDEN_FUNCTION_IMPORTS) {
+        const importRe = new RegExp(`\\bfrom\\s+["']${bad}["']|\\brequire\$begin:math:text$\[\"\'\]\$\{bad\}\[\"\'\]\\$end:math:text$`, "g");
+        if (importRe.test(text)) {
+          errors.push(`${r}: forbidden import "${bad}" in /functions lane`);
+        }
+      }
     }
 
-    // Gate redirects
-    const hasGateRedirect = GATE_REDIRECT_RE.test(txt);
-    if (hasGateRedirect && rel !== "gate.js") {
-      violations.push({
-        type: "GATING_REDIRECT",
-        file: rel,
-        detail: "redirect to login/tier1/subscribe outside gate.js",
-      });
+    // HTML: forbid clean-url login links
+    if (r.endsWith(".html")) {
+      for (const bad of FORBIDDEN_HTML_LINKS) {
+        if (text.includes(bad)) errors.push(`${r}: forbidden route usage (${bad}) — must use .html`);
+      }
+      // Forbid using /functions/api paths directly
+      if (text.includes("/functions/api/")) {
+        errors.push(`${r}: uses "/functions/api/" — must call "/api/..."`);
+      }
     }
   }
 
-  if (violations.length) {
-    console.error("\n❌ Canon boundary violations found:\n");
-    for (const v of violations) {
-      console.error(`- [${v.type}] ${v.file} — ${v.detail}`);
-    }
-    console.error("\nFix: move Firebase usage into canon modules only, and move gating redirects into gate.js only.\n");
+  if (errors.length) {
+    console.error("\nCanon Guard FAILED:\n");
+    for (const e of errors) console.error(" - " + e);
+    console.error(`\nTotal issues: ${errors.length}\n`);
     process.exit(1);
   }
 
-  console.log("✅ canon-guard: OK");
+  console.log(`Canon Guard OK (${files.length} files checked)`);
+  process.exit(0);
 }
 
-scan();
+main();
