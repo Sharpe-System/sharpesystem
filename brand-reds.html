@@ -2,124 +2,82 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>SharpeSystem Red Palette</title>
+  <title>SharpeSystem Logo Reds</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="/styles.css" />
 
   <style>
-    .palette-grid {
-      display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-      gap:14px;
-      margin-top:18px;
-    }
-
-    .swatch {
-      border-radius:14px;
-      padding:18px;
-      color:white;
-      font-weight:600;
-      min-height:90px;
+    .logo-stage {
       display:flex;
       flex-direction:column;
-      justify-content:flex-end;
-      box-shadow:0 6px 18px rgba(0,0,0,.25);
-      border:1px solid rgba(255,255,255,.08);
+      align-items:center;
+      justify-content:center;
+      gap:80px;
+      padding:80px 20px 120px;
     }
 
-    .hex {
-      font-size:13px;
-      opacity:.9;
-      margin-top:4px;
-      font-weight:500;
+    .logo-block {
+      text-align:center;
+    }
+
+    .logo {
+      font-size: clamp(72px, 10vw, 140px);
+      font-weight: 800;
+      letter-spacing:-2px;
+      line-height:1;
+      user-select:none;
+    }
+
+    .logo .e {
+      font-weight:900;
     }
 
     .label {
-      font-size:16px;
+      margin-top:14px;
+      font-size:14px;
+      opacity:.7;
+      letter-spacing:.08em;
     }
+
+    /* Reds */
+    .crimson-deep .e { color:#B11226; }
+    .red-cross .e { color:#ED1C24; }
+    .legal-red .e { color:#A31621; }
+    .firebrick .e { color:#B22222; }
+    .judicial-red .e { color:#9E1B1F; }
   </style>
 </head>
 
 <body class="shell">
-<div id="site-header"></div>
 
-<main class="page">
-  <div class="container content">
+<main class="logo-stage">
 
-    <section class="card" style="padding:var(--pad);">
-      <h1>SharpeSystem Red Palette</h1>
-      <p class="muted">
-        Candidate reds for the SharpeSystem brand and UI accents.
-      </p>
-
-      <div class="palette-grid">
-
-        <!-- Core Reds -->
-        <div class="swatch" style="background:#B11226">
-          <div class="label">Crimson Deep Legal</div>
-          <div class="hex">#B11226</div>
-        </div>
-
-        <div class="swatch" style="background:#7A0C1A">
-          <div class="label">Crimson Dark Accent</div>
-          <div class="hex">#7A0C1A</div>
-        </div>
-
-        <div class="swatch" style="background:#ED1C24">
-          <div class="label">Red Cross</div>
-          <div class="hex">#ED1C24</div>
-        </div>
-
-        <div class="swatch" style="background:#C41E2A">
-          <div class="label">Ruby</div>
-          <div class="hex">#C41E2A</div>
-        </div>
-
-        <div class="swatch" style="background:#D7262D">
-          <div class="label">Signal Red</div>
-          <div class="hex">#D7262D</div>
-        </div>
-
-        <div class="swatch" style="background:#8C1D24">
-          <div class="label">Garnet</div>
-          <div class="hex">#8C1D24</div>
-        </div>
-
-        <div class="swatch" style="background:#6A0F1A">
-          <div class="label">Burgundy</div>
-          <div class="hex">#6A0F1A</div>
-        </div>
-
-        <!-- New Reds tuned for your dark theme -->
-        <div class="swatch" style="background:#A31621">
-          <div class="label">Legal Red</div>
-          <div class="hex">#A31621</div>
-        </div>
-
-        <div class="swatch" style="background:#9E1B1F">
-          <div class="label">Judicial Red</div>
-          <div class="hex">#9E1B1F</div>
-        </div>
-
-        <div class="swatch" style="background:#B22222">
-          <div class="label">Firebrick</div>
-          <div class="hex">#B22222</div>
-        </div>
-
-        <div class="swatch" style="background:#C1121F">
-          <div class="label">Authority Red</div>
-          <div class="hex">#C1121F</div>
-        </div>
-
-      </div>
-    </section>
-
+  <div class="logo-block crimson-deep">
+    <div class="logo">Sharp<span class="e">E</span>System</div>
+    <div class="label">Crimson Deep Legal — #B11226</div>
   </div>
+
+  <div class="logo-block red-cross">
+    <div class="logo">Sharp<span class="e">E</span>System</div>
+    <div class="label">Red Cross — #ED1C24</div>
+  </div>
+
+  <div class="logo-block legal-red">
+    <div class="logo">Sharp<span class="e">E</span>System</div>
+    <div class="label">Legal Red — #A31621</div>
+  </div>
+
+  <div class="logo-block firebrick">
+    <div class="logo">Sharp<span class="e">E</span>System</div>
+    <div class="label">Firebrick — #B22222</div>
+  </div>
+
+  <div class="logo-block judicial-red">
+    <div class="logo">Sharp<span class="e">E</span>System</div>
+    <div class="label">Judicial Red — #9E1B1F</div>
+  </div>
+
 </main>
 
-<script src="/ui.js"></script>
-<script src="/header-loader.js"></script>
-<script src="/partials/header.js"></script>
-<script src="/i18n.js"></script>
 </body>
 </html>
