@@ -7,6 +7,8 @@ import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12
 import {
   getAuth,
   onAuthStateChanged,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
   signOut,
 } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
 import {
@@ -31,6 +33,7 @@ export const firebaseConfig = {
   appId: "1:770027799385:web:64c3f7bd4b7a140f5c0248",
 };
 
+// Initialize exactly once
 export const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
@@ -61,7 +64,7 @@ export function getAuthStateOnce() {
 
 /**
  * Reads /users/{uid}. Returns null if missing/unreadable.
- * Expected fields:
+ * Expected fields (examples):
  * - tier: "free" | "basic" | "pro" | "attorney"
  * - active: boolean
  */
@@ -84,7 +87,13 @@ export async function getUserProfile(uid) {
 // Auth helpers
 export const authOnAuthStateChanged = onAuthStateChanged;
 
-// IMPORTANT: wrapper so callers do NOT pass auth around (prevents drift)
+// IMPORTANT: wrappers so callers do NOT pass auth around (prevents drift)
+export const authSignIn = (email, password) =>
+  signInWithEmailAndPassword(auth, String(email || ""), String(password || ""));
+
+export const authSignUp = (email, password) =>
+  createUserWithEmailAndPassword(auth, String(email || ""), String(password || ""));
+
 export const authSignOut = () => signOut(auth);
 
 // Firestore helpers
@@ -103,6 +112,8 @@ export default {
   getAuthStateOnce,
   getUserProfile,
   authOnAuthStateChanged,
+  authSignIn,
+  authSignUp,
   authSignOut,
   fsDoc,
   fsGetDoc,
