@@ -7,42 +7,35 @@
   <link rel="stylesheet" href="/styles.css" />
 
   <style>
-    .red-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 18px;
-      margin-top: 18px;
+    .palette-grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+      gap:14px;
+      margin-top:18px;
     }
 
     .swatch {
-      border-radius: 14px;
-      padding: 16px;
-      background: rgba(255,255,255,0.03);
-      border: 1px solid rgba(255,255,255,0.06);
-    }
-
-    .color-box {
-      height: 56px;
-      border-radius: 10px;
-      margin-bottom: 10px;
-      border: 1px solid rgba(0,0,0,0.35);
-    }
-
-    .logo-sample {
-      font-size: 20px;
-      font-weight: 600;
-      letter-spacing: 0.4px;
-    }
-
-    .logo-sample span {
-      font-weight: 700;
+      border-radius:14px;
+      padding:18px;
+      color:white;
+      font-weight:600;
+      min-height:90px;
+      display:flex;
+      flex-direction:column;
+      justify-content:flex-end;
+      box-shadow:0 6px 18px rgba(0,0,0,.25);
+      border:1px solid rgba(255,255,255,.08);
     }
 
     .hex {
-      font-family: monospace;
-      font-size: 12px;
-      opacity: 0.8;
-      margin-top: 6px;
+      font-size:13px;
+      opacity:.9;
+      margin-top:4px;
+      font-weight:500;
+    }
+
+    .label {
+      font-size:16px;
     }
   </style>
 </head>
@@ -54,68 +47,68 @@
   <div class="container content">
 
     <section class="card" style="padding:var(--pad);">
-      <h1>SharpeSystem — Red Palette</h1>
+      <h1>SharpeSystem Red Palette</h1>
       <p class="muted">
-        Evaluating reds for the <strong>Sharpe<span style="color:#ff4d4f;">E</span>system</strong> logo
-        against the current dark blue UI.
+        Candidate reds for the SharpeSystem brand and UI accents.
       </p>
 
-      <div class="red-grid">
+      <div class="palette-grid">
 
-        <!-- Canonical system red -->
-        <div class="swatch">
-          <div class="color-box" style="background:#ff4d4f;"></div>
-          <div class="logo-sample">Sharp<span style="color:#ff4d4f;">E</span>system</div>
-          <div class="hex">#ff4d4f — System Red</div>
+        <!-- Core Reds -->
+        <div class="swatch" style="background:#B11226">
+          <div class="label">Crimson Deep Legal</div>
+          <div class="hex">#B11226</div>
         </div>
 
-        <!-- Crimson -->
-        <div class="swatch">
-          <div class="color-box" style="background:#dc2626;"></div>
-          <div class="logo-sample">Sharp<span style="color:#dc2626;">E</span>system</div>
-          <div class="hex">#dc2626 — Crimson</div>
+        <div class="swatch" style="background:#7A0C1A">
+          <div class="label">Crimson Dark Accent</div>
+          <div class="hex">#7A0C1A</div>
         </div>
 
-        <!-- Deep legal red -->
-        <div class="swatch">
-          <div class="color-box" style="background:#b91c1c;"></div>
-          <div class="logo-sample">Sharp<span style="color:#b91c1c;">E</span>system</div>
-          <div class="hex">#b91c1c — Deep Legal</div>
+        <div class="swatch" style="background:#ED1C24">
+          <div class="label">Red Cross</div>
+          <div class="hex">#ED1C24</div>
         </div>
 
-        <!-- Warm red -->
-        <div class="swatch">
-          <div class="color-box" style="background:#ef4444;"></div>
-          <div class="logo-sample">Sharp<span style="color:#ef4444;">E</span>system</div>
-          <div class="hex">#ef4444 — Warm Red</div>
+        <div class="swatch" style="background:#C41E2A">
+          <div class="label">Ruby</div>
+          <div class="hex">#C41E2A</div>
         </div>
 
-        <!-- Scarlet -->
-        <div class="swatch">
-          <div class="color-box" style="background:#ff3b30;"></div>
-          <div class="logo-sample">Sharp<span style="color:#ff3b30;">E</span>system</div>
-          <div class="hex">#ff3b30 — Scarlet</div>
+        <div class="swatch" style="background:#D7262D">
+          <div class="label">Signal Red</div>
+          <div class="hex">#D7262D</div>
         </div>
 
-        <!-- Dark accent -->
-        <div class="swatch">
-          <div class="color-box" style="background:#991b1b;"></div>
-          <div class="logo-sample">Sharp<span style="color:#991b1b;">E</span>system</div>
-          <div class="hex">#991b1b — Dark Accent</div>
+        <div class="swatch" style="background:#8C1D24">
+          <div class="label">Garnet</div>
+          <div class="hex">#8C1D24</div>
         </div>
 
-        <!-- Rose red -->
-        <div class="swatch">
-          <div class="color-box" style="background:#e11d48;"></div>
-          <div class="logo-sample">Sharp<span style="color:#e11d48;">E</span>system</div>
-          <div class="hex">#e11d48 — Rose Red</div>
+        <div class="swatch" style="background:#6A0F1A">
+          <div class="label">Burgundy</div>
+          <div class="hex">#6A0F1A</div>
         </div>
 
-        <!-- Orange-lean red -->
-        <div class="swatch">
-          <div class="color-box" style="background:#f43f5e;"></div>
-          <div class="logo-sample">Sharp<span style="color:#f43f5e;">E</span>system</div>
-          <div class="hex">#f43f5e — Modern Red</div>
+        <!-- New Reds tuned for your dark theme -->
+        <div class="swatch" style="background:#A31621">
+          <div class="label">Legal Red</div>
+          <div class="hex">#A31621</div>
+        </div>
+
+        <div class="swatch" style="background:#9E1B1F">
+          <div class="label">Judicial Red</div>
+          <div class="hex">#9E1B1F</div>
+        </div>
+
+        <div class="swatch" style="background:#B22222">
+          <div class="label">Firebrick</div>
+          <div class="hex">#B22222</div>
+        </div>
+
+        <div class="swatch" style="background:#C1121F">
+          <div class="label">Authority Red</div>
+          <div class="hex">#C1121F</div>
         </div>
 
       </div>
