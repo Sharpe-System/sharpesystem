@@ -221,152 +221,122 @@ input::placeholder, textarea::placeholder{ color: rgba(182,194,210,.55); }
   box-shadow: 0 0 0 4px rgba(52,211,153,.12) !important;
 }
 
-/* ---------- Tables ---------- */
-.table{
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
-  overflow: hidden;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: rgba(255,255,255,.02);
-}
+/* =========================================================
+   HEADER (Fixes “white blocks” on mobile)
+   - Styles header links + theme/lang toggles as real buttons
+   - Prevents overflow and keeps text visible on dark theme
+   ========================================================= */
 
-.table th, .table td{
-  padding: 10px 12px;
-  border-bottom: 1px solid rgba(27,42,63,.65);
-  text-align: left;
-  vertical-align: top;
-}
-
-.table th{
-  font-size: 12px;
-  letter-spacing: .4px;
-  text-transform: uppercase;
-  color: rgba(182,194,210,.85);
-  background: rgba(255,255,255,.03);
-}
-
-.table tr:last-child td{ border-bottom: 0; }
-
-/* ---------- Badges / Alerts ---------- */
-.badge{
-  display:inline-flex;
-  align-items:center;
-  gap:8px;
-  padding: 7px 10px;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: rgba(255,255,255,.02);
-  font-size: 12px;
-  color: var(--muted);
-}
-
-.alert{
-  border-radius: var(--radius);
-  border: 1px solid var(--border);
-  background: rgba(255,255,255,.03);
-  padding: 12px 14px;
-  color: var(--muted);
-}
-.alert.ok{ border-color: rgba(52,211,153,.35); background: rgba(52,211,153,.08); }
-.alert.warn{ border-color: rgba(251,191,36,.35); background: rgba(251,191,36,.08); }
-.alert.bad{ border-color: rgba(251,113,133,.35); background: rgba(251,113,133,.08); }
-
-/* ---------- Top nav / header (generic, does not touch auth layer) ---------- */
-header{
+.site-header{
   position: sticky;
   top: 0;
-  z-index: 50;
+  z-index: 40;
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   background: rgba(11,15,20,.72);
-  border-bottom: 1px solid rgba(27,42,63,.70);
+  border-bottom: 1px solid var(--border);
 }
 
-.header-inner{
+.main-nav{
   width: min(var(--max), calc(100% - 2*var(--pad)));
   margin: 0 auto;
-  padding: 12px 0;
-  display:flex;
-  align-items:center;
-  justify-content: space-between;
+  padding: 10px 0;
+  display: flex;
+  align-items: center;
   gap: 12px;
 }
 
 .brand{
-  display:flex;
-  align-items:center;
-  gap: 10px;
   font-weight: 700;
   letter-spacing: .3px;
+  padding: 8px 10px;
+  border-radius: 12px;
 }
 
-.brand .dot{
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 30% 30%, var(--accent), var(--accent2));
-  box-shadow: 0 0 0 6px rgba(110,231,255,.08);
-}
-
-.nav{
-  display:flex;
-  align-items:center;
+.nav-links{
+  margin-left: auto;
+  display: flex;
+  align-items: center;
   gap: 10px;
   flex-wrap: wrap;
 }
 
-.nav a{
-  padding: 10px 12px;
+.nav-links a{
+  padding: 8px 10px;
   border-radius: 12px;
   border: 1px solid transparent;
-  color: rgba(232,238,246,.92);
-  transition: border-color .12s ease, background .12s ease;
+  color: var(--muted);
 }
-.nav a:hover{
+
+.nav-links a:hover{
   border-color: rgba(110,231,255,.25);
   background: rgba(255,255,255,.03);
+  color: var(--text);
 }
 
-/* ---------- Page utility ---------- */
-.kbd{
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-  font-size: 12px;
-  padding: 2px 6px;
-  border-radius: 8px;
+.nav-emphasis{
+  border-color: rgba(251,191,36,.25) !important;
+}
+
+.theme-toggle, .lang-toggle{
+  appearance: none;
+  -webkit-appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 10px;
+  border-radius: 999px;
   border: 1px solid var(--border);
-  background: rgba(255,255,255,.02);
-  color: rgba(232,238,246,.85);
+  background: rgba(255,255,255,.03);
+  color: var(--text);
+  cursor: pointer;
+  box-shadow: var(--shadow2);
 }
 
-/* ---------- Focus / Accessibility ---------- */
-:focus-visible{
-  outline: none;
-  box-shadow: var(--focus);
+.theme-toggle:hover, .lang-toggle:hover{
+  border-color: rgba(110,231,255,.35);
+  background: rgba(255,255,255,.05);
+}
+
+#navAccount{
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(110,231,255,.25);
+  background: rgba(110,231,255,.06);
+  color: var(--text);
+}
+
+#navAccount:hover{
   border-color: rgba(110,231,255,.55);
+  background: rgba(110,231,255,.10);
 }
 
-.sr-only{
-  position:absolute !important;
-  width:1px; height:1px;
-  padding:0; margin:-1px;
-  overflow:hidden;
-  clip:rect(0,0,0,0);
-  white-space:nowrap;
-  border:0;
+#navLogout.btn{
+  padding: 8px 12px;
+  border-radius: 999px;
 }
 
-/* ---------- Motion Preferences ---------- */
-@media (prefers-reduced-motion: reduce){
-  html{ scroll-behavior: auto; }
-  .btn{ transition: none; }
+/* Mobile: keep header from turning into unreadable “one-line soup” */
+@media (max-width: 680px){
+  .main-nav{
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .nav-links{
+    width: 100%;
+    margin-left: 0;
+    gap: 8px;
+  }
+  .nav-links a{
+    padding: 7px 9px;
+    font-size: 13px;
+  }
+  .theme-toggle, .lang-toggle, #navAccount, #navLogout.btn{
+    padding: 7px 10px;
+    font-size: 13px;
+  }
 }
 
-/* ---------- Print (for court packets / clean output) ---------- */
-@media print{
-  header, .no-print{ display:none !important; }
-  body{ background: #fff; color:#000; }
-  .panel,.card{ border: 1px solid #ddd; box-shadow: none; background:#fff; }
-  a{ text-decoration: underline; color:#000; }
-}
+/* Optional utility */
+.page{ padding-top: 6px; }
+.content{ display: block; }
