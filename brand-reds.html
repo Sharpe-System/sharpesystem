@@ -2,8 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>SharpeSystem Logo Reds</title>
+  <title>SharpeSystem Brand Reds</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="SharpeSystem red palette exploration." />
   <link rel="stylesheet" href="/styles.css" />
 
   <style>
@@ -12,72 +13,88 @@
       flex-direction:column;
       align-items:center;
       justify-content:center;
-      gap:80px;
-      padding:80px 20px 120px;
+      gap:36px;
+      padding:48px 20px;
     }
 
-    .logo-block {
+    .logo-row {
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:8px;
+    }
+
+    /* Google-scale logo size */
+    .logo-word {
+      font-size: clamp(36px, 5vw, 64px);
+      font-weight:800;
+      letter-spacing:-0.5px;
+      line-height:1;
       text-align:center;
     }
 
-    .logo {
-      font-size: clamp(72px, 10vw, 140px);
-      font-weight: 800;
-      letter-spacing:-2px;
-      line-height:1;
-      user-select:none;
-    }
-
-    .logo .e {
-      font-weight:900;
-    }
-
     .label {
-      margin-top:14px;
-      font-size:14px;
-      opacity:.7;
-      letter-spacing:.08em;
+      font-size:13px;
+      color:var(--muted);
+      letter-spacing:.3px;
     }
 
-    /* Reds */
-    .crimson-deep .e { color:#B11226; }
-    .red-cross .e { color:#ED1C24; }
-    .legal-red .e { color:#A31621; }
-    .firebrick .e { color:#B22222; }
-    .judicial-red .e { color:#9E1B1F; }
+    .red-cross { color:#ED1C24; }
+    .crimson   { color:#B11226; }
+    .legal-red { color:#A51C30; }
+    .firebrick { color:#B22222; }
+    .judicial  { color:#8C1D24; }
   </style>
 </head>
 
 <body class="shell">
 
-<main class="logo-stage">
+  <div id="site-header"></div>
 
-  <div class="logo-block crimson-deep">
-    <div class="logo">Sharp<span class="e">E</span>System</div>
-    <div class="label">Crimson Deep Legal — #B11226</div>
-  </div>
+  <main class="page">
+    <div class="container content">
 
-  <div class="logo-block red-cross">
-    <div class="logo">Sharp<span class="e">E</span>System</div>
-    <div class="label">Red Cross — #ED1C24</div>
-  </div>
+      <section class="card" style="padding:var(--pad); text-align:center;">
+        <h1>SharpeSystem Red Palette</h1>
+        <p class="muted">Logo-scale comparison</p>
+      </section>
 
-  <div class="logo-block legal-red">
-    <div class="logo">Sharp<span class="e">E</span>System</div>
-    <div class="label">Legal Red — #A31621</div>
-  </div>
+      <section class="logo-stage">
 
-  <div class="logo-block firebrick">
-    <div class="logo">Sharp<span class="e">E</span>System</div>
-    <div class="label">Firebrick — #B22222</div>
-  </div>
+        <div class="logo-row">
+          <div class="logo-word red-cross">SharpEsystem</div>
+          <div class="label">Red Cross (#ED1C24)</div>
+        </div>
 
-  <div class="logo-block judicial-red">
-    <div class="logo">Sharp<span class="e">E</span>System</div>
-    <div class="label">Judicial Red — #9E1B1F</div>
-  </div>
+        <div class="logo-row">
+          <div class="logo-word crimson">SharpEsystem</div>
+          <div class="label">Crimson Deep Legal (#B11226)</div>
+        </div>
 
-</main>
+        <div class="logo-row">
+          <div class="logo-word legal-red">SharpEsystem</div>
+          <div class="label">Legal Red (#A51C30)</div>
+        </div>
+
+        <div class="logo-row">
+          <div class="logo-word firebrick">SharpEsystem</div>
+          <div class="label">Firebrick (#B22222)</div>
+        </div>
+
+        <div class="logo-row">
+          <div class="logo-word judicial">SharpEsystem</div>
+          <div class="label">Judicial Red (#8C1D24)</div>
+        </div>
+
+      </section>
+
+    </div>
+  </main>
+
+  <script src="/ui.js" defer></script>
+  <script src="/header-loader.js" defer></script>
+  <script src="/partials/header.js" defer></script>
+  <script src="/i18n.js" defer></script>
 
 </body>
 </html>
