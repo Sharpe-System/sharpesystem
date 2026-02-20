@@ -1,56 +1,42 @@
 // /header-auth.js
-// Frozen AUTH CORE helper:
-// - Updates header auth UI if elements exist
-// - Provides logout action
-// - Does not redirect or gate pages (gate.js owns gating)
+// Frozen header auth layer.
+// Canon rules:
+// - NO redirects for auth/tier here (gate.js owns gating/redirects)
+// - NO Firebase CDN imports
+// - Auth state via getAuthStateOnce() only (no onAuthStateChanged here)
 
-import { getAuthStateOnce, getUserProfile, authSignOut } from "/firebase-config.js";
+import { getAuthStateOnce, signOutUser } from "/firebase-config.js";
 
-function qs(sel) { return document.querySelector(sel); }
+(function () {
+  "use strict";
 
-function safeText(el, txt) {
-  if (!el) return;
-  el.textContent = txt;
-}
+  window.initHeaderAuth = async function initHeaderAuth() {
+    const a = document.getElementById("navAccount");
+    const btnLogout = document.getElementById("navLogout");
+    if (!a || !btnLogout) return;
 
-function show(el, on) {
-  if (!el) return;
-  el.style.display = on ? "" : "none";
-}
+    try {
+      const state = await getAuthStateOnce();
+      const user = state?.user;
 
-(async function headerAuthBoot() {
-  // Optional hooks (use whichever your header has):
-  const elUser = qs("[data-auth-user]");          // span/div for "Signed in as..."
-  const elTier = qs("[data-auth-tier]");          // badge/label
-  const elLogin = qs("[data-auth-login]");        // link/button -> login
-  const elLogout = qs("[data-auth-logout]");      // button -> logout
-
-  // If nothing exists, do nothing.
-  if (!elUser && !elTier && !elLogin && !elLogout) return;
-
-  const { user } = await getAuthStateOnce();
-
-  if (!user) {
-    show(elLogin, true);
-    show(elLogout, false);
-    safeText(elUser, "");
-    safeText(elTier, "");
-    return;
-  }
-
-  show(elLogin, false);
-  show(elLogout, true);
-
-  safeText(elUser, user.email || "Signed in");
-  const profile = await getUserProfile(user.uid);
-  safeText(elTier, (profile?.tier || "free").toString());
-
-  if (elLogout) {
-    elLogout.addEventListener("click", async (e) => {
-      e.preventDefault();
-      try { await authSignOut(); } catch {}
-      // No redirect here. If page requires auth, gate.js on reload/navigation will handle.
-      window.location.reload();
-    }, { once: true });
-  }
+      if (user) {
+        a.textContent = "Dashboard";
+        a.href = "/dashboard.html";
+        btnLogout.style.display = "";
+        btnLogout.onclick = async () => {
+          try {
+            await signOutUser();
+          } catch (_) {}
+          // No redirect: let user continue; optional manual refresh.
+          window.location.reload();
+        };
+      } else {
+        a.textContent = "Log in";
+        a.href = `/login.html?next=${encodeURIComponent(window.location.pathname + window.location.search)}`;
+        btnLogout.style.display = "none";
+      }
+    } catch (_) {
+      // Fail open: leave default links
+    }
+  };
 })();
