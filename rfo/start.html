@@ -1,11 +1,10 @@
-<!-- /rfo/start.html -->
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>RFO — Start (Public) — SharpeSystem</title>
-  <meta name="description" content="Public-first RFO start page with PeacePath off-ramp." />
+  <title>Request for Order (RFO) — SharpeSystem</title>
+  <meta name="description" content="Public RFO start. Saves locally. Off-ramp to Amicable and Peace Path included." />
   <link rel="stylesheet" href="/styles.css" />
 </head>
 
@@ -16,8 +15,8 @@
     <div class="container content">
 
       <section class="card" style="padding:var(--pad);">
-        <h1>Request for Order (RFO)</h1>
-        <p class="muted" style="margin-top:6px;">
+        <h1 style="margin:0;">Request for Order (RFO)</h1>
+        <p class="muted" style="margin:10px 0 0 0;">
           Use this flow when you need the court to change custody/visitation, support, or other family-law orders.
           Public mode saves locally on your device. You only log in at the print step.
         </p>
@@ -31,48 +30,45 @@
             If agreement is realistically possible, it is usually cheaper, faster, and better for children than litigation.
             SharpeSystem gives you a map to file — but we prefer you don’t have to.
           </p>
-
           <div class="row" style="margin-top:12px; gap:10px; flex-wrap:wrap;">
             <a class="btn" href="/amicable.html">Try Amicable (Agreement Path)</a>
             <a class="btn" href="/peace-path.html">Peace Path (De-escalated Messaging)</a>
-            <a class="btn primary" href="#court">Continue with court</a>
+            <a class="btn primary" href="/rfo/public-intake.html">Continue with court</a>
           </div>
-
           <div class="small soft" style="margin-top:10px;">
             Not legal advice. Procedural guidance + document organization only.
           </div>
         </section>
 
-        <div id="court"></div>
-
-        <h3 style="margin-top:0;">Start your public RFO draft</h3>
-        <p class="muted" style="margin-top:6px;">
+        <h2 style="margin:0 0 6px 0;">Start your public RFO draft</h2>
+        <p class="muted" style="margin:0 0 12px 0;">
           Public mode stores your draft in your browser (localStorage). You can resume later from this device.
         </p>
 
-        <div class="grid-2" style="gap:14px; margin-top:12px;">
-          <a class="card" href="/rfo/public-intake.html" style="text-decoration:none;">
-            <h3 style="margin:0 0 6px 0;">Start (Public Draft)</h3>
-            <p class="muted" style="margin:0;">No account. Local save. Guided intake.</p>
-          </a>
+        <div class="grid-2" style="gap:12px;">
+          <div class="card" style="padding:12px;">
+            <h3 style="margin:0 0 6px 0;">Standard RFO</h3>
+            <p class="muted" style="margin:0 0 10px 0;">
+              Build intake → map FL-300 fields → organize exhibits → print gate.
+            </p>
+            <div class="row" style="gap:10px; flex-wrap:wrap;">
+              <a class="btn primary" href="/rfo/public-intake.html">Start</a>
+              <a class="btn" href="/rfo/public-print.html">Print Gate</a>
+            </div>
+          </div>
 
-          <a class="card" href="/rfo/public-intake.html#resume" style="text-decoration:none;">
-            <h3 style="margin:0 0 6px 0;">Resume (Public Draft)</h3>
-            <p class="muted" style="margin:0;">Continue your saved draft (this device).</p>
-          </a>
+          <div class="card" style="padding:12px;">
+            <h3 style="margin:0 0 6px 0;">Ex Parte (Emergency)</h3>
+            <p class="muted" style="margin:0 0 10px 0;">
+              Multi-form bundle. Public mode saves locally. Print gate locks export until login/subscription.
+            </p>
+            <div class="row" style="gap:10px; flex-wrap:wrap;">
+              <a class="btn primary" href="/rfo/exparte-start.html">Ex Parte Start</a>
+              <a class="btn" href="/rfo/exparte-public-print.html">Ex Parte Print Gate</a>
+            </div>
+          </div>
         </div>
 
-        <div class="hr"></div>
-
-        <h3 style="margin-top:0;">Need export / print?</h3>
-        <p class="muted" style="margin-top:6px;">
-          Export and print are unlocked at the Print Gate (login/subscription). If you’re already subscribed, open the paid module.
-        </p>
-
-        <div class="row" style="margin-top:12px; gap:10px; flex-wrap:wrap;">
-          <a class="btn primary" href="/rfo/index.html">Open RFO (Paid Module)</a>
-          <a class="btn" href="/home.html">Back to Home</a>
-        </div>
       </section>
 
     </div>
