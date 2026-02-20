@@ -1,45 +1,59 @@
 // functions/pdf/fill.js
-// Pages Function (Lane A safe).
-// No npm deps allowed here. Do NOT import pdf-lib.
-// This unblocks Cloudflare Pages builds.
-// Later: proxy to Worker by setting PDF_WORKER_URL.
+// Canon-safe stub for PDF fill.
+// - NO pdf-lib import (prevents Cloudflare Pages Functions build failure)
+// - Preserves endpoint contract for the UI
+// - Later: replace body with proxy to a Worker endpoint (Lane B)
 
-function json(status, obj) {
-  return new Response(JSON.stringify(obj), {
-    status,
-    headers: {
-      "content-type": "application/json",
-      "cache-control": "no-store",
-    },
-  });
+export async function onRequestPost({ request }) {
+  // Optional: read request safely without logging it
+  // (Never log sensitive payloads)
+  let bodyText = "";
+  try {
+    bodyText = await request.text();
+  } catch (_) {}
+
+  return new Response(
+    JSON.stringify(
+      {
+        ok: false,
+        status: 501,
+        code: "PDF_FILL_NOT_IMPLEMENTED",
+        message:
+          "PDF fill is not enabled on Pages Functions. This endpoint is reserved for a future Worker implementation.",
+        hint:
+          "Deploy a Worker endpoint (e.g. /api/pdf/fill) and change this function to proxy requests to it.",
+      },
+      null,
+      2
+    ),
+    {
+      status: 501,
+      headers: {
+        "content-type": "application/json; charset=utf-8",
+        "cache-control": "no-store",
+      },
+    }
+  );
 }
 
-export async function onRequestPost(context) {
-  const workerUrl = context.env?.PDF_WORKER_URL;
-
-  if (!workerUrl) {
-    return json(501, {
-      ok: false,
-      error: "PDF_FILL_DISABLED",
-      message:
-        "PDF fill is disabled in Pages. Deploy a Worker PDF service and set PDF_WORKER_URL.",
-    });
-  }
-
-  const req = context.request;
-  const body = await req.arrayBuffer();
-
-  const res = await fetch(workerUrl, {
-    method: "POST",
-    headers: {
-      "content-type": req.headers.get("content-type") || "application/json",
-      authorization: req.headers.get("authorization") || "",
-    },
-    body,
-  });
-
-  const outHeaders = new Headers(res.headers);
-  outHeaders.set("cache-control", "no-store");
-
-  return new Response(res.body, { status: res.status, headers: outHeaders });
+export async function onRequestGet() {
+  return new Response(
+    JSON.stringify(
+      {
+        ok: false,
+        status: 405,
+        code: "METHOD_NOT_ALLOWED",
+        message: "Use POST /pdf/fill.",
+      },
+      null,
+      2
+    ),
+    {
+      status: 405,
+      headers: {
+        "content-type": "application/json; charset=utf-8",
+        "cache-control": "no-store",
+      },
+    }
+  );
 }
