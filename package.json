@@ -1,9 +1,7 @@
 {
   "scripts": {
     "canon-guard": "node scripts/canon-guard.js",
-    "test": "npm run canon-guard"
-  },
-  "dependencies": {
-    "pdf-lib": "^1.17.1"
+    "rfo-guard": "node scripts/rfo-guard.js",
+    "test": "npm run canon-guard && npm run rfo-guard"
   }
 }
