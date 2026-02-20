@@ -1,71 +1,32 @@
 {
-  "baseUrl": "https://sharpesystem.pages.dev",
-  "loginUrlRegex": "\\/login\\.html",
-
   "public": [
-    "/404.html",
-    "/home.html",
     "/index.html",
+    "/home.html",
+    "/public/index.html",
+    "/public/next.html",
     "/status.html",
     "/pricing.html",
-    "/login.html",
-    "/signup.html",
-    "/subscribe.html",
+    "/tier1.html",
     "/success.html",
-
-    "/trees.html",
-    "/triage.html",
-    "/forms.html",
-
-    "/amicable.html",
-    "/stabilize.html",
-    "/high-conflict-risk-awareness.html",
-
-    "/insurance.html",
-    "/insurance-claims.html",
-
-    "/attorney-portal.html",
-    "/binder/attorney-invite.html",
-    "/binder/attorney-portal.html",
-
-    "/immigration/index.html",
-
-    "/tools/validizer.html",
-    "/tools/canonizer.html",
-    "/tools/validizer/",
-    "/tools/canonizer/",
-
-    "/dvro/dvro-start.html",
-    "/dvro/dvro-incident-summary.html",
-    "/dvro/dvro-protections.html",
-    "/dvro/dvro-filing-and-service.html",
-
-    "/rfo/index.html",
+    "/signup.html",
+    "/login.html",
     "/peace/index.html",
-    "/peace/thread.html"
+    "/rfo/index.html",
+    "/binder/attorney-invite.html"
   ],
 
-  "protected": [
-    "/dashboard.html"
-  ],
-
-  "paid": [
-    "/app.html",
-    "/billing.html",
-    "/checklist.html",
+  "gated": [
+    "/dashboard.html",
+    "/start.html",
     "/intake.html",
-    "/notes.html",
     "/snapshot.html",
     "/timeline.html",
     "/timeline-v2.html",
+    "/checklist.html"
+  ],
 
-    "/start.html",
-    "/tier1.html",
-
-    "/binder/home.html",
-    "/binder/matter-binder.html",
-
-    "/immigration/intake.html",
-    "/immigration/snapshot.html"
+  "paid": [
+    "/billing.html",
+    "/subscribe.html"
   ]
 }
