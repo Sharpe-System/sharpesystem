@@ -1,32 +1,56 @@
 {
   "public": [
+    "/",
     "/index.html",
     "/home.html",
-    "/public/index.html",
-    "/public/next.html",
+
+    "/404.html",
+
+    "/trees.html",
     "/status.html",
+    "/high-conflict-risk-awareness.html",
+
     "/pricing.html",
     "/tier1.html",
+    "/subscribe.html",
     "/success.html",
-    "/signup.html",
-    "/login.html",
-    "/peace/index.html",
-    "/rfo/index.html",
-    "/binder/attorney-invite.html"
-  ],
 
-  "gated": [
+    "/login.html",
+    "/signup.html",
+
+    "/amicable.html",
+    "/peace.html",
+    "/peace/index.html",
+    "/peace/peace.html",
+    "/peace/amicable.html",
+
+    "/rfo/index.html",
+    "/rfo/public-intake.html",
+    "/rfo/public-intake-court.html",
+    "/rfo/public.html",
+
+    "/attorney-portal.html",
+    "/binder/attorney-invite.html",
+    "/binder/index.html",
+    "/binder/binder.html",
+
+    "/app.html"
+  ],
+  "protected": [
     "/dashboard.html",
     "/start.html",
     "/intake.html",
     "/snapshot.html",
     "/timeline.html",
     "/timeline-v2.html",
-    "/checklist.html"
-  ],
+    "/checklist.html",
 
+    "/billing.html"
+  ],
   "paid": [
-    "/billing.html",
-    "/subscribe.html"
+    "/rfo/paid.html",
+    "/rfo/paid-intake.html",
+    "/rfo/packet.html",
+    "/rfo/print.html"
   ]
 }
