@@ -1,79 +1,53 @@
-// /login.js
-// Canon rules:
-// - NO Firebase CDN imports here (only /firebase-config.js may import Firebase CDN)
-// - NO onAuthStateChanged here (must be only in /firebase-config.js)
-// - gate.js owns gating/redirects; this page only performs sign-in and then navigates
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Log in — SharpeSystem</title>
+  <meta name="description" content="Log in to access your SharpeSystem account." />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
 
-import { authSignIn } from "/firebase-config.js";
+<body class="shell">
+  <!-- Header mounts here -->
+  <div id="site-header"></div>
 
-(function () {
-  "use strict";
+  <main class="page">
+    <div class="container content narrow">
 
-  const $ = (sel) => document.querySelector(sel);
+      <section class="template-box">
+        <h1>Log in</h1>
 
-  const msg = $("#msg");
-  const btnLogin = $("#btnLogin");
-  const btnSignup = $("#btnSignup");
+        <p id="login-msg" class="muted" hidden></p>
 
-  const setMsg = (text, isError = false) => {
-    if (!msg) return;
-    msg.textContent = text || "";
-    msg.style.color = isError ? "#ffb4b4" : "";
-  };
+        <form id="login-form" class="form-stack" autocomplete="on">
+          <label>
+            <span>Email</span>
+            <input id="email" type="email" required autocomplete="email" />
+          </label>
 
-  const getParam = (name) => {
-    try {
-      return new URLSearchParams(location.search).get(name);
-    } catch (_) {
-      return null;
-    }
-  };
+          <label>
+            <span>Password</span>
+            <input id="password" type="password" required autocomplete="current-password" />
+          </label>
 
-  const safeNextUrl = () => {
-    // gate.js passes `next` as a URL-encoded path. Only allow same-origin paths.
-    const next = getParam("next");
-    if (next && next.startsWith("/") && !next.startsWith("//")) return next;
-    return "/dashboard.html";
-  };
+          <button id="login-btn" class="button primary" type="submit">
+            Log in
+          </button>
+        </form>
 
-  const doLogin = async () => {
-    const email = String($("#email")?.value || "").trim();
-    const password = String($("#password")?.value || "");
+        <div class="cta-row" style="margin-top:12px;">
+          <a class="button" href="/signup.html">Create account</a>
+          <a class="button ghost" href="/home.html">Home</a>
+        </div>
+      </section>
 
-    if (!email || !password) {
-      setMsg("Email and password required.", true);
-      return;
-    }
+    </div>
+  </main>
 
-    try {
-      setMsg("Signing in…");
-      btnLogin?.setAttribute("disabled", "disabled");
-      await authSignIn(email, password);
-      window.location.href = safeNextUrl();
-    } catch (err) {
-      console.error("Login failed", err);
-      const code = err?.code ? String(err.code) : "";
-
-      if (
-        code.includes("auth/invalid-credential") ||
-        code.includes("auth/wrong-password") ||
-        code.includes("auth/user-not-found")
-      ) {
-        setMsg("Invalid email or password.", true);
-      } else if (code.includes("auth/too-many-requests")) {
-        setMsg("Too many attempts. Wait a bit and try again.", true);
-      } else {
-        const msgText = err?.message ? String(err.message) : "Login failed.";
-        setMsg(code ? `${code}: ${msgText}` : msgText, true);
-      }
-    } finally {
-      btnLogin?.removeAttribute("disabled");
-    }
-  };
-
-  btnLogin?.addEventListener("click", doLogin);
-  btnSignup?.addEventListener("click", () => (window.location.href = "/signup.html"));
-  $("#password")?.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") doLogin();
-  });
-})();
+  <!-- Canon stack -->
+  <script src="/ui.js" defer></script>
+  <script src="/header-loader.js" defer></script>
+  <script type="module" src="/login.js"></script>
+</body>
+</html>
