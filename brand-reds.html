@@ -2,99 +2,245 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>SharpeSystem Brand Reds</title>
+  <title>SharpeSystem Brand Reds — Size + Font</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="SharpeSystem red palette exploration." />
+  <meta name="description" content="SharpeSystem red palette exploration (size + font) with light/dark toggle." />
   <link rel="stylesheet" href="/styles.css" />
 
+  <!-- Theme: apply saved choice ASAP (works even if header toggle code is missing) -->
+  <script>
+    (function () {
+      try {
+        const t = localStorage.getItem("ss_theme");
+        if (t === "light" || t === "dark") document.documentElement.setAttribute("data-theme", t);
+      } catch (_) {}
+    })();
+  </script>
+
   <style>
-    .logo-stage {
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      justify-content:center;
-      gap:36px;
-      padding:48px 20px;
+    .page-wrap{padding:20px 0 60px;}
+    .section{margin-top:18px;}
+    .hero{padding:var(--pad); text-align:center;}
+    .hero h1{margin:0;}
+    .hero .muted{margin-top:8px;}
+    .grid{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:12px;
+      margin-top:14px;
     }
-
-    .logo-row {
+    .rowcard{
+      border:1px solid var(--border);
+      background:rgba(255,255,255,.03);
+      border-radius:var(--radius);
+      padding:14px;
       display:flex;
-      flex-direction:column;
       align-items:center;
-      gap:8px;
+      justify-content:space-between;
+      gap:14px;
+      flex-wrap:wrap;
     }
-
-    /* Google-scale logo size */
-    .logo-word {
-      font-size: clamp(36px, 5vw, 64px);
+    .logo{
       font-weight:800;
       letter-spacing:-0.5px;
       line-height:1;
-      text-align:center;
+      white-space:nowrap;
     }
-
-    .label {
+    .meta{
       font-size:13px;
       color:var(--muted);
-      letter-spacing:.3px;
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+    .pill{
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(255,255,255,.04);
+      padding:4px 10px;
+      border-radius:999px;
+      font-size:12px;
+      color:var(--soft);
     }
 
-    .red-cross { color:#ED1C24; }
-    .crimson   { color:#B11226; }
-    .legal-red { color:#A51C30; }
-    .firebrick { color:#B22222; }
-    .judicial  { color:#8C1D24; }
+    /* Reds */
+    .e-crimson{color:#B11226;}   /* Crimson Deep Legal */
+    .e-legal{color:#A51C30;}     /* Legal Red */
+    .e-cross{color:#ED1C24;}     /* Red Cross */
+    .e-firebrick{color:#B22222;} /* Firebrick */
+    .e-judicial{color:#8C1D24;}  /* Judicial Red */
+
+    /* Sizes (smaller) */
+    .sz-36{font-size:36px;}
+    .sz-42{font-size:42px;}
+    .sz-48{font-size:48px;}
+    .sz-56{font-size:56px;}
+    .sz-64{font-size:64px;}
+
+    /* Font stacks (no external deps required) */
+    .f-system{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;}
+    .f-humanist{font-family:"Segoe UI","Trebuchet MS",system-ui,sans-serif;}
+    .f-geo{font-family:Poppins,Montserrat,system-ui,sans-serif;}
+    .f-serif{font-family:Georgia,"Times New Roman",Times,serif;}
+    .f-mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;}
+
+    @media (max-width:520px){
+      .meta{justify-content:flex-start;}
+      .logo{white-space:normal;}
+    }
   </style>
 </head>
 
 <body class="shell">
-
   <div id="site-header"></div>
 
   <main class="page">
-    <div class="container content">
+    <div class="container content page-wrap">
 
-      <section class="card" style="padding:var(--pad); text-align:center;">
-        <h1>SharpeSystem Red Palette</h1>
-        <p class="muted">Logo-scale comparison</p>
+      <section class="card hero">
+        <h1>Sharp<span class="e-cross">E</span>system</h1>
+        <p class="muted">Size + font comparisons. Toggle theme from the header.</p>
+        <div class="row" style="justify-content:center; margin-top:12px;">
+          <a class="btn primary" href="/home.html">Back to Home</a>
+        </div>
       </section>
 
-      <section class="logo-stage">
+      <section class="section card" style="padding:var(--pad);">
+        <h2 style="margin:0;">A) Size Variations (same font, different red “E”)</h2>
+        <p class="muted" style="margin-top:8px;">All letters are white by default; only the E is red. Red Cross is centered.</p>
 
-        <div class="logo-row">
-          <div class="logo-word red-cross">SharpEsystem</div>
-          <div class="label">Red Cross (#ED1C24)</div>
+        <div class="grid">
+          <div class="rowcard">
+            <div class="logo f-system sz-36">Sharp<span class="e-crimson">E</span>system</div>
+            <div class="meta">
+              <span class="pill">36px</span>
+              <span class="pill">Crimson Deep Legal #B11226</span>
+            </div>
+          </div>
+
+          <div class="rowcard">
+            <div class="logo f-system sz-42">Sharp<span class="e-legal">E</span>system</div>
+            <div class="meta">
+              <span class="pill">42px</span>
+              <span class="pill">Legal Red #A51C30</span>
+            </div>
+          </div>
+
+          <div class="rowcard">
+            <div class="logo f-system sz-48">Sharp<span class="e-cross">E</span>system</div>
+            <div class="meta">
+              <span class="pill">48px</span>
+              <span class="pill">Red Cross #ED1C24</span>
+            </div>
+          </div>
+
+          <div class="rowcard">
+            <div class="logo f-system sz-56">Sharp<span class="e-firebrick">E</span>system</div>
+            <div class="meta">
+              <span class="pill">56px</span>
+              <span class="pill">Firebrick #B22222</span>
+            </div>
+          </div>
+
+          <div class="rowcard">
+            <div class="logo f-system sz-64">Sharp<span class="e-judicial">E</span>system</div>
+            <div class="meta">
+              <span class="pill">64px</span>
+              <span class="pill">Judicial Red #8C1D24</span>
+            </div>
+          </div>
         </div>
+      </section>
 
-        <div class="logo-row">
-          <div class="logo-word crimson">SharpEsystem</div>
-          <div class="label">Crimson Deep Legal (#B11226)</div>
+      <section class="section card" style="padding:var(--pad);">
+        <h2 style="margin:0;">B) Font Variations (same size, different red “E”)</h2>
+        <p class="muted" style="margin-top:8px;">Fixed at 48px. Red Cross is centered.</p>
+
+        <div class="grid">
+          <div class="rowcard">
+            <div class="logo f-system sz-48">Sharp<span class="e-crimson">E</span>system</div>
+            <div class="meta">
+              <span class="pill">System / Inter-like</span>
+              <span class="pill">Crimson #B11226</span>
+            </div>
+          </div>
+
+          <div class="rowcard">
+            <div class="logo f-humanist sz-48">Sharp<span class="e-legal">E</span>system</div>
+            <div class="meta">
+              <span class="pill">Humanist (Segoe)</span>
+              <span class="pill">Legal #A51C30</span>
+            </div>
+          </div>
+
+          <div class="rowcard">
+            <div class="logo f-geo sz-48">Sharp<span class="e-cross">E</span>system</div>
+            <div class="meta">
+              <span class="pill">Geometric (Poppins/Montserrat)</span>
+              <span class="pill">Red Cross #ED1C24</span>
+            </div>
+          </div>
+
+          <div class="rowcard">
+            <div class="logo f-serif sz-48">Sharp<span class="e-firebrick">E</span>system</div>
+            <div class="meta">
+              <span class="pill">Serif (Georgia)</span>
+              <span class="pill">Firebrick #B22222</span>
+            </div>
+          </div>
+
+          <div class="rowcard">
+            <div class="logo f-mono sz-48">Sharp<span class="e-judicial">E</span>system</div>
+            <div class="meta">
+              <span class="pill">Mono (UI Monospace)</span>
+              <span class="pill">Judicial #8C1D24</span>
+            </div>
+          </div>
         </div>
-
-        <div class="logo-row">
-          <div class="logo-word legal-red">SharpEsystem</div>
-          <div class="label">Legal Red (#A51C30)</div>
-        </div>
-
-        <div class="logo-row">
-          <div class="logo-word firebrick">SharpEsystem</div>
-          <div class="label">Firebrick (#B22222)</div>
-        </div>
-
-        <div class="logo-row">
-          <div class="logo-word judicial">SharpEsystem</div>
-          <div class="label">Judicial Red (#8C1D24)</div>
-        </div>
-
       </section>
 
     </div>
   </main>
 
+  <!-- Canon public stack -->
   <script src="/ui.js" defer></script>
   <script src="/header-loader.js" defer></script>
   <script src="/partials/header.js" defer></script>
   <script src="/i18n.js" defer></script>
+
+  <!-- Theme toggle fallback (in case header.js isn't binding it) -->
+  <script defer>
+    (function () {
+      function applyTheme(t) {
+        document.documentElement.setAttribute("data-theme", t);
+        try { localStorage.setItem("ss_theme", t); } catch (_) {}
+      }
+
+      function bind() {
+        const btn = document.getElementById("themeToggle");
+        if (!btn) return false;
+
+        if (btn.dataset.bound === "1") return true;
+        btn.dataset.bound = "1";
+
+        btn.addEventListener("click", function () {
+          const cur = document.documentElement.getAttribute("data-theme");
+          const next = cur === "light" ? "dark" : "light";
+          applyTheme(next);
+        });
+
+        return true;
+      }
+
+      // header inject is async → retry briefly
+      let tries = 0;
+      const t = setInterval(function () {
+        tries++;
+        if (bind() || tries > 60) clearInterval(t);
+      }, 100);
+    })();
+  </script>
 
 </body>
 </html>
