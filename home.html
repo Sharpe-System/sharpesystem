@@ -1,53 +1,60 @@
+<!-- /home.html -->
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <title>What needs to be done? — SharpeSystem</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="" />
+  <meta name="description" content="Public starting point for SharpeSystem." />
   <link rel="stylesheet" href="/styles.css" />
 </head>
+
 <body class="shell">
-<div id="site-header"></div>
-<main class="page">
-  <div class="container content">
+  <div id="site-header"></div>
 
-    <section class="card" style="padding:var(--pad);">
-    
-            <h1>What needs to be done?</h1>
-            <p class="muted">
-              Guided preparation for court and agency documents.
-            </p>
-    
-            <div class="grid-3" style="gap:14px; margin-top:14px;">
-    
-              <a class="card" href="/rfo/index.html" style="text-decoration:none;">
-                <h3>Prepare a court document</h3>
-                <p class="muted">
-                  Start or modify a filing such as custody, visitation, or support.
-                </p>
-              </a>
-    
-              <a class="card" href="/respond/index.html" style="text-decoration:none;">
-                <h3>Respond to a legal issue</h3>
-                <p class="muted">
-                  Served papers, hearings, or enforcement situations.
-                </p>
-              </a>
-    
-              <a class="card" href="/peace/index.html" style="text-decoration:none;">
-                <h3>Resolve without court</h3>
-                <p class="muted">
-                  Agreements, cooperative plans, and de-escalation paths.
-                </p>
-              </a>
+  <main class="page">
+    <div class="container content">
 
-  </div>
-</main>
-<script src="/ui.js"></script>
-<script src="/header-loader.js"></script>
-<script src="/partials/header.js"></script>
-<script src="/i18n.js"></script>
-<script type="module" src="/gate.js"></script>
+      <section class="card" style="padding:var(--pad);">
+        <h1>What needs to be done?</h1>
+        <p class="muted">Guided preparation for court and agency documents.</p>
+
+        <div class="grid-3" style="gap:14px; margin-top:14px;">
+
+          <a class="card" href="/rfo/index.html" style="text-decoration:none;">
+            <h3>Prepare a court document</h3>
+            <p class="muted">Start or modify a filing such as custody, visitation, or support.</p>
+          </a>
+
+          <!-- IMPORTANT: if /respond/index.html does NOT exist, this link will 404. -->
+          <a class="card" href="/status.html" style="text-decoration:none;">
+            <h3>Respond to a legal issue</h3>
+            <p class="muted">Served papers, hearings, or enforcement situations.</p>
+          </a>
+
+          <a class="card" href="/peace/index.html" style="text-decoration:none;">
+            <h3>Resolve without court</h3>
+            <p class="muted">Agreements, cooperative plans, and de-escalation paths.</p>
+          </a>
+
+        </div>
+
+        <div class="hr" style="margin:16px 0;"></div>
+
+        <div class="row" style="gap:12px; flex-wrap:wrap;">
+          <a class="btn" href="/rfo/public-intake.html">Start RFO (Public Draft)</a>
+          <a class="btn" href="/login.html?next=%2Fdashboard.html">Log in</a>
+          <a class="btn" href="/pricing.html">Plans</a>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Canonical public stack (NO gate.js on public home) -->
+  <script src="/ui.js" defer></script>
+  <script src="/header-loader.js" defer></script>
+  <script src="/partials/header.js" defer></script>
+  <script src="/i18n.js" defer></script>
 </body>
 </html>
