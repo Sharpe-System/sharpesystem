@@ -1,378 +1,294 @@
-/* /styles.css
-   SharpeSystem Canon Styles (vNext-ready)
-   - Dark-first tokens with light mode support (via [data-theme="light"])
-   - Canon header/nav/button styles (fixes purple links + white blocks)
-   - Common layout primitives used across pages
-*/
+:root{
+  --bg:#0b0f14;
+  --panel:#0f1622;
+  --text:#e8eef6;
+  --muted:rgba(232,238,246,.68);
+  --soft:rgba(232,238,246,.82);
+  --border:rgba(255,255,255,.10);
+  --radius:16px;
+  --pad:16px;
+  --shadow:0 10px 30px rgba(0,0,0,.45);
 
-/* =========================
-   0) Base + Tokens
-========================= */
-
-:root {
-  color-scheme: dark light;
-
-  /* Core palette (dark) */
-  --bg: #0b0f14;
-  --bg-elev: #0f1623;
-  --bg-elev-2: #121c2b;
-  --bg-hover: #172338;
-
-  --text: #cbd5e1;
-  --text-strong: #f1f5f9;
-  --muted: rgba(203, 213, 225, 0.75);
-
-  --accent: #38bdf8;
-  --accent-2: #22c55e;
-
-  --border: rgba(148, 163, 184, 0.16);
-  --shadow: 0 14px 40px rgba(0,0,0,0.35);
-
-  --radius: 14px;
-  --radius-sm: 10px;
-  --pad: 16px;
-
-  --max: 1120px;
-  --gap: 14px;
-
-  /* Typography */
-  --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
-  --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  --accent:#60a5fa;
+  --accent2:#34d399;
+  --warn:#fbbf24;
+  --danger:#fb7185;
 }
 
-[data-theme="light"] {
-  color-scheme: light;
-
-  --bg: #f7fafc;
-  --bg-elev: #ffffff;
-  --bg-elev-2: #f1f5f9;
-  --bg-hover: #e8eef6;
-
-  --text: #0f172a;
-  --text-strong: #0b1220;
-  --muted: rgba(15, 23, 42, 0.75);
-
-  --accent: #0284c7;
-  --accent-2: #16a34a;
-
-  --border: rgba(15, 23, 42, 0.12);
-  --shadow: 0 12px 32px rgba(2, 8, 23, 0.10);
+html,body{
+  height:100%;
+  margin:0;
+  padding:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
 }
 
-/* =========================
-   1) Reset / Global
-========================= */
+*{box-sizing:border-box;}
 
-* { box-sizing: border-box; }
-html, body { height: 100%; }
+a{color:inherit;}
+a:hover{opacity:.95;}
+a:visited{color:inherit;}
 
-body {
-  margin: 0;
-  font-family: var(--font);
-  background: var(--bg);
-  color: var(--text);
-  line-height: 1.45;
+.shell{
+  min-height:100%;
+  display:flex;
+  flex-direction:column;
 }
 
-img { max-width: 100%; height: auto; }
-a { color: inherit; text-decoration: none; }
-a:hover { color: var(--accent); }
-
-hr, .hr {
-  border: 0;
-  border-top: 1px solid var(--border);
-  margin: 16px 0;
+.page{
+  flex:1;
+  padding:20px 0 40px;
 }
 
-.kbd {
-  font-family: var(--mono);
-  font-size: 12px;
-  padding: 2px 6px;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  background: rgba(255,255,255,0.04);
+.container{
+  width:min(1100px, calc(100% - 28px));
+  margin:0 auto;
 }
 
-/* Prevent default purple/visited styling from ever “winning” */
-a:visited { color: inherit; }
-a:focus-visible,
-button:focus-visible,
-input:focus-visible,
-select:focus-visible,
-textarea:focus-visible {
-  outline: 2px solid rgba(56, 189, 248, 0.55);
-  outline-offset: 2px;
+.content{
+  padding-top:12px;
 }
 
-/* =========================
-   2) Layout Primitives
-========================= */
-
-.container {
-  max-width: var(--max);
-  margin: 0 auto;
-  padding: 0 18px;
+.hr{
+  height:1px;
+  background:var(--border);
+  margin:16px 0;
 }
 
-.page {
-  padding: 22px 0 44px;
+.muted{color:var(--muted);}
+.sub{color:var(--muted);margin-top:6px;}
+
+.row{
+  display:flex;
+  gap:12px;
+  align-items:center;
 }
 
-.shell main {
-  padding: 18px 0 44px;
+.grid-2{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px;
+}
+@media (max-width:900px){
+  .grid-2{grid-template-columns:1fr;}
 }
 
-.content {
-  padding: 10px 0;
+.grid-3{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:14px;
+}
+@media (max-width:900px){
+  .grid-3{grid-template-columns:1fr;}
 }
 
-.row {
-  display: flex;
-  gap: var(--gap);
-  align-items: center;
-  flex-wrap: wrap;
+.card{
+  border:1px solid var(--border);
+  background:rgba(255,255,255,.03);
+  border-radius:var(--radius);
+  padding:14px;
+  box-shadow:var(--shadow);
 }
 
-.grid-2 {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--gap);
+.panel{
+  border:1px solid var(--border);
+  background:rgba(255,255,255,.03);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
 }
 
-@media (max-width: 920px) {
-  .grid-2 { grid-template-columns: 1fr; }
+.badge{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  border:1px solid var(--border);
+  border-radius:999px;
+  padding:6px 10px;
+  background:rgba(255,255,255,.03);
+  color:var(--soft);
+  font-weight:700;
+  font-size:12px;
 }
 
-/* =========================
-   3) Typography
-========================= */
-
-h1, h2, h3 {
-  color: var(--text-strong);
-  margin: 0;
+.btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  border:1px solid var(--border);
+  border-radius:999px;
+  padding:10px 12px;
+  background:rgba(255,255,255,.04);
+  color:var(--text);
+  text-decoration:none;
+  cursor:pointer;
+  font-weight:750;
+  line-height:1;
 }
 
-h1 { font-size: 28px; letter-spacing: -0.02em; }
-h2 { font-size: 18px; letter-spacing: -0.01em; }
-h3 { font-size: 16px; }
-
-p { margin: 10px 0; }
-
-.muted { color: var(--muted); }
-.sub, .lede { color: var(--muted); }
-
-.page-hero {
-  margin: 8px 0 14px;
+.btn:hover{
+  background:rgba(255,255,255,.07);
 }
 
-/* =========================
-   4) Cards / Panels
-========================= */
-
-.panel,
-.card,
-.template-box {
-  background: rgba(255,255,255,0.03);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
+.btn.primary{
+  border-color:rgba(96,165,250,.55);
+  background:rgba(96,165,250,.18);
 }
 
-.panel { padding: var(--pad); }
-.card { padding: var(--pad); }
-.template-box { padding: 18px; }
-
-[data-theme="light"] .panel,
-[data-theme="light"] .card,
-[data-theme="light"] .template-box {
-  background: var(--bg-elev);
+.btn.primary:hover{
+  background:rgba(96,165,250,.24);
 }
 
-/* =========================
-   5) Buttons / Links / CTAs
-========================= */
-
-.btn,
-.button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-
-  padding: 8px 12px;
-  border-radius: 10px;
-
-  border: 1px solid var(--border);
-  background: rgba(255,255,255,0.03);
-  color: var(--text);
-
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 650;
-  user-select: none;
+.button{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  border:1px solid var(--border);
+  border-radius:999px;
+  padding:10px 12px;
+  background:rgba(255,255,255,.04);
+  text-decoration:none;
+  color:var(--text);
+  font-weight:750;
 }
 
-.btn:hover,
-.button:hover {
-  background: rgba(255,255,255,0.06);
+.button.primary{
+  border-color:rgba(96,165,250,.55);
+  background:rgba(96,165,250,.18);
 }
 
-.btn.primary,
-.button.primary {
-  background: var(--accent);
-  border-color: transparent;
-  color: #041019;
+.cta-row{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  margin-top:10px;
 }
 
-.btn.primary:hover,
-.button.primary:hover {
-  filter: brightness(1.05);
+/* ---------- Header ---------- */
+
+.site-header{
+  position:sticky;
+  top:0;
+  z-index:20;
+  border-bottom:1px solid var(--border);
+  background:rgba(11,15,20,.86);
+  backdrop-filter:saturate(140%) blur(10px);
 }
 
-.btn.ghost,
-.button.ghost {
-  background: transparent;
+.main-nav{
+  width:min(1100px, calc(100% - 28px));
+  margin:0 auto;
+  padding:12px 0;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
 }
 
-.cta-row {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  align-items: center;
+.brand{
+  font-weight:900;
+  letter-spacing:-.02em;
+  text-decoration:none;
+  color:var(--text);
+  padding:8px 10px;
+  border-radius:12px;
 }
 
-/* =========================
-   6) Forms
-========================= */
-
-.label {
-  display: block;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text-strong);
-  margin: 0 0 6px;
+.brand:hover{
+  background:rgba(255,255,255,.05);
 }
 
-.input {
-  width: 100%;
-  padding: 10px 12px;
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  background: rgba(255,255,255,0.03);
-  color: var(--text);
-  font-size: 14px;
+.nav-links{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  flex-wrap:wrap;
+  justify-content:flex-end;
 }
 
-textarea.input { resize: vertical; min-height: 90px; }
-
-[data-theme="light"] .input {
-  background: var(--bg-elev-2);
+.nav-link{
+  text-decoration:none;
+  color:var(--text);
+  padding:8px 10px;
+  border-radius:999px;
+  border:1px solid transparent;
+  background:transparent;
 }
 
-/* =========================
-   7) Badges / Alerts
-========================= */
-
-.badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-
-  padding: 6px 10px;
-  border-radius: 999px;
-
-  border: 1px solid var(--border);
-  background: rgba(255,255,255,0.03);
-  color: var(--text);
-  font-size: 12px;
-  font-weight: 750;
+.nav-link:hover{
+  background:rgba(255,255,255,.05);
+  border-color:rgba(255,255,255,.06);
 }
 
-.alert {
-  border-radius: var(--radius-sm);
-  padding: 10px 12px;
-  border: 1px solid var(--border);
-  background: rgba(255,255,255,0.03);
-  color: var(--text);
+.nav-emphasis{
+  border-color:rgba(251,191,36,.25);
+  background:rgba(251,191,36,.08);
 }
 
-.alert.warn {
-  border-color: rgba(251, 191, 36, 0.26);
-  background: rgba(251, 191, 36, 0.08);
+/* Buttons in header should never render as white default blocks */
+.site-header button{
+  font:inherit;
+  color:inherit;
 }
 
-/* =========================
-   8) Header / Nav (CRITICAL)
-========================= */
+/* ---------- Basic form tokens ---------- */
 
-.site-header {
-  position: sticky;
-  top: 0;
-  z-index: 50;
-
-  background: var(--bg-elev);
-  border-bottom: 1px solid var(--border);
+.label{
+  display:block;
+  font-weight:800;
+  margin:0 0 6px;
 }
 
-.main-nav {
-  max-width: var(--max);
-  margin: 0 auto;
-  padding: 10px 18px;
-
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px;
+.input{
+  width:100%;
+  padding:10px 12px;
+  border-radius:12px;
+  border:1px solid var(--border);
+  background:rgba(255,255,255,.03);
+  color:var(--text);
+  outline:none;
 }
 
-.brand {
-  font-weight: 900;
-  letter-spacing: -0.02em;
-  font-size: 16px;
-  color: var(--text-strong);
+.input:focus{
+  border-color:rgba(96,165,250,.55);
 }
 
-.nav-links {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-  justify-content: flex-end;
+.kbd{
+  display:inline-block;
+  padding:2px 8px;
+  border-radius:8px;
+  border:1px solid var(--border);
+  background:rgba(255,255,255,.04);
+  font-weight:800;
+  font-size:12px;
 }
 
-.nav-links a {
-  color: var(--text);
-  font-size: 13px;
-  font-weight: 650;
-  padding: 6px 8px;
-  border-radius: 10px;
+.alert{
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:10px 12px;
+  background:rgba(255,255,255,.03);
+  color:var(--soft);
 }
 
-.nav-links a:hover {
-  background: rgba(255,255,255,0.05);
-  color: var(--text-strong);
+.alert.warn{
+  border-color:rgba(251,191,36,.26);
+  background:rgba(251,191,36,.08);
 }
 
-.nav-emphasis {
-  color: var(--accent);
-  font-weight: 800;
+/* ---------- Light mode (toggle via data-theme on html or body) ---------- */
+html[data-theme="light"], body[data-theme="light"]{
+  --bg:#f6f7fb;
+  --panel:#ffffff;
+  --text:#0b1220;
+  --muted:rgba(11,18,32,.70);
+  --soft:rgba(11,18,32,.86);
+  --border:rgba(11,18,32,.12);
+  --shadow:0 10px 26px rgba(8,10,14,.10);
 }
 
-.theme-toggle.btn,
-.lang-toggle.btn {
-  padding: 7px 10px;
-  border-radius: 10px;
+html[data-theme="light"] .site-header,
+body[data-theme="light"] .site-header{
+  background:rgba(246,247,251,.86);
 }
-
-/* Mobile header spacing */
-@media (max-width: 920px) {
-  .main-nav { align-items: flex-start; }
-  .nav-links { justify-content: flex-start; }
-}
-
-/* =========================
-   9) Small helpers
-========================= */
-
-.hidden { display: none !important; }
-.center { text-align: center; }
