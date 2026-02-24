@@ -1,73 +1,88 @@
 /* /rfo/fl300-print.js
-   FL-300 Populate (v0) — minimal 6–10 fields
-   Fixes: pdf-lib font undefined crash (updateFieldAppearances), better data sourcing,
-   and robust job fetch.
+   FL-300 Print + Populate (v0) — "Raster background + text overlay" generator.
+
+   Why: pdf-lib cannot reliably parse some Judicial Council PDFs (invalid object refs).
+   Fix: Render official PDF pages via PDF.js into images, then build a NEW PDF with pdf-lib
+        using those images as backgrounds + overlay text/checkmarks.
+
+   Output: Visually matches official form (flattened). Not an interactive AcroForm.
 */
+
 (function () {
   "use strict";
 
-  const $ = (sel, root = document) => root.querySelector(sel);
-
-  const jobId = new URL(location.href).searchParams.get("job") || "";
-
-  // UI hooks (these IDs/classes should already exist in your HTML; if not, it fails soft)
-  const btnGen = $("#btnGenerate") || $("button[data-action='generate']") || $("button");
-  const btnOpen = $("#btnOpen") || $("button[data-action='open']");
-  const btnDl = $("#btnDownload") || $("button[data-action='download']");
-  const outFrame = $("#filledFrame") || $("#pdfFrame") || $("iframe");
-  const statusEl = $("#filledStatus") || $("#statusFilled") || $(".status") || null;
-  const debugEl = $("#debugJson") || $("#fieldMapDebug") || $("#debug") || null;
-  const rawEl = $("#rawPayload") || $("#rawJson") || null;
-
-  function setStatus(msg) {
-    if (statusEl) statusEl.textContent = msg;
+  // -----------------------------
+  // Utilities
+  // -----------------------------
+  function $(sel, root = document) {
+    return root.querySelector(sel);
   }
 
-  function safeJson(el, obj) {
-    if (!el) return;
-    try {
-      el.textContent = JSON.stringify(obj, null, 2);
-    } catch (_) {
-      el.textContent = String(obj);
-    }
+  function esc(s) {
+    return String(s ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#39;");
   }
 
-  function lower(s) { return String(s || "").toLowerCase(); }
+  function clamp(n, a, b) {
+    n = Number(n);
+    if (Number.isNaN(n)) return a;
+    return Math.max(a, Math.min(b, n));
+  }
 
-  // Try multiple endpoints so we don’t get stuck on one path.
+  async function loadScriptOnce(src) {
+    // If already loaded, skip
+    const existing = Array.from(document.scripts).some(s => s.src === src);
+    if (existing) return;
+
+    await new Promise((resolve, reject) => {
+      const s = document.createElement("script");
+      s.src = src;
+      s.async = true;
+      s.onload = resolve;
+      s.onerror = () => reject(new Error("Failed to load script: " + src));
+      document.head.appendChild(s);
+    });
+  }
+
+  function getJobId() {
+    const url = new URL(location.href);
+    return url.searchParams.get("job") || "";
+  }
+
+  // Try multiple endpoints because your repo has moved this around over time.
   async function fetchJob(jobId) {
     if (!jobId) return null;
 
     const candidates = [
-      `/api/print/jobs?job=${encodeURIComponent(jobId)}`,
-      `/api/print/job?job=${encodeURIComponent(jobId)}`,
       `/api/jobs?job=${encodeURIComponent(jobId)}`,
-      `/api/print/jobs/${encodeURIComponent(jobId)}`
+      `/functions/api/jobs?job=${encodeURIComponent(jobId)}`,
+      `/${encodeURIComponent(jobId)}`, // sometimes jobs are served at root by workers
     ];
 
-    let lastErr = null;
     for (const url of candidates) {
       try {
-        const res = await fetch(url, { credentials: "include" });
-        if (!res.ok) { lastErr = new Error(`${url} -> ${res.status}`); continue; }
+        const res = await fetch(url, { cache: "no-store" });
+        if (!res.ok) continue;
         const json = await res.json();
-        // Accept either {ok:true, ...} or a raw job object.
+        // Expect shape like { ok:true, jobId, renderUrl, pdfUrl, data? }
         return json;
-      } catch (e) {
-        lastErr = e;
-      }
+      } catch (_) {}
     }
-    throw lastErr || new Error("Unable to fetch job");
+    return null;
   }
 
   function readLocalDraft() {
-    // Best-effort: try a few likely keys used by the app controller/drafts.
+    // Try a few plausible keys. Keep this permissive.
     const keys = [
       "sharpesystem:draft",
-      "sharpesystem:draft:rfo",
+      "draft",
       "draft:rfo",
       "rfo:draft",
-      "sharpesystem:lastDraft"
+      "sharpesystem:rfo:draft",
     ];
     for (const k of keys) {
       try {
@@ -80,200 +95,296 @@
     return {};
   }
 
-  function coalesceRfoData(jobJson) {
-    // Prefer explicit data payloads if present.
-    // Accept: jobJson.data, jobJson.payload, jobJson.draft, jobJson.rfo, etc.
-    const fromJob =
-      jobJson?.data ||
-      jobJson?.payload ||
-      jobJson?.draft ||
-      jobJson?.draftData ||
-      jobJson?.inputs ||
-      null;
-
-    const local = readLocalDraft();
-
-    // Normalize to a single draft object with d.rfo
-    const d = {};
-    const merged = Object.assign({}, local || {}, fromJob || {});
-    d.rfo = Object.assign({}, (local && local.rfo) || {}, (fromJob && fromJob.rfo) || {}, merged.rfo || {});
+  function normalizeDraft(d) {
+    d = d && typeof d === "object" ? d : {};
+    d.rfo = d.rfo && typeof d.rfo === "object" ? d.rfo : {};
     return d;
   }
 
-  function summarizeInputs(d) {
-    const r = d.rfo || {};
+  function coerceBool(v) {
+    return v === true || v === "true" || v === 1 || v === "1";
+  }
+
+  function toFieldModel(draft) {
+    const r = (draft && draft.rfo) || {};
     return {
-      jobId: jobId || "—",
-      county: r.county || "—",
-      branch: r.branch || "—",
-      caseNumber: r.caseNumber || "—",
-      role: r.role || "—",
-      custody: !!r.reqCustody,
-      support: !!r.reqSupport,
-      other: !!r.reqOther,
-      details: r.requestDetails || "—"
+      county: String(r.county || "").trim(),
+      branch: String(r.branch || "").trim(),
+      caseNumber: String(r.caseNumber || "").trim(),
+      role: String(r.role || "").trim(), // "petitioner"|"respondent"|"other"|etc
+      reqCustody: coerceBool(r.reqCustody),
+      reqSupport: coerceBool(r.reqSupport),
+      reqOther: coerceBool(r.reqOther),
+      details: String(r.requestDetails || "").trim(),
     };
   }
 
-  // Heuristic field match helpers
-  function pickFieldByName(form, patterns) {
-    const fields = form.getFields();
-    const pats = patterns.map(p => (p instanceof RegExp ? p : new RegExp(p, "i")));
-    for (const f of fields) {
-      const name = f.getName ? f.getName() : "";
-      for (const re of pats) {
-        if (re.test(name)) return f;
-      }
-    }
-    return null;
+  // -----------------------------
+  // PDF generation (Raster + overlay)
+  // -----------------------------
+  async function ensurePdfLib() {
+    // PDFLib global from https://unpkg.com/pdf-lib/dist/pdf-lib.min.js
+    if (window.PDFLib) return;
+    await loadScriptOnce("https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js");
+    if (!window.PDFLib) throw new Error("pdf-lib failed to load.");
   }
 
-  function setMaybe(field, value, debug) {
-    if (!field) return false;
-    const v = String(value ?? "").trim();
-    const name = field.getName ? field.getName() : "(unknown)";
-    try {
-      if (typeof field.setText === "function") {
-        field.setText(v);
-        debug[name] = { set: "text", value: v };
-        return true;
-      }
-      if (typeof field.select === "function") {
-        // dropdown / radio style
-        field.select(v);
-        debug[name] = { set: "select", value: v };
-        return true;
-      }
-      if (typeof field.check === "function") {
-        // checkbox
-        if (value) field.check();
-        else if (typeof field.uncheck === "function") field.uncheck();
-        debug[name] = { set: "check", value: !!value };
-        return true;
-      }
-      debug[name] = { set: "unknown-type", value: v };
-      return false;
-    } catch (e) {
-      debug[name] = { error: String(e) };
-      return false;
-    }
+  async function ensurePdfJs() {
+    // pdfjsLib global from https://cdnjs.cloudflare.com/ajax/libs/pdf.js/<ver>/pdf.min.js
+    if (window.pdfjsLib) return;
+    await loadScriptOnce("https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.js");
+    if (!window.pdfjsLib) throw new Error("PDF.js failed to load.");
+    // Required worker
+    window.pdfjsLib.GlobalWorkerOptions.workerSrc =
+      "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.worker.min.js";
   }
 
-  async function generateFilledPdf() {
-    if (!window.PDFLib) throw new Error("PDFLib not found on window (pdf-lib not loaded).");
-
-    setStatus("Loading job…");
-    let jobJson = null;
-    try {
-      jobJson = await fetchJob(jobId);
-    } catch (e) {
-      // If job fetch fails, we still try local draft.
-      jobJson = { ok: false, error: String(e) };
-    }
-
-    safeJson(rawEl, jobJson);
-
-    const d = coalesceRfoData(jobJson);
-    const inputs = summarizeInputs(d);
-
-    // If you have an inputs panel, we populate it.
-    const inputEl = $("#inputSummary") || $("#inputsTable") || null;
-    if (inputEl) safeJson(inputEl, inputs);
-
-    setStatus("Loading FL-300 template…");
-    const tplUrl = "/templates/jcc/fl300/FL-300.pdf";
-    const tplRes = await fetch(tplUrl);
-    if (!tplRes.ok) throw new Error(`Template fetch failed: ${tplRes.status} (${tplUrl})`);
-    const tplBytes = await tplRes.arrayBuffer();
-
-    setStatus("Filling fields…");
-    const pdfDoc = await window.PDFLib.PDFDocument.load(tplBytes, { ignoreEncryption: true });
-    const form = pdfDoc.getForm();
-
-    // IMPORTANT FIX: embed a font and pass it to updateFieldAppearances.
-    const font = await pdfDoc.embedFont(window.PDFLib.StandardFonts.Helvetica);
-
-    const r = d.rfo || {};
-    const dbg = { matched: {}, notFound: [] };
-
-    // Minimal 6–10 “single vertical” mapping (heuristic by field name)
-    const map = [
-      { key: "county", value: r.county, patterns: [/county/i, /cnty/i] },
-      { key: "branch", value: r.branch, patterns: [/branch/i, /courthouse/i, /branch name/i] },
-      { key: "caseNumber", value: r.caseNumber, patterns: [/case.*number/i, /case.*no/i] },
-      { key: "role", value: r.role, patterns: [/petitioner/i, /respondent/i, /your role/i, /role/i] },
-      { key: "reqCustody", value: !!r.reqCustody, patterns: [/custody/i, /visitation/i] },
-      { key: "reqSupport", value: !!r.reqSupport, patterns: [/support/i, /child support/i] },
-      { key: "reqOther", value: !!r.reqOther, patterns: [/other/i] },
-      { key: "details", value: r.requestDetails, patterns: [/request/i, /orders/i, /details/i, /other.*orders/i] }
-    ];
-
-    for (const item of map) {
-      const field = pickFieldByName(form, item.patterns);
-      if (!field) {
-        dbg.notFound.push({ key: item.key, patterns: item.patterns.map(String) });
-        continue;
-      }
-      setMaybe(field, item.value, dbg.matched);
-    }
-
-    // Update appearances WITHOUT crashing.
-    form.updateFieldAppearances(font);
-
-    // Save bytes
-    const outBytes = await pdfDoc.save();
-    const blob = new Blob([outBytes], { type: "application/pdf" });
-    const url = URL.createObjectURL(blob);
-
-    // Render into iframe if present
-    if (outFrame && outFrame.tagName === "IFRAME") outFrame.src = url;
-
-    // Enable open/download buttons if present
-    if (btnOpen) {
-      btnOpen.disabled = false;
-      btnOpen.onclick = () => window.open(url, "_blank", "noopener,noreferrer");
-    }
-    if (btnDl) {
-      btnDl.disabled = false;
-      btnDl.onclick = () => {
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "FL-300-filled.pdf";
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-      };
-    }
-
-    safeJson(debugEl, dbg);
-    setStatus("Filled PDF ready.");
+  async function fetchArrayBuffer(url) {
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) throw new Error(`Failed to fetch: ${url} (${res.status})`);
+    return await res.arrayBuffer();
   }
 
-  function wire() {
-    if (btnGen) {
-      btnGen.disabled = false;
-      btnGen.onclick = () => {
-        generateFilledPdf().catch(err => {
-          const msg = String(err?.message || err);
-          safeJson(debugEl, { error: msg, hint: "If this fails, we stop and move on (per your rule)." });
-          setStatus("Failed to generate");
-          console.error(err);
-        });
-      };
-    }
+  async function renderPdfToPngs(pdfArrayBuffer, scale = 2) {
+    // Returns [{pngBytes, width, height}] per page.
+    const pdf = await window.pdfjsLib.getDocument({ data: pdfArrayBuffer }).promise;
+    const out = [];
 
-    // Auto-run once if you want immediate feedback
-    // (kept conservative: only autorun when jobId exists)
-    if (jobId) {
-      // Don’t block UI; just attempt.
-      generateFilledPdf().catch(err => {
-        const msg = String(err?.message || err);
-        safeJson(debugEl, { error: msg, hint: "Click Generate filled PDF after page loads." });
-        setStatus("Failed to generate");
-        console.error(err);
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const viewport = page.getViewport({ scale });
+
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d", { alpha: false });
+
+      canvas.width = Math.floor(viewport.width);
+      canvas.height = Math.floor(viewport.height);
+
+      await page.render({ canvasContext: ctx, viewport }).promise;
+
+      const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/png"));
+      const pngBytes = new Uint8Array(await blob.arrayBuffer());
+
+      out.push({
+        pngBytes,
+        width: canvas.width,
+        height: canvas.height,
       });
     }
+    return out;
   }
 
-  wire();
+  function drawCheckmark(page, x, y) {
+    // Simple "X" mark, small.
+    const size = 10;
+    page.drawLine({ start: { x, y }, end: { x: x + size, y: y + size }, thickness: 1 });
+    page.drawLine({ start: { x: x + size, y }, end: { x, y: y + size }, thickness: 1 });
+  }
+
+  function drawWrappedText(page, text, x, y, maxWidth, lineHeight, font, size) {
+    text = String(text || "").trim();
+    if (!text) return;
+
+    const words = text.split(/\s+/);
+    const lines = [];
+    let line = "";
+
+    for (const w of words) {
+      const test = line ? line + " " + w : w;
+      const width = font.widthOfTextAtSize(test, size);
+      if (width <= maxWidth) {
+        line = test;
+      } else {
+        if (line) lines.push(line);
+        line = w;
+      }
+    }
+    if (line) lines.push(line);
+
+    let yy = y;
+    for (const ln of lines.slice(0, 10)) { // cap
+      page.drawText(ln, { x, y: yy, size, font });
+      yy -= lineHeight;
+    }
+  }
+
+  async function generateFilledPdf(fields) {
+    await ensurePdfJs();
+    await ensurePdfLib();
+
+    // Load official template (your repo has this path)
+    const templateUrl = "/templates/jcc/fl300/FL-300.pdf";
+
+    const templateBytes = await fetchArrayBuffer(templateUrl);
+    const pngPages = await renderPdfToPngs(templateBytes, 2);
+
+    const { PDFDocument, StandardFonts, rgb } = window.PDFLib;
+    const doc = await PDFDocument.create();
+
+    const font = await doc.embedFont(StandardFonts.Helvetica);
+    const fontBold = await doc.embedFont(StandardFonts.HelveticaBold);
+
+    // Create each page from the rendered PNG background, scaled to Letter points.
+    // Letter in points: 612 x 792.
+    // Our png sizes depend on render scale; we’ll fit background to 612x792 exactly.
+    const PAGE_W = 612;
+    const PAGE_H = 792;
+
+    for (let i = 0; i < pngPages.length; i++) {
+      const { pngBytes } = pngPages[i];
+      const bg = await doc.embedPng(pngBytes);
+      const page = doc.addPage([PAGE_W, PAGE_H]);
+
+      // Draw background to full page
+      page.drawImage(bg, { x: 0, y: 0, width: PAGE_W, height: PAGE_H });
+
+      // Overlay only on Page 1 for v0 (first page has the key header fields)
+      if (i === 0) {
+        const textColor = rgb(0, 0, 0);
+
+        // These coordinates are approximate; adjust after you see output.
+        // Origin in pdf-lib is bottom-left.
+        // Header right block (County/Branch)
+        if (fields.county) {
+          page.drawText(fields.county.toUpperCase(), {
+            x: 365, y: 708, size: 10, font: fontBold, color: textColor
+          });
+        }
+        if (fields.branch) {
+          page.drawText(fields.branch, {
+            x: 340, y: 630, size: 10, font, color: textColor
+          });
+        }
+
+        // Case number box (left mid)
+        if (fields.caseNumber) {
+          page.drawText(fields.caseNumber, {
+            x: 120, y: 505, size: 11, font: fontBold, color: textColor
+          });
+        }
+
+        // Role near case info (your vertical summary uses role)
+        if (fields.role) {
+          page.drawText(fields.role, {
+            x: 360, y: 505, size: 11, font: fontBold, color: textColor
+          });
+        }
+
+        // Orders requested checkboxes — approximate positions in your render
+        // (These are for your minimal "High-level" block in the print-perfect section.)
+        // If you want them on the actual official form checkboxes later, we’ll remap.
+        // For v0, mark them in the "Orders Requested" area on page 1:
+        if (fields.reqCustody) drawCheckmark(page, 95, 405);
+        if (fields.reqSupport) drawCheckmark(page, 95, 388);
+        if (fields.reqOther) drawCheckmark(page, 95, 371);
+
+        // Details text block — write into a big open area lower on page 1.
+        if (fields.details) {
+          drawWrappedText(page, fields.details, 90, 305, 430, 12, font, 10);
+        }
+      }
+    }
+
+    return await doc.save();
+  }
+
+  // -----------------------------
+  // UI wiring
+  // -----------------------------
+  async function boot() {
+    const jobId = getJobId();
+
+    // UI elements (these exist in your fl300-print.html after recent changes)
+    const elInput = $("#inputBox") || $("#input"); // permissive
+    const elDebug = $("#debugBox") || $("#debug");
+    const elRaw = $("#rawBox") || $("#raw");
+    const btnGen = $("#btnGenerate") || $("#generateFilled");
+    const btnOpen = $("#btnOpen") || $("#openFilled");
+    const btnDl = $("#btnDownload") || $("#downloadFilled");
+
+    const setDebug = (obj) => {
+      if (elDebug) elDebug.textContent = JSON.stringify(obj, null, 2);
+    };
+    const setRaw = (obj) => {
+      if (elRaw) elRaw.textContent = obj ? JSON.stringify(obj, null, 2) : "—";
+    };
+
+    // Load data: job first, fallback to local draft
+    let job = null;
+    if (jobId) job = await fetchJob(jobId);
+
+    const localDraft = normalizeDraft(readLocalDraft());
+    const jobDraft = normalizeDraft(job && job.data ? job.data : {});
+    const draft = (jobDraft && Object.keys(jobDraft.rfo || {}).length) ? jobDraft : localDraft;
+    const fields = toFieldModel(draft);
+
+    // Fill the input summary panel if present
+    if (elInput) {
+      elInput.innerHTML = `
+        <div><strong>Job ID</strong>: ${esc(jobId || "—")}</div>
+        <div><strong>County</strong>: ${esc(fields.county || "—")}</div>
+        <div><strong>Branch</strong>: ${esc(fields.branch || "—")}</div>
+        <div><strong>Case #</strong>: ${esc(fields.caseNumber || "—")}</div>
+        <div><strong>Role</strong>: ${esc(fields.role || "—")}</div>
+        <div><strong>Custody</strong>: ${fields.reqCustody ? "Yes" : "No"}</div>
+        <div><strong>Support</strong>: ${fields.reqSupport ? "Yes" : "No"}</div>
+        <div><strong>Other</strong>: ${fields.reqOther ? "Yes" : "No"}</div>
+        <div><strong>Details</strong>: ${esc(fields.details ? fields.details.slice(0, 120) : "—")}</div>
+      `;
+    }
+
+    setRaw(job || null);
+
+    let lastBlobUrl = null;
+
+    async function doGenerate() {
+      try {
+        setDebug({ status: "working", hint: "Generating flattened PDF (PDF.js render + pdf-lib overlay)..." });
+
+        const pdfBytes = await generateFilledPdf(fields);
+        const blob = new Blob([pdfBytes], { type: "application/pdf" });
+
+        if (lastBlobUrl) URL.revokeObjectURL(lastBlobUrl);
+        lastBlobUrl = URL.createObjectURL(blob);
+
+        // Enable open/download if buttons exist
+        if (btnOpen) btnOpen.disabled = false;
+        if (btnDl) btnDl.disabled = false;
+
+        setDebug({ ok: true, status: "generated", note: "Flattened PDF generated successfully.", url: lastBlobUrl });
+
+      } catch (err) {
+        setDebug({
+          error: String(err && err.message ? err.message : err),
+          hint: "If this fails, we stop and return to spine work."
+        });
+        console.error(err);
+      }
+    }
+
+    function doOpen() {
+      if (!lastBlobUrl) return;
+      window.open(lastBlobUrl, "_blank", "noopener,noreferrer");
+    }
+
+    function doDownload() {
+      if (!lastBlobUrl) return;
+      const a = document.createElement("a");
+      a.href = lastBlobUrl;
+      a.download = `FL-300-filled-${jobId || "draft"}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }
+
+    if (btnGen) btnGen.addEventListener("click", doGenerate);
+    if (btnOpen) btnOpen.addEventListener("click", doOpen);
+    if (btnDl) btnDl.addEventListener("click", doDownload);
+
+    // If buttons not found, still expose globally for console use
+    window.__fl300 = { doGenerate, doOpen, doDownload, fields };
+  }
+
+  // Start
+  boot().catch(console.error);
 })();
