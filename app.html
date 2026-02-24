@@ -1,51 +1,27 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>App — SharpeSystem</title>
-  <meta name="description" content="SharpeSystem app hub." />
   <link rel="stylesheet" href="/styles.css" />
 </head>
+<body>
 
-<body
-  data-require-auth="1"
-  data-require-tier="basic"
-  data-require-active="1"
->
-  <!-- Shared header -->
-  <div id="site-header"></div>
+  <div class="app-shell" style="max-width:900px;margin:40px auto;padding:20px;">
+    <h1 id="flowTitle">Flow</h1>
+    <div id="flowSub" class="muted" style="margin-bottom:20px;"></div>
 
-  <main class="page">
-    <div class="container content">
-      <section class="card">
-        <h1>SharpeSystem</h1>
-        <p class="muted">Choose where to go next.</p>
+    <div id="stage"></div>
 
-        <div class="row" style="margin-top:14px; flex-wrap:wrap; gap:10px;">
-          <a class="button primary" href="/dashboard.html">Dashboard</a>
-          <a class="button" href="/start.html">Start</a>
-          <a class="button" href="/intake.html">Intake</a>
-          <a class="button" href="/timeline.html">Timeline</a>
-          <a class="button" href="/snapshot.html">Snapshot</a>
-          <a class="button" href="/checklist.html">Checklist</a>
-        </div>
-      </section>
+    <div style="margin-top:20px; display:flex; gap:10px;">
+      <button id="btnPrev" class="btn">Back</button>
+      <button id="btnNext" class="btn primary">Next</button>
+      <button id="btnExit" class="btn">Exit</button>
     </div>
-  </main>
+  </div>
 
-  <!-- UI hardening (safe on every page) -->
-  <script src="/ui.js" defer></script>
+  <script type="module" src="/core/app-controller.js"></script>
 
-  <!-- App controller (spine: /app.html?flow=&stage=) -->
-  <script src="/core/app-controller.js" defer></script>
-
-  <!-- Header + controls (canonical: /partials only) -->
-  <script src="/header-loader.js" defer></script>
-  <script src="/partials/header.js" defer></script>
-  <script src="/i18n.js" defer></script>
-
-  <!-- AUTH CORE (required on all pages) -->
-  <script type="module" src="/gate.js"></script>
 </body>
 </html>
