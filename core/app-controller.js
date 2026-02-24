@@ -1,21 +1,24 @@
-/* /core/app-controller.js
-   App controller: /app.html?flow=&stage=
-   v1: local-only state (localStorage). No Firestore yet.
-   Enforces linear stage order and provides a single render mount.
+/* core/app-controller.js
+   Canonical App Controller
+   - Flow plugins define their own stages.
+   - Controller delegates stage logic to plugin.
+   - Deterministic routing via URL.
 */
+
 (function () {
   "use strict";
 
-  async function loadFlow(flowId) {
-    if (flowId === "rfo") {
-      const mod = await import("/flows/rfo/rfo-flow.js");
-      return mod.rfoFlow;
-    }
-    return null;
+  const stageEl = document.querySelector("#stage");
+  const prevBtn = document.querySelector("#prevBtn");
+  const nextBtn = document.querySelector("#nextBtn");
+
+  const params = new URLSearchParams(location.search);
+  const flow = params.get("flow") || "";
+  let stage = params.get("stage") || "";
+
+  function $(sel, root = document) {
+    return root.querySelector(sel);
   }
-
-
-  function $(sel, root = document) { return root.querySelector(sel); }
 
   function escapeHtml(s) {
     return String(s ?? "")
@@ -26,231 +29,126 @@
       .replaceAll("'", "&#39;");
   }
 
+  // -----------------------------
+  // Draft persistence (local only for now)
+  // -----------------------------
 
-  // Draft adapters for flow plugins.
-  // Keep plugin API stable even if internal draft helpers change.
-  function readDraftData() {
-    // Prefer existing helper if present.
-    try { return (typeof readDraft === "function") ? (readDraft() || {}) : {}; }
-    catch (_) { return {}; }
-  }
-
-  function writeDraftData(next) {
-    try {
-      if (typeof writeDraft === "function") {
-        writeDraft(next || {});
-      } else if (typeof saveDraft === "function") {
-        // Some older modules used saveDraft()
-        saveDraft(next || {});
-      }
-    } catch (_) {}
-  }
-
-  const params = new URLSearchParams(location.search);
-  const flow = (params.get("flow") || "").trim();
-  const stage = (params.get("stage") || "").trim() || "intake";
-
-  // If no flow is specified, app.html behaves as the legacy hub.
-  if (!flow) return;
-
-  const STAGES = ["intake", "build", "review", "export"];
-  const stageIdx = STAGES.indexOf(stage);
-
-  function hardRedirect(toStage) {
-    const u = new URL(location.href);
-    u.searchParams.set("flow", flow);
-    u.searchParams.set("stage", toStage);
-    location.replace(u.toString());
-  }
-
-  if (stageIdx === -1) hardRedirect("intake");
-
-  const storageKey = `draft:${flow}:v1`;
+  const STORAGE_KEY = "sharpe:draft";
 
   function readDraft() {
     try {
-      const raw = localStorage.getItem(storageKey);
-      return raw ? JSON.parse(raw) : { meta: { flow, version: 1 }, data: {} };
-    } catch (_) {
-      return { meta: { flow, version: 1 }, data: {} };
+      return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+    } catch {
+      return {};
     }
   }
 
-  function writeDraft(draft) {
-    localStorage.setItem(storageKey, JSON.stringify(draft));
+  function writeDraft(data) {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data || {}));
+    } catch {}
   }
 
-  // Stage guard: prevent skipping ahead if required prerequisites are missing.
-  function canEnter(targetStage) {
-    const d = readDraft();
-    const hasAny = d && d.data && Object.keys(d.data).length > 0;
-
-    if (targetStage === "intake") return true;
-    if (targetStage === "build") return hasAny;   // must have intake started
-    if (targetStage === "review") return hasAny;  // placeholder; will tighten later
-    if (targetStage === "export") return hasAny;  // placeholder; will tighten later
-    return false;
+  // Aliases for flow plugins
+  function readDraftData() {
+    return readDraft() || {};
   }
 
-  if (!canEnter(stage)) hardRedirect("intake");
-
-  // Replace hub card with a controller surface.
-  const main = $("main.page");
-  if (!main) return;
-
-  main.innerHTML = `
-    <div class="container content">
-      <section class="card">
-        <div class="row" style="justify-content:space-between; align-items:center; gap:12px;">
-          <div>
-            <h1 style="margin:0;">Flow: ${escapeHtml(flow)}</h1>
-            <p class="muted" style="margin:6px 0 0;">Stage: ${escapeHtml(stage)}</p>
-          </div>
-          <div class="row" style="gap:10px; flex-wrap:wrap;">
-            <a class="button" href="/app.html">Exit</a>
-          </div>
-        </div>
-        <hr style="margin:14px 0; opacity:.25;">
-        <div id="app-stage"></div>
-        <div class="row" style="margin-top:14px; justify-content:space-between; gap:10px; flex-wrap:wrap;">
-          <button class="button" id="prevBtn" type="button">Back</button>
-          <button class="button primary" id="nextBtn" type="button">Next</button>
-        </div>
-      </section>
-    </div>
-  `;
-
-  const stageEl = $("#app-stage");
-  const prevBtn = $("#prevBtn");
-  const nextBtn = $("#nextBtn");
-
-  function gotoStage(i) {
-    const s = STAGES[i];
-    if (!s) return;
-    const u = new URL(location.href);
-    u.searchParams.set("flow", flow);
-    u.searchParams.set("stage", s);
-    location.href = u.toString();
+  function writeDraftData(data) {
+    writeDraft(data || {});
   }
 
-  // Minimal stage renderers (stubs). Replace later with flow plugins.
+  // -----------------------------
+  // Flow loader
+  // -----------------------------
 
-  function renderIntake() {
-    const d = readDraft();
-    stageEl.innerHTML = `
-      <h2>Intake (stub)</h2>
-      <p class="muted">Enter anything to create draft state.</p>
-      <label class="label">One field to prove persistence</label>
-      <input class="input" id="intakeField" placeholder="type something..." value="${escapeHtml(d.data.intakeField || "")}">
-    `;
-    const input = $("#intakeField");
-    input.addEventListener("input", () => {
-      const draft = readDraft();
-      draft.data.intakeField = input.value;
-      writeDraft(draft);
-    });
-  }
+  async function loadFlow(flowId) {
+    if (!flowId) return null;
 
-  function renderBuild() {
-    const d = readDraft();
-    stageEl.innerHTML = `
-      <h2>Build (stub)</h2>
-      <p class="muted">Proof that stage navigation is linear and draft is shared.</p>
-      <div class="card" style="padding:12px;">
-        <div><strong>intakeField:</strong> ${escapeHtml(d.data.intakeField || "(empty)")}</div>
-      </div>
-    `;
-  }
-
-  function renderReview() {
-    const d = readDraft();
-    stageEl.innerHTML = `
-      <h2>Review (stub)</h2>
-      <pre style="white-space:pre-wrap; overflow:auto; max-height:320px; padding:12px; border:1px solid rgba(127,127,127,.25); border-radius:12px;">${escapeHtml(JSON.stringify(d, null, 2))}</pre>
-    `;
-  }
-
-  function renderExport() {
-    stageEl.innerHTML = `
-      <h2>Export</h2>
-      <p class="muted">Creates a job via POST /api/pdf/fill and redirects to print surface.</p>
-      <button class="button primary" id="createJobBtn" type="button">Create Job</button>
-      <div id="exportStatus" class="muted" style="margin-top:12px;"></div>
-    `;
-
-    const btn = $("#createJobBtn");
-    const status = $("#exportStatus");
-
-    btn.addEventListener("click", async () => {
-      btn.disabled = true;
-      status.textContent = "Creating job…";
-
-      try {
-        const draft = readDraft();
-
-        const res = await fetch("/api/pdf/fill", {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ flow, draft })
-        });
-
-        const json = await res.json();
-        if (!res.ok || !json.jobId) throw new Error("Invalid job response");
-
-        location.href = "/print.html?job=" + encodeURIComponent(json.jobId);
-      } catch (err) {
-        status.textContent = "Failed: " + (err?.message || err);
-        btn.disabled = false;
+    try {
+      if (flowId === "rfo") {
+        const mod = await import("/flows/rfo/rfo-flow.js");
+        return mod.rfoFlow;
       }
-    });
+    } catch (e) {
+      console.error("Failed to load flow:", flowId, e);
+    }
+
+    return null;
   }
+
+  // -----------------------------
+  // Navigation
+  // -----------------------------
+
+  function gotoStage(flowPlugin, idx) {
+    const stages = flowPlugin?.stages || [];
+    if (!stages.length) return;
+
+    const clamped = Math.max(0, Math.min(idx, stages.length - 1));
+    const nextStage = stages[clamped];
+
+    const url = new URL(location.href);
+    url.searchParams.set("flow", flow);
+    url.searchParams.set("stage", nextStage);
+    location.href = url.toString();
+  }
+
+  // -----------------------------
+  // Render
+  // -----------------------------
+
   async function render() {
     const flowPlugin = await loadFlow(flow);
 
-    // If a flow plugin exists, let it render stages.
-    if (flowPlugin && typeof flowPlugin.render === "function") {
-      try {
-      const maybePromise = flowPlugin.render(stage, {
+    if (!flowPlugin) {
+      stageEl.innerHTML = `<p class="muted">Flow not found.</p>`;
+      return;
+    }
+
+    const stages = flowPlugin.stages || [];
+    if (!stages.length) {
+      stageEl.innerHTML = `<p class="muted">No stages defined.</p>`;
+      return;
+    }
+
+    let stageIdx = stages.indexOf(stage);
+    if (stageIdx < 0) {
+      stageIdx = 0;
+      const url = new URL(location.href);
+      url.searchParams.set("stage", stages[0]);
+      location.replace(url.toString());
+      return;
+    }
+
+    try {
+      await flowPlugin.render(stage, {
         stageEl,
         flow,
         stage,
         readDraftData,
         writeDraftData,
-        renderExport
+        renderExport: () => {
+          stageEl.innerHTML = `
+            <h2>Export</h2>
+            <p class="muted">Print-ready output generation goes here.</p>
+          `;
+        }
       });
-      if (maybePromise && typeof maybePromise.then === "function") await maybePromise;
     } catch (e) {
-      console.error("Flow plugin render failed; falling back to legacy renderer:", e);
-      // Fallback: legacy stubs
-      if (stage === "intake") renderIntake();
-      else if (stage === "build") renderBuild();
-      else if (stage === "review") renderReview();
-      else if (stage === "export") renderExport();
-    }
-    } else {
-      // Fallback: legacy stubs
-      if (stage === "intake") renderIntake();
-      else if (stage === "build") renderBuild();
-      else if (stage === "review") renderReview();
-      else if (stage === "export") renderExport();
+      console.error("Flow render failed:", e);
+      stageEl.innerHTML = `<p class="muted">Render error. See console.</p>`;
+      return;
     }
 
+    // Button states
     prevBtn.disabled = stageIdx <= 0;
+    nextBtn.disabled = stageIdx >= stages.length - 1;
 
-    // Stage-specific CTA labeling.
-    if (stage === "review") nextBtn.textContent = "Export";
-    else nextBtn.textContent = "Next";
-
-    // Export stage has its own primary action button.
-    if (stage === "export") nextBtn.style.display = "none";
-    else nextBtn.style.display = "";
-
-    nextBtn.disabled = stageIdx >= (STAGES.length - 1);
+    prevBtn.onclick = () => gotoStage(flowPlugin, stageIdx - 1);
+    nextBtn.onclick = () => gotoStage(flowPlugin, stageIdx + 1);
   }
 
-
-  prevBtn.addEventListener("click", () => gotoStage(stageIdx - 1));
-  nextBtn.addEventListener("click", () => gotoStage(stageIdx + 1));
-
   render().catch(console.error);
+
 })();
