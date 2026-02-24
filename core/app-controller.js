@@ -8,6 +8,15 @@
 
   function $(sel, root = document) { return root.querySelector(sel); }
 
+  function escapeHtml(s) {
+    return String(s ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#39;");
+  }
+
   const params = new URLSearchParams(location.search);
   const flow = (params.get("flow") || "").trim();
   const stage = (params.get("stage") || "").trim() || "intake";
@@ -48,9 +57,9 @@
     const hasAny = d && d.data && Object.keys(d.data).length > 0;
 
     if (targetStage === "intake") return true;
-    if (targetStage === "build") return hasAny;         // must have intake started
-    if (targetStage === "review") return hasAny;        // placeholder; will tighten later
-    if (targetStage === "export") return hasAny;        // placeholder; will tighten later
+    if (targetStage === "build") return hasAny;   // must have intake started
+    if (targetStage === "review") return hasAny;  // placeholder; will tighten later
+    if (targetStage === "export") return hasAny;  // placeholder; will tighten later
     return false;
   }
 
@@ -86,15 +95,6 @@
   const prevBtn = $("#prevBtn");
   const nextBtn = $("#nextBtn");
 
-  function escapeHtml(s) {
-    return String(s ?? "")
-      .replaceAll("&", "&amp;")
-      .replaceAll("<", "&lt;")
-      .replaceAll(">", "&gt;")
-      .replaceAll('"', "&quot;")
-      .replaceAll("'", "&#39;");
-  }
-
   function gotoStage(i) {
     const s = STAGES[i];
     if (!s) return;
@@ -104,12 +104,13 @@
     location.href = u.toString();
   }
 
-  // Minimal stage renderers (stubs). We will replace these with flow plugins.
+  // Minimal stage renderers (stubs). Replace later with flow plugins.
+
   function renderIntake() {
     const d = readDraft();
     stageEl.innerHTML = `
       <h2>Intake (stub)</h2>
-      <p class="muted">This is the first enforced stage. Enter anything to create draft state.</p>
+      <p class="muted">Enter anything to create draft state.</p>
       <label class="label">One field to prove persistence</label>
       <input class="input" id="intakeField" placeholder="type something..." value="${escapeHtml(d.data.intakeField || "")}">
     `;
@@ -142,10 +143,37 @@
 
   function renderExport() {
     stageEl.innerHTML = `
-      <h2>Export (stub)</h2>
-      <p class="muted">Next step will be POST /api/pdf/fill and create a Job.</p>
-      <p class="muted">For now this is just a placeholder stage.</p>
+      <h2>Export</h2>
+      <p class="muted">Creates a job via POST /api/pdf/fill and redirects to print surface.</p>
+      <button class="button primary" id="createJobBtn" type="button">Create Job</button>
+      <div id="exportStatus" class="muted" style="margin-top:12px;"></div>
     `;
+
+    const btn = $("#createJobBtn");
+    const status = $("#exportStatus");
+
+    btn.addEventListener("click", async () => {
+      btn.disabled = true;
+      status.textContent = "Creating job…";
+
+      try {
+        const draft = readDraft();
+
+        const res = await fetch("/api/pdf/fill", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ flow, draft })
+        });
+
+        const json = await res.json();
+        if (!res.ok || !json.jobId) throw new Error("Invalid job response");
+
+        location.href = "/print.html?job=" + encodeURIComponent(json.jobId);
+      } catch (err) {
+        status.textContent = "Failed: " + (err?.message || err);
+        btn.disabled = false;
+      }
+    });
   }
 
   function render() {
