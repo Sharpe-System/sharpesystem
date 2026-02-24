@@ -1,26 +1,22 @@
-/* core/app-controller.js
-   Canonical App Controller
-   - Flow plugins define their own stages.
-   - Controller delegates stage logic to plugin.
-   - Deterministic routing via URL.
+/* /core/app-controller.js
+   Canonical plugin-driven app controller (v1)
+
+   Contract:
+   - Single editing surface: /app.html?flow=&stage=
+   - Flow plugins may provide:
+       export const <id>Flow = { id, title, stages:[], render(stage, ctx) }
+   - Controller owns:
+       - stage routing
+       - draft read/write (localStorage for now)
+       - export stub routing to /print.html?job=
 */
 
 (function () {
   "use strict";
 
-  const stageEl = document.querySelector("#stage");
-  const prevBtn = document.querySelector("#prevBtn");
-  const nextBtn = document.querySelector("#nextBtn");
+  function $(sel, root = document) { return root.querySelector(sel); }
 
-  const params = new URLSearchParams(location.search);
-  const flow = params.get("flow") || "";
-  let stage = params.get("stage") || "";
-
-  function $(sel, root = document) {
-    return root.querySelector(sel);
-  }
-
-  function escapeHtml(s) {
+  function esc(s) {
     return String(s ?? "")
       .replaceAll("&", "&amp;")
       .replaceAll("<", "&lt;")
@@ -29,126 +25,188 @@
       .replaceAll("'", "&#39;");
   }
 
-  // -----------------------------
-  // Draft persistence (local only for now)
-  // -----------------------------
+  async function loadFlow(flowId) {
+    if (flowId === "rfo") {
+      const mod = await import("/flows/rfo/rfo-flow.js");
+      return mod.rfoFlow || null;
+    }
+    return null;
+  }
 
-  const STORAGE_KEY = "sharpe:draft";
+  // ---------- URL state ----------
+  const url = new URL(location.href);
+  const flow = (url.searchParams.get("flow") || "rfo").trim();
+  const stageFromUrl = (url.searchParams.get("stage") || "intake").trim();
 
-  function readDraft() {
+  // ---------- DOM ----------
+  const stageEl = $("#stage");
+  const titleEl = $("#flowTitle");
+  const subEl = $("#flowSub");
+  const prevBtn = $("#btnPrev");
+  const nextBtn = $("#btnNext");
+  const exitBtn = $("#btnExit");
+
+  if (!stageEl || !prevBtn || !nextBtn) {
+    console.error("App controller: missing required DOM nodes (#stage/#btnPrev/#btnNext).");
+    return;
+  }
+
+  // ---------- Draft storage ----------
+  const DRAFT_KEY = `ss:draft:${flow}`;
+
+  function readDraftData() {
     try {
-      return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
-    } catch {
+      const raw = localStorage.getItem(DRAFT_KEY);
+      return raw ? JSON.parse(raw) : {};
+    } catch (e) {
+      console.warn("Draft read failed:", e);
       return {};
     }
   }
 
-  function writeDraft(data) {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data || {}));
-    } catch {}
-  }
-
-  // Aliases for flow plugins
-  function readDraftData() {
-    return readDraft() || {};
-  }
-
   function writeDraftData(data) {
-    writeDraft(data || {});
-  }
-
-  // -----------------------------
-  // Flow loader
-  // -----------------------------
-
-  async function loadFlow(flowId) {
-    if (!flowId) return null;
-
     try {
-      if (flowId === "rfo") {
-        const mod = await import("/flows/rfo/rfo-flow.js");
-        return mod.rfoFlow;
-      }
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(data || {}));
     } catch (e) {
-      console.error("Failed to load flow:", flowId, e);
+      console.warn("Draft write failed:", e);
     }
-
-    return null;
   }
 
-  // -----------------------------
-  // Navigation
-  // -----------------------------
-
-  function gotoStage(flowPlugin, idx) {
-    const stages = flowPlugin?.stages || [];
-    if (!stages.length) return;
-
-    const clamped = Math.max(0, Math.min(idx, stages.length - 1));
-    const nextStage = stages[clamped];
-
-    const url = new URL(location.href);
-    url.searchParams.set("flow", flow);
-    url.searchParams.set("stage", nextStage);
-    location.href = url.toString();
+  // ---------- Navigation helpers ----------
+  function setStageParam(nextStage, replace = false) {
+    const u = new URL(location.href);
+    u.searchParams.set("flow", flow);
+    u.searchParams.set("stage", nextStage);
+    if (replace) location.replace(u.toString());
+    else location.href = u.toString();
   }
 
-  // -----------------------------
-  // Render
-  // -----------------------------
+  function clamp(n, lo, hi) {
+    return Math.max(lo, Math.min(hi, n));
+  }
 
-  async function render() {
+  function renderExportStub() {
+    const d = readDraftData();
+    stageEl.innerHTML = `
+      <h2>Export</h2>
+      <p class="muted">This is the export stub. It creates a print job and opens the print surface.</p>
+
+      <div class="card" style="margin-top:12px;">
+        <div class="muted" style="margin-bottom:10px;">Flow: <code>${esc(flow)}</code></div>
+        <pre style="white-space:pre-wrap; margin:0; opacity:.9;">${esc(JSON.stringify(d, null, 2))}</pre>
+
+        <div style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap;">
+          <button class="btn primary" id="btnGenerate">Generate print job</button>
+          <button class="btn" id="btnClearDraft">Clear local draft</button>
+        </div>
+      </div>
+    `;
+
+    const gen = $("#btnGenerate");
+    const clr = $("#btnClearDraft");
+
+    if (gen) {
+      gen.addEventListener("click", () => {
+        // v1: jobId is client-generated; /api/jobs/:id is stubbed anyway.
+        const jobId = (crypto?.randomUUID?.() || (Date.now() + "-" + Math.random().toString(16).slice(2)));
+        location.href = "/print.html?job=" + encodeURIComponent(jobId);
+      });
+    }
+    if (clr) {
+      clr.addEventListener("click", () => {
+        localStorage.removeItem(DRAFT_KEY);
+        location.reload();
+      });
+    }
+  }
+
+  // ---------- Main ----------
+  (async function main() {
     const flowPlugin = await loadFlow(flow);
 
-    if (!flowPlugin) {
-      stageEl.innerHTML = `<p class="muted">Flow not found.</p>`;
-      return;
-    }
+    const stages = Array.isArray(flowPlugin?.stages) && flowPlugin.stages.length
+      ? flowPlugin.stages
+      : ["intake", "build", "review", "export"];
 
-    const stages = flowPlugin.stages || [];
-    if (!stages.length) {
-      stageEl.innerHTML = `<p class="muted">No stages defined.</p>`;
-      return;
-    }
-
-    let stageIdx = stages.indexOf(stage);
+    let stageIdx = stages.indexOf(stageFromUrl);
     if (stageIdx < 0) {
-      stageIdx = 0;
-      const url = new URL(location.href);
-      url.searchParams.set("stage", stages[0]);
-      location.replace(url.toString());
+      // Normalize unknown stage to first stage and fix URL once.
+      setStageParam(stages[0], true);
       return;
     }
 
-    try {
-      await flowPlugin.render(stage, {
-        stageEl,
-        flow,
-        stage,
-        readDraftData,
-        writeDraftData,
-        renderExport: () => {
-          stageEl.innerHTML = `
-            <h2>Export</h2>
-            <p class="muted">Print-ready output generation goes here.</p>
-          `;
+    // Header copy
+    if (titleEl) titleEl.textContent = `Flow: ${flow}`;
+    if (subEl) subEl.textContent = `Stage: ${stages[stageIdx]}`;
+
+    function updateNavUI() {
+      prevBtn.disabled = stageIdx <= 0;
+      nextBtn.disabled = stageIdx >= (stages.length - 1);
+
+      // Stage-specific CTA labeling
+      if (stages[stageIdx] === "review") nextBtn.textContent = "Export";
+      else nextBtn.textContent = "Next";
+
+      // Hide Next on export stage (export has its own primary action)
+      if (stages[stageIdx] === "export") nextBtn.style.display = "none";
+      else nextBtn.style.display = "";
+    }
+
+    function gotoStage(idx) {
+      const nextIdx = clamp(idx, 0, stages.length - 1);
+      const nextStage = stages[nextIdx];
+      setStageParam(nextStage, false);
+    }
+
+    async function render() {
+      // Update header each render
+      if (subEl) subEl.textContent = `Stage: ${stages[stageIdx]}`;
+
+      try {
+        if (flowPlugin && typeof flowPlugin.render === "function") {
+          // Provide a stable ctx contract
+          flowPlugin.render(stages[stageIdx], {
+            stageEl,
+            flow,
+            stage: stages[stageIdx],
+            readDraftData,
+            writeDraftData,
+            renderExport: renderExportStub
+          });
+        } else {
+          // Minimal fallback if no plugin loads
+          if (stages[stageIdx] === "export") renderExportStub();
+          else {
+            stageEl.innerHTML = `
+              <h2>${esc(stages[stageIdx])}</h2>
+              <p class="muted">No flow plugin loaded for <code>${esc(flow)}</code>.</p>
+            `;
+          }
         }
-      });
-    } catch (e) {
-      console.error("Flow render failed:", e);
-      stageEl.innerHTML = `<p class="muted">Render error. See console.</p>`;
-      return;
+      } catch (e) {
+        console.error("Flow render failed:", e);
+        stageEl.innerHTML = `
+          <h2>Render error</h2>
+          <p class="muted">The flow plugin crashed while rendering this stage.</p>
+          <pre style="white-space:pre-wrap;">${esc(String(e?.stack || e))}</pre>
+        `;
+      }
+
+      updateNavUI();
     }
 
-    // Button states
-    prevBtn.disabled = stageIdx <= 0;
-    nextBtn.disabled = stageIdx >= stages.length - 1;
+    // Wire nav
+    prevBtn.addEventListener("click", () => gotoStage(stageIdx - 1));
+    nextBtn.addEventListener("click", () => gotoStage(stageIdx + 1));
 
-    prevBtn.onclick = () => gotoStage(flowPlugin, stageIdx - 1);
-    nextBtn.onclick = () => gotoStage(flowPlugin, stageIdx + 1);
-  }
+    // Exit just returns to home (safe default)
+    if (exitBtn) exitBtn.addEventListener("click", () => { location.href = "/home.html"; });
 
-  render().catch(console.error);
-
+    // If user navigated via URL, stageIdx needs to track current stage
+    // (We re-run controller on each page load; so just render once here.)
+    await render();
+  })().catch((e) => {
+    console.error("App controller init failed:", e);
+    stageEl.innerHTML = `<pre>${esc(String(e?.stack || e))}</pre>`;
+  });
 })();
