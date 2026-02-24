@@ -1,0 +1,159 @@
+// functions/api/render/fl300.js
+//
+// POST /api/render/fl300
+// Body JSON: { data: { ...fields... } }
+// Returns: application/pdf (filled + flattened)
+//
+// v1 scope:
+// - Fills a small “vertical slice” (6–10 fields) into the OFFICIAL FL-300 PDF.
+// - Deterministic: template PDF is the repo file /templates/jcc/fl300/FL-300.pdf
+// - Overflow: flags fields whose text is likely too long (attachment generation is next phase).
+
+import { PDFDocument } from "pdf-lib";
+
+export async function onRequest(context) {
+  if (context.request.method !== "POST") {
+    return new Response(JSON.stringify({ ok: false, error: "Method Not Allowed" }, null, 2), {
+      status: 405,
+      headers: { "content-type": "application/json; charset=utf-8" }
+    });
+  }
+
+  let body = null;
+  try {
+    body = await context.request.json();
+  } catch (_) {
+    body = null;
+  }
+
+  const data = (body && typeof body === "object" && body.data && typeof body.data === "object")
+    ? body.data
+    : {};
+
+  // Fetch the official template from the deployed site’s static assets.
+  // (Works on Pages: template lives in the same project and is publicly readable.)
+  const templateUrl = new URL("/templates/jcc/fl300/FL-300.pdf", context.request.url);
+  const templateRes = await fetch(templateUrl.toString(), { method: "GET" });
+
+  if (!templateRes.ok) {
+    return new Response(JSON.stringify({
+      ok: false,
+      error: "Template fetch failed",
+      status: templateRes.status,
+      templateUrl: templateUrl.toString()
+    }, null, 2), {
+      status: 500,
+      headers: { "content-type": "application/json; charset=utf-8" }
+    });
+  }
+
+  const templateBytes = new Uint8Array(await templateRes.arrayBuffer());
+
+  const overflow = [];
+
+  function asText(v) {
+    return String(v ?? "").trim();
+  }
+
+  function maybeMaxLenByField(fieldName) {
+    // Heuristic only (v1). Real sizing needs field rect + font metrics.
+    // Keep conservative so we don’t “machine-fill” beyond boxes.
+    if (/CaseNumber/i.test(fieldName)) return 20;
+    if (/(County|CrtCounty)/i.test(fieldName)) return 25;
+    if (/(Branch|Courthouse)/i.test(fieldName)) return 35;
+    if (/(Petitioner|Respondent|OtherParent)/i.test(fieldName)) return 45;
+    if (/(AttyName|AttyFirm)/i.test(fieldName)) return 45;
+    return 60;
+  }
+
+  function fitOrFlag(fieldName, value) {
+    const s = asText(value);
+    if (!s) return s;
+    const maxLen = maybeMaxLenByField(fieldName);
+    if (s.length > maxLen) {
+      overflow.push({ field: fieldName, value: s, maxLen });
+      // v1 behavior: truncate with ellipsis so the printed form stays clean.
+      // v2: auto-generate MC-030/MC-025 attachment and put full text there.
+      return s.slice(0, Math.max(0, maxLen - 1)) + "…";
+    }
+    return s;
+  }
+
+  function safeSetText(form, fieldName, value) {
+    const v = fitOrFlag(fieldName, value);
+    if (!v) return;
+
+    try {
+      const f = form.getTextField(fieldName);
+      f.setText(v);
+      return;
+    } catch (_) {}
+
+    // Some “text-like” fields might not be text fields; fail silently for v1.
+    // We intentionally do not throw: the endpoint must always produce a PDF.
+  }
+
+  function safeCheck(form, fieldName, checked) {
+    const on = !!checked;
+    try {
+      const cb = form.getCheckBox(fieldName);
+      if (on) cb.check();
+      else cb.uncheck();
+    } catch (_) {}
+  }
+
+  try {
+    const pdfDoc = await PDFDocument.load(templateBytes, { ignoreEncryption: true });
+    const form = pdfDoc.getForm();
+
+    // --- Vertical slice mapping (6–10 fields) ---
+    // These names come directly from your extracted FL-300 field list.
+
+    // Court info
+    safeSetText(form, "FL-300[0].Page1[0].CourtInfo[0].CrtCounty_ft[0]", data.courtCounty);
+    safeSetText(form, "FL-300[0].Page1[0].CourtInfo[0].Branch_ft[0]", data.courtBranch);
+    safeSetText(form, "FL-300[0].Page1[0].CaseNumber[0].CaseNumber_ft[0]", data.caseNumber);
+
+    // Parties
+    safeSetText(form, "FL-300[0].Page1[0].TitlePartyName[0].Petitioner_1_ft[0]", data.petitioner);
+    safeSetText(form, "FL-300[0].Page1[0].TitlePartyName[0].Respondent_ft[0]", data.respondent);
+    safeSetText(form, "FL-300[0].Page1[0].TitlePartyName[0].OtherParentPart_ft[0]", data.otherParent);
+
+    // Your role (checkboxes in the “Name of party filing request” area)
+    // Note: the field list shows multiple petitioner checkboxes; we set one for v1.
+    if (data.role === "petitioner") {
+      safeCheck(form, "FL-300[0].Page1[0].List1[0].Li1[0].Petitioner_cb1[0]", true);
+    } else if (data.role === "respondent") {
+      safeCheck(form, "FL-300[0].Page1[0].List1[0].Li1[0].Petitioner_cb2[0]", true);
+    } else if (data.role === "other") {
+      safeCheck(form, "FL-300[0].Page1[0].List1[0].Li1[0].other_cb[0]", true);
+    }
+
+    // Filing party name line
+    safeSetText(form, "FL-300[0].Page1[0].List1[0].Li1[0].NameOfParty_ft[0]", data.filingPartyName);
+
+    // Flatten so it prints like a machine did it (no editable UI, no field borders)
+    form.flatten();
+
+    const outBytes = await pdfDoc.save();
+
+    return new Response(outBytes, {
+      status: 200,
+      headers: {
+        "content-type": "application/pdf",
+        "cache-control": "no-store",
+        "x-overflow-count": String(overflow.length),
+        "x-overflow-fields": overflow.map(o => o.field).join(",")
+      }
+    });
+  } catch (err) {
+    return new Response(JSON.stringify({
+      ok: false,
+      error: "Render failed",
+      message: String(err?.message || err)
+    }, null, 2), {
+      status: 500,
+      headers: { "content-type": "application/json; charset=utf-8" }
+    });
+  }
+}
