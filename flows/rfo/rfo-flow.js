@@ -1,82 +1,24 @@
 /* /flows/rfo/rfo-flow.js
-   RFO flow plugin (v1): stylized interview UI, no form vibes.
-   Data contract stored in localStorage under ss:draft:rfo
+   RFO Flow Plugin (v1)
+   Interview-style UI (non-form) that writes draft data.
+   The official court form is generated/previewed later.
 */
 
 export const rfoFlow = {
   id: "rfo",
-  title: "Request for Order",
+  title: "Request for Order (RFO)",
   stages: ["intake", "build", "review", "export"],
 
-  defaults() {
-    return {
-      petitionerName: "",
-      respondentName: "",
-      caseNumber: "",
-      county: "",
-      hearingDate: "",
-      hearingTime: "",
-      department: "",
-      courtroom: "",
-      requestChildCustody: true,
-      requestChildSupport: false,
-      notes: ""
-    };
-  },
-
-  render(stage, api) {
-    if (stage === "intake") return renderIntake(api);
-    if (stage === "build") return renderBuild(api);
-    if (stage === "review") return renderReview(api);
-    if (stage === "export") return api.renderExport(); // delegate to controller export stage
-    api.stageEl.innerHTML = `<p class="muted">Unknown stage.</p>`;
+  render(stage, ctx) {
+    if (stage === "intake") return renderIntake(ctx);
+    if (stage === "build") return renderBuild(ctx);
+    if (stage === "review") return renderReview(ctx);
+    if (stage === "export") return ctx.renderExport();
+    return renderIntake(ctx);
   }
 };
 
-function card(title, bodyHtml) {
-  return `
-    <section class="card" style="margin-bottom:12px;">
-      <h3 style="margin:0 0 8px 0;">${title}</h3>
-      ${bodyHtml}
-    </section>
-  `;
-}
-
-function field(label, html, hint = "") {
-  return `
-    <div style="margin:12px 0;">
-      <div style="font-weight:600; margin-bottom:6px;">${label}</div>
-      ${html}
-      ${hint ? `<div class="muted" style="margin-top:6px;">${hint}</div>` : ``}
-    </div>
-  `;
-}
-
-function select(label, id, options, value) {
-  const opts = options
-    .map(o => `<option value="${escapeHtml(o.value)}" ${o.value === value ? "selected" : ""}>${escapeHtml(o.label)}</option>`)
-    .join("");
-  return field(label, `<select id="${id}" class="input" style="width:100%;">${opts}</select>`);
-}
-
-function input(label, id, value, placeholder = "") {
-  return field(label, `<input id="${id}" class="input" style="width:100%;" value="${escapeHtml(value || "")}" placeholder="${escapeHtml(placeholder)}" />`);
-}
-
-function toggle(label, id, checked) {
-  return `
-    <label style="display:flex; align-items:center; gap:10px; margin:10px 0;">
-      <input id="${id}" type="checkbox" ${checked ? "checked" : ""} />
-      <span style="font-weight:600;">${label}</span>
-    </label>
-  `;
-}
-
-function textarea(label, id, value, hint = "") {
-  return field(label, `<textarea id="${id}" class="input" style="width:100%; min-height:120px;">${escapeHtml(value || "")}</textarea>`, hint);
-}
-
-function escapeHtml(s) {
+function esc(s) {
   return String(s ?? "")
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
@@ -85,156 +27,159 @@ function escapeHtml(s) {
     .replaceAll("'", "&#39;");
 }
 
-function renderIntake(api) {
-  const d = api.readDraftData();
-
-  api.stageEl.innerHTML = `
-    ${card("Case basics", `
-      <p class="muted" style="margin-top:0;">
-        Answer in plain English. We’ll generate the official court form at the end.
-      </p>
-      ${input("Petitioner name", "petitionerName", d.petitionerName, "e.g., Jane Doe")}
-      ${input("Respondent name", "respondentName", d.respondentName, "e.g., John Doe")}
-      ${input("Case number", "caseNumber", d.caseNumber, "e.g., 23D012345")}
-    `)}
-    ${card("Court (optional now)", `
-      ${select("County", "county", [
-        { label: "Select…", value: "" },
-        { label: "Orange", value: "Orange" },
-        { label: "Los Angeles", value: "Los Angeles" },
-        { label: "San Diego", value: "San Diego" },
-        { label: "Riverside", value: "Riverside" }
-      ], d.county)}
-      ${input("Hearing date", "hearingDate", d.hearingDate, "MM/DD/YYYY")}
-      ${input("Hearing time", "hearingTime", d.hearingTime, "e.g., 8:30 AM")}
-      ${input("Department", "department", d.department, "e.g., D12")}
-      ${input("Courtroom", "courtroom", d.courtroom, "e.g., C")}
-    `)}
-  `;
-
-  wireCommon(api);
+function read(ctx) {
+  const d = ctx.readDraftData?.() || {};
+  d.rfo = d.rfo || {};
+  return d;
 }
 
-function renderBuild(api) {
-  const d = api.readDraftData();
-
-  api.stageEl.innerHTML = `
-    ${card("What are you asking the court for?", `
-      <div class="muted" style="margin-bottom:8px;">
-        Pick the buckets; you’ll provide the narrative later (declaration / attachments).
-      </div>
-      ${toggle("Child custody / visitation", "requestChildCustody", !!d.requestChildCustody)}
-      ${toggle("Child support", "requestChildSupport", !!d.requestChildSupport)}
-      ${textarea("Internal notes (not printed yet)", "notes", d.notes, "This is for your drafting pipeline. We decide later what goes onto the official form vs attachments.")}
-    `)}
-  `;
-
-  wireCommon(api);
+function write(ctx, d) {
+  ctx.writeDraftData?.(d);
 }
 
-function renderReview(api) {
-  const d = api.readDraftData();
+function renderIntake(ctx) {
+  const d = read(ctx);
+  const r = d.rfo;
 
-  api.stageEl.innerHTML = `
-    ${card("Official form preview (end reveal)", `
-      <p class="muted" style="margin-top:0;">
-        Below is the official FL-300 generated from your answers.
-        Left = watermarked preview. Right = clean export (upgrade).
-      </p>
+  ctx.stageEl.innerHTML = `
+    <h2>RFO Interview</h2>
+    <p class="muted">Answer in plain English. We’ll show the official form at the end.</p>
 
-      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; align-items:start;">
-        <div class="card" style="margin:0;">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-            <strong>Preview</strong>
-            <span class="muted" style="font-size:12px;">Watermarked</span>
-          </div>
-          <iframe
-            src="/rfo/fl300-print.html?flow=rfo&watermark=1"
-            style="width:100%; height:70vh; border:none; border-radius:12px;"
-          ></iframe>
+    <div class="card" style="margin-top:12px;">
+      <label class="label">Court county</label>
+      <input class="input" id="rfo_county" placeholder="e.g., Orange" value="${esc(r.county || "")}" />
+
+      <label class="label" style="margin-top:10px;">Courthouse / Branch</label>
+      <input class="input" id="rfo_branch" placeholder="e.g., Lamoreaux Justice Center" value="${esc(r.branch || "")}" />
+
+      <div class="row" style="gap:10px; margin-top:12px; flex-wrap:wrap;">
+        <div style="flex:1; min-width:220px;">
+          <label class="label">Case number</label>
+          <input class="input" id="rfo_case" placeholder="XX-XXXXXX" value="${esc(r.caseNumber || "")}" />
         </div>
-
-        <div class="card" style="margin:0;">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-            <strong>Upgrade</strong>
-            <span class="muted" style="font-size:12px;">Clean</span>
-          </div>
-          <div id="entitlementBox" class="muted">Checking access…</div>
-          <div id="cleanFrameWrap" style="display:none;">
-            <iframe
-              src="/rfo/fl300-print.html?flow=rfo"
-              style="width:100%; height:70vh; border:none; border-radius:12px;"
-            ></iframe>
-          </div>
+        <div style="flex:1; min-width:220px;">
+          <label class="label">Your role</label>
+          <select class="input" id="rfo_role">
+            ${opt(r.role, "", "Select…")}
+            ${opt(r.role, "petitioner", "Petitioner")}
+            ${opt(r.role, "respondent", "Respondent")}
+            ${opt(r.role, "other", "Other")}
+          </select>
         </div>
       </div>
-    `)}
+    </div>
 
-    ${card("Quick sanity check", `
-      <div class="muted">Petitioner: <code>${escapeHtml(d.petitionerName || "")}</code></div>
-      <div class="muted">Respondent: <code>${escapeHtml(d.respondentName || "")}</code></div>
-      <div class="muted">Case #: <code>${escapeHtml(d.caseNumber || "")}</code></div>
-    `)}
+    <p class="muted" style="margin-top:10px;">Saved locally for now (browser storage).</p>
   `;
 
-  wireEntitlements();
-  // Review stage doesn’t need input wiring.
-  // Still ensure draft exists:
-  api.writeDraftData(d);
+  wireSave(ctx, {
+    county: "#rfo_county",
+    branch: "#rfo_branch",
+    caseNumber: "#rfo_case",
+    role: "#rfo_role"
+  });
 }
 
-function wireCommon(api) {
-  const d = api.readDraftData();
+function renderBuild(ctx) {
+  const d = read(ctx);
+  const r = d.rfo;
 
-  const ids = [
-    "petitionerName","respondentName","caseNumber",
-    "county","hearingDate","hearingTime","department","courtroom",
-    "requestChildCustody","requestChildSupport","notes"
-  ];
+  ctx.stageEl.innerHTML = `
+    <h2>Requests</h2>
+    <p class="muted">Select what you’re requesting. Keep it simple.</p>
 
-  for (const id of ids) {
-    const el = document.getElementById(id);
-    if (!el) continue;
+    <div class="card" style="margin-top:12px;">
+      <label class="row" style="align-items:center; gap:10px;">
+        <input type="checkbox" id="req_custody" ${r.reqCustody ? "checked" : ""} />
+        <span>Child custody / visitation</span>
+      </label>
 
-    const isCheckbox = el.type === "checkbox";
-    const onChange = () => {
-      d[id] = isCheckbox ? !!el.checked : el.value;
-      api.writeDraftData(d);
-    };
+      <label class="row" style="align-items:center; gap:10px; margin-top:10px;">
+        <input type="checkbox" id="req_support" ${r.reqSupport ? "checked" : ""} />
+        <span>Child support</span>
+      </label>
 
-    el.addEventListener("change", onChange);
-    el.addEventListener("input", onChange);
-  }
+      <label class="row" style="align-items:center; gap:10px; margin-top:10px;">
+        <input type="checkbox" id="req_other" ${r.reqOther ? "checked" : ""} />
+        <span>Other</span>
+      </label>
 
-  api.writeDraftData(d);
+      <div style="margin-top:12px;">
+        <label class="label">Requested orders (plain English)</label>
+        <textarea class="input" id="req_details" rows="7"
+          placeholder="Example: Modify schedule to Tue/Thu + alternating weekends; adjust holiday schedule; recalculate guideline support…">${esc(r.requestDetails || "")}</textarea>
+      </div>
+    </div>
+  `;
+
+  const save = () => {
+    const d2 = read(ctx);
+    d2.rfo.reqCustody = !!document.querySelector("#req_custody")?.checked;
+    d2.rfo.reqSupport = !!document.querySelector("#req_support")?.checked;
+    d2.rfo.reqOther = !!document.querySelector("#req_other")?.checked;
+    d2.rfo.requestDetails = (document.querySelector("#req_details")?.value || "").trim();
+    write(ctx, d2);
+  };
+
+  ["#req_custody", "#req_support", "#req_other"].forEach(sel => {
+    const el = document.querySelector(sel);
+    if (el) el.addEventListener("change", save);
+  });
+  const ta = document.querySelector("#req_details");
+  if (ta) ta.addEventListener("input", save);
 }
 
-async function wireEntitlements() {
-  const box = document.getElementById("entitlementBox");
-  const wrap = document.getElementById("cleanFrameWrap");
-  if (!box || !wrap) return;
+function renderReview(ctx) {
+  const d = read(ctx);
+  const r = d.rfo;
 
-  try {
-    const res = await fetch("/api/entitlements", { cache: "no-store" });
-    const json = await res.json();
+  ctx.stageEl.innerHTML = `
+    <h2>Review</h2>
+    <p class="muted">Summary of your interview answers. Next step generates output.</p>
 
-    // v1 policy:
-    // - Stub endpoint => treat as NOT entitled so upgrade CTA is visible.
-    // Later: ok + tier/active flags come from real profile.
-    const entitled = !!(json && json.entitled);
+    <div class="card" style="margin-top:12px;">
+      <div><strong>County:</strong> ${esc(r.county || "—")}</div>
+      <div><strong>Branch:</strong> ${esc(r.branch || "—")}</div>
+      <div><strong>Case #:</strong> ${esc(r.caseNumber || "—")}</div>
+      <div><strong>Role:</strong> ${esc(r.role || "—")}</div>
 
-    if (entitled) {
-      box.style.display = "none";
-      wrap.style.display = "block";
-    } else {
-      box.innerHTML = `
-        <div class="muted" style="margin-bottom:10px;">Clean export is an upgrade.</div>
-        <a class="button primary" href="/billing.html">Upgrade to remove watermark</a>
-      `;
-      wrap.style.display = "none";
+      <hr style="margin:12px 0; opacity:.25;">
+
+      <div><strong>Requests:</strong></div>
+      <ul style="margin-top:6px;">
+        <li>Custody/Visitation: ${r.reqCustody ? "Yes" : "No"}</li>
+        <li>Child Support: ${r.reqSupport ? "Yes" : "No"}</li>
+        <li>Other: ${r.reqOther ? "Yes" : "No"}</li>
+      </ul>
+
+      <div style="margin-top:8px;"><strong>Details:</strong></div>
+      <div style="white-space:pre-wrap; margin-top:6px;">${esc(r.requestDetails || "—")}</div>
+    </div>
+
+    <p class="muted" style="margin-top:10px;">Click <strong>Export</strong> to continue.</p>
+  `;
+}
+
+function wireSave(ctx, map) {
+  function save() {
+    const d = read(ctx);
+    for (const [k, sel] of Object.entries(map)) {
+      const el = document.querySelector(sel);
+      if (!el) continue;
+      d.rfo[k] = String(el.value || "").trim();
     }
-  } catch (err) {
-    box.textContent = "Could not check access.";
-    wrap.style.display = "none";
+    write(ctx, d);
   }
+
+  for (const sel of Object.values(map)) {
+    const el = document.querySelector(sel);
+    if (!el) continue;
+    el.addEventListener("change", save);
+    el.addEventListener("input", save);
+  }
+}
+
+function opt(current, value, label) {
+  const sel = String(current ?? "") === String(value) ? "selected" : "";
+  return `<option value="${esc(value)}" ${sel}>${esc(label)}</option>`;
 }

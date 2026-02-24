@@ -6,6 +6,15 @@
 (function () {
   "use strict";
 
+  async function loadFlow(flowId) {
+    if (flowId === "rfo") {
+      const mod = await import("/flows/rfo/rfo-flow.js");
+      return mod.rfoFlow;
+    }
+    return null;
+  }
+
+
   function $(sel, root = document) { return root.querySelector(sel); }
 
   function escapeHtml(s) {
@@ -175,12 +184,26 @@
       }
     });
   }
+  async function render() {
+    const flowPlugin = await loadFlow(flow);
 
-  function render() {
-    if (stage === "intake") renderIntake();
-    else if (stage === "build") renderBuild();
-    else if (stage === "review") renderReview();
-    else if (stage === "export") renderExport();
+    // If a flow plugin exists, let it render stages.
+    if (flowPlugin && typeof flowPlugin.render === "function") {
+      flowPlugin.render(stage, {
+        stageEl,
+        flow,
+        stage,
+        readDraftData,
+        writeDraftData,
+        renderExport
+      });
+    } else {
+      // Fallback: legacy stubs
+      if (stage === "intake") renderIntake();
+      else if (stage === "build") renderBuild();
+      else if (stage === "review") renderReview();
+      else if (stage === "export") renderExport();
+    }
 
     prevBtn.disabled = stageIdx <= 0;
 
@@ -195,8 +218,9 @@
     nextBtn.disabled = stageIdx >= (STAGES.length - 1);
   }
 
+
   prevBtn.addEventListener("click", () => gotoStage(stageIdx - 1));
   nextBtn.addEventListener("click", () => gotoStage(stageIdx + 1));
 
-  render();
+  render().catch(console.error);
 })();
