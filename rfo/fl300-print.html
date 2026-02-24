@@ -4,228 +4,110 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>FL-300 — Print</title>
-  <meta name="description" content="Print-perfect FL-300 style output (SharpeSystem)." />
-
+  <link rel="stylesheet" href="/styles.css" />
   <style>
-    /* ---------- Print geometry ---------- */
-    @page { size: Letter; margin: 0.75in; }
-    @media print {
-      body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-      .no-print { display: none !important; }
+    :root { --box: rgba(0,0,0,.14); }
+    body { background: #fff; color: #111; }
+    .wrap { max-width: 960px; margin: 0 auto; padding: 18px; }
+    .topbar { display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px; }
+    .muted { opacity:.7; font-size: 13px; }
+    .paper {
+      border: 1px solid var(--box);
+      border-radius: 14px;
+      padding: 18px;
+      box-shadow: 0 12px 40px rgba(0,0,0,.12);
     }
-
-    /* ---------- Typography (clean, court-like) ---------- */
-    :root {
-      --ink: #111;
-      --muted: #444;
-      --hair: rgba(0,0,0,.18);
-      --hair2: rgba(0,0,0,.28);
-    }
-    html, body { height: 100%; }
-    body {
-      margin: 0;
-      color: var(--ink);
-      font: 12pt/1.35 ui-serif, Georgia, "Times New Roman", Times, serif;
-      background: #fff;
-    }
-
-    /* ---------- Layout ---------- */
-    .page {
-      max-width: 8.5in;
-      margin: 0 auto;
-      padding: 0.75in;
-      box-sizing: border-box;
-    }
-
-    .topbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 14px;
-    }
-
-    .btn {
-      appearance: none;
-      border: 1px solid var(--hair2);
-      background: #fff;
-      padding: 8px 12px;
-      border-radius: 10px;
-      cursor: pointer;
-      font: 12pt/1.1 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
-    }
-
-    .muted { color: var(--muted); }
-
-    /* Caption block: professional filing look */
-    .caption {
-      display: grid;
-      grid-template-columns: 1fr 2.2in;
-      gap: 14px;
-      align-items: start;
-    }
-
-    .caption .left {
-      border: 1px solid var(--hair2);
-      padding: 10px 12px;
-      min-height: 1.9in;
-    }
-
-    .caption .right {
-      border: 1px solid var(--hair2);
-      padding: 10px 12px;
-      min-height: 1.9in;
-    }
-
-    .fieldline {
-      display: flex;
-      gap: 10px;
-      align-items: baseline;
-      margin: 2px 0;
-      flex-wrap: wrap;
-    }
-    .label { font-weight: 600; }
-    .fill {
-      border-bottom: 1px solid var(--hair);
-      padding: 0 2px;
-      min-width: 180px;
-      display: inline-block;
-    }
-    .fill.short { min-width: 120px; }
-    .fill.long { min-width: 320px; }
-
-    .title {
-      text-align: center;
-      margin: 16px 0 8px;
-    }
-    .title h1 {
-      font: 16pt/1.2 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
-      margin: 0;
-      letter-spacing: .2px;
-    }
-    .title .sub {
-      margin-top: 4px;
-      font: 11pt/1.2 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
-      color: var(--muted);
-    }
-
-    hr.hair { border: none; border-top: 1px solid var(--hair); margin: 12px 0; }
-
-    .section {
-      margin-top: 12px;
-      border: 1px solid var(--hair2);
-      padding: 10px 12px;
-    }
-    .section h2 {
-      margin: 0 0 8px;
-      font: 12.5pt/1.2 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
-      letter-spacing: .2px;
-    }
-
-    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 16px; }
-    .bullets { margin: 6px 0 0 18px; }
-    .bullets li { margin: 2px 0; }
-
-    .block {
-      border: 1px solid var(--hair);
-      padding: 8px 10px;
+    .grid2 { display:grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .box { border: 1px solid var(--box); padding: 10px; min-height: 86px; }
+    .line { display:block; border-bottom: 1px solid var(--box); height: 18px; margin-top: 4px; }
+    .h1 { text-align:center; margin: 14px 0 8px; font-weight: 700; }
+    .section { border: 1px solid var(--box); margin-top: 12px; padding: 10px; }
+    .label { font-weight: 700; }
+    .row { display:flex; gap: 18px; flex-wrap: wrap; }
+    .kv { min-width: 220px; }
+    .fill { font-weight: 700; }
+    .textarea {
+      border: 1px solid var(--box);
       min-height: 90px;
+      padding: 10px;
       white-space: pre-wrap;
     }
-
-    .footer {
-      margin-top: 14px;
-      display: flex;
-      justify-content: space-between;
-      gap: 12px;
-      color: var(--muted);
-      font: 10.5pt/1.2 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+    .checks { margin-top: 6px; }
+    .check { display:flex; gap: 10px; align-items:center; margin-top: 6px; }
+    .cb {
+      width: 14px; height: 14px; border: 1px solid #111; display:inline-block;
     }
-
-    /* Small helper text */
-    .hint { font: 10.5pt/1.25 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; color: var(--muted); }
+    .cb.on { background: #111; }
+    .err { margin-top: 12px; padding: 10px; border: 1px solid #c00; color:#c00; border-radius: 12px; }
+    @media print {
+      .topbar { display:none !important; }
+      .paper { box-shadow:none; border:0; padding:0; }
+      .wrap { padding:0; }
+    }
   </style>
 </head>
 
 <body>
-  <div class="page">
-    <div class="topbar no-print">
+  <div class="wrap">
+    <div class="topbar">
       <div class="muted">SharpeSystem — Print-perfect output</div>
-      <div style="display:flex; gap:10px;">
-        <button class="btn" onclick="window.print()">Print</button>
-      </div>
+      <button class="btn" onclick="window.print()">Print</button>
     </div>
 
-    <div class="caption">
-      <div class="left">
-        <div class="fieldline"><span class="label">Attorney or Party Without Attorney:</span></div>
-        <div class="fieldline"><span class="fill long" data-bind="partyName"></span></div>
-        <div class="fieldline"><span class="label">Address:</span> <span class="fill long" data-bind="partyAddress"></span></div>
-        <div class="fieldline"><span class="label">Telephone:</span> <span class="fill" data-bind="partyPhone"></span></div>
-        <div class="fieldline"><span class="label">Email:</span> <span class="fill long" data-bind="partyEmail"></span></div>
-        <div class="fieldline"><span class="label">For Court Use Only:</span> <span class="fill long"></span></div>
-      </div>
-
-      <div class="right">
-        <div class="fieldline"><span class="label">SUPERIOR COURT OF CALIFORNIA</span></div>
-        <div class="fieldline"><span class="label">COUNTY OF</span> <span class="fill" data-bind="county"></span></div>
-        <div class="fieldline"><span class="label">Street Address:</span> <span class="fill long" data-bind="courtAddress"></span></div>
-        <div class="fieldline"><span class="label">City and Zip Code:</span> <span class="fill long" data-bind="courtCityZip"></span></div>
-        <div class="fieldline"><span class="label">Branch Name:</span> <span class="fill long" data-bind="courtBranch"></span></div>
-      </div>
-    </div>
-
-    <div class="title">
-      <h1>REQUEST FOR ORDER (FL-300) — Print Copy</h1>
-      <div class="sub">This is a print-perfect rendering for filing preparation. (Official court form output can be generated separately.)</div>
-    </div>
-
-    <div class="section">
-      <h2>Case Information</h2>
+    <div class="paper">
       <div class="grid2">
-        <div class="fieldline"><span class="label">Petitioner:</span> <span class="fill long" data-bind="petitioner"></span></div>
-        <div class="fieldline"><span class="label">Respondent:</span> <span class="fill long" data-bind="respondent"></span></div>
-        <div class="fieldline"><span class="label">Case Number:</span> <span class="fill" data-bind="caseNumber"></span></div>
-        <div class="fieldline"><span class="label">Hearing Date/Time:</span> <span class="fill" data-bind="hearingDateTime"></span></div>
+        <div class="box">
+          <div class="label">Attorney or Party Without Attorney:</div>
+          <div>Address:<span class="line"></span></div>
+          <div>Telephone:<span class="line"></span></div>
+          <div>Email:<span class="line"></span></div>
+          <div>For Court Use Only:<span class="line"></span></div>
+        </div>
+
+        <div class="box">
+          <div class="label">SUPERIOR COURT OF CALIFORNIA</div>
+          <div><span class="label">COUNTY OF</span> <span class="fill" id="v_county">—</span></div>
+          <div style="margin-top:6px;"><span class="label">Street Address:</span><span class="line"></span></div>
+          <div><span class="label">City and Zip Code:</span><span class="line"></span></div>
+          <div><span class="label">Branch Name:</span> <span class="fill" id="v_branch">—</span></div>
+        </div>
       </div>
-      <div class="hint" style="margin-top:8px;">Tip: Keep official hearing details blank until confirmed; this print copy can still be used as a working draft.</div>
-    </div>
 
-    <div class="section">
-      <h2>Orders Requested (High-Level)</h2>
-      <ul class="bullets">
-        <li><span data-bind="ordersRequested"></span></li>
-      </ul>
-      <div class="hint">This section is the clean summary. Supporting details go below.</div>
-    </div>
+      <div class="h1">REQUEST FOR ORDER (FL-300) — Print Copy</div>
+      <div class="muted" style="text-align:center;">
+        This is a print-perfect rendering for filing preparation. (Official court form output can be generated separately.)
+      </div>
 
-    <div class="section">
-      <h2>Custody / Visitation</h2>
-      <div class="block" data-bind="custodyText"></div>
-    </div>
+      <div class="section">
+        <div class="label">Case Information</div>
+        <div class="row" style="margin-top:8px;">
+          <div class="kv"><span class="label">Petitioner:</span> <span class="fill" id="v_petitioner">—</span></div>
+          <div class="kv"><span class="label">Respondent:</span> <span class="fill" id="v_respondent">—</span></div>
+        </div>
+        <div class="row" style="margin-top:10px;">
+          <div class="kv"><span class="label">Case Number:</span> <span class="fill" id="v_case">—</span></div>
+          <div class="kv"><span class="label">Your role:</span> <span class="fill" id="v_role">—</span></div>
+        </div>
+        <div class="muted" style="margin-top:8px;">
+          Tip: Keep official hearing details blank until confirmed; this print copy can still be used as a working draft.
+        </div>
+      </div>
 
-    <div class="section">
-      <h2>Support</h2>
-      <div class="block" data-bind="supportText"></div>
-    </div>
+      <div class="section">
+        <div class="label">Orders Requested (High-Level)</div>
+        <div class="checks" id="v_checks"></div>
+        <div class="muted" style="margin-top:6px;">This section is the clean summary. Supporting details go below.</div>
+      </div>
 
-    <div class="section">
-      <h2>Other Orders</h2>
-      <div class="block" data-bind="otherOrdersText"></div>
-    </div>
+      <div class="section">
+        <div class="label">Requested orders (plain English)</div>
+        <div class="textarea" id="v_details">—</div>
+      </div>
 
-    <div class="section">
-      <h2>Facts / Basis (Concise)</h2>
-      <div class="block" data-bind="factsText"></div>
-      <div class="hint" style="margin-top:8px;">If you have a full declaration, attach it separately and reference it in “Other Orders” / “Facts.”</div>
-    </div>
-
-    <div class="footer">
-      <div>Generated: <span data-bind="generatedAt"></span></div>
-      <div>SharpeSystem — v1</div>
+      <div id="v_err" class="err" style="display:none;"></div>
     </div>
   </div>
 
-  <script src="/rfo/fl300-print.js" defer></script>
+  <script type="module" src="/rfo/fl300-print.js"></script>
 </body>
 </html>
