@@ -17,7 +17,8 @@
     const res = await fetch("/api/jobs/" + encodeURIComponent(jobId));
     const json = await res.json();
 
-    if (!res.ok || !json.pdfUrl) {
+    const src = (json && (json.renderUrl || json.pdfUrl)) || "";
+    if (!res.ok || !src) {
       container.innerHTML = "<pre>" + JSON.stringify(json, null, 2) + "</pre>";
       return;
     }
@@ -25,8 +26,9 @@
     container.innerHTML = `
       <div style="margin-bottom:12px;">
         <button onclick="window.print()" style="padding:8px 14px; font-size:14px;">Print</button>
+        <span style="margin-left:10px; font: 12px system-ui; opacity:.7;">${json.renderUrl ? "Print-perfect render" : "PDF fallback"}</span>
       </div>
-      <iframe src="${json.pdfUrl}" style="width:100%; height:90vh; border:none;"></iframe>
+      <iframe src="${src}" style="width:100%; height:90vh; border:none;"></iframe>
     `;
   } catch (err) {
     container.innerHTML = "<pre>" + String(err) + "</pre>";
