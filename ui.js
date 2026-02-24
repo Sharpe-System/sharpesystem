@@ -17,6 +17,41 @@
 (function () {
   "use strict";
 
+  // ---------- API path enforcement ----------
+  // UI must never call /functions/... (Cloudflare Pages Functions internal path).
+  // All public endpoints must be under /api/...
+  (function enforceApiPrefix() {
+    try {
+      const badPrefix = "/functions/";
+
+      // Patch fetch
+      if (typeof window.fetch === "function") {
+        const _fetch = window.fetch.bind(window);
+        window.fetch = function (input, init) {
+          const url = (typeof input === "string") ? input : (input && input.url);
+          if (url && String(url).includes(badPrefix)) {
+            throw new Error("Blocked fetch to " + url + " — use /api/... not /functions/...");
+          }
+          return _fetch(input, init);
+        };
+      }
+
+      // Patch XHR
+      if (window.XMLHttpRequest) {
+        const _open = window.XMLHttpRequest.prototype.open;
+        window.XMLHttpRequest.prototype.open = function (method, url) {
+          if (url && String(url).includes(badPrefix)) {
+            throw new Error("Blocked XHR to " + url + " — use /api/... not /functions/...");
+          }
+          return _open.apply(this, arguments);
+        };
+      }
+    } catch (_) {
+      // Never break the UI layer if patching fails.
+    }
+  })();
+
+
   const UI = {};
   const doc = document;
 
