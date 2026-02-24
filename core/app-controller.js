@@ -209,7 +209,8 @@
 
     // If a flow plugin exists, let it render stages.
     if (flowPlugin && typeof flowPlugin.render === "function") {
-      flowPlugin.render(stage, {
+      try {
+      const maybePromise = flowPlugin.render(stage, {
         stageEl,
         flow,
         stage,
@@ -217,6 +218,15 @@
         writeDraftData,
         renderExport
       });
+      if (maybePromise && typeof maybePromise.then === "function") await maybePromise;
+    } catch (e) {
+      console.error("Flow plugin render failed; falling back to legacy renderer:", e);
+      // Fallback: legacy stubs
+      if (stage === "intake") renderIntake();
+      else if (stage === "build") renderBuild();
+      else if (stage === "review") renderReview();
+      else if (stage === "export") renderExport();
+    }
     } else {
       // Fallback: legacy stubs
       if (stage === "intake") renderIntake();
