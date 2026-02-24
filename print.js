@@ -1,36 +1,82 @@
+/* /print.js
+   Immutable print surface: /print.html?job=
+   Loads job from /api/jobs/:jobId
+   If renderUrl + pdfUrl exist, show side-by-side.
+*/
+
 (async function () {
   "use strict";
 
-  function $(sel) { return document.querySelector(sel); }
-
   const params = new URLSearchParams(location.search);
-  const jobId = params.get("job");
+  const jobId = (params.get("job") || "").trim();
 
   const container = document.getElementById("print-body");
+  if (!container) return;
 
   if (!jobId) {
     container.innerHTML = "<p>No job ID provided.</p>";
     return;
   }
 
-  try {
-    const res = await fetch("/api/jobs/" + encodeURIComponent(jobId));
-    const json = await res.json();
+  function esc(s) {
+    return String(s ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#39;");
+  }
 
-    const src = (json && (json.renderUrl || json.pdfUrl)) || "";
-    if (!res.ok || !src) {
-      container.innerHTML = "<pre>" + JSON.stringify(json, null, 2) + "</pre>";
+  try {
+    const res = await fetch("/api/jobs/" + encodeURIComponent(jobId), {
+      headers: { "accept": "application/json" }
+    });
+
+    const json = await res.json().catch(() => null);
+
+    if (!res.ok || !json) {
+      container.innerHTML = "<pre>" + esc(JSON.stringify(json || { ok: false }, null, 2)) + "</pre>";
       return;
     }
 
+    const renderUrl = (json.renderUrl || "").trim();
+    const pdfUrl = (json.pdfUrl || "").trim();
+
+    // Nothing usable
+    if (!renderUrl && !pdfUrl) {
+      container.innerHTML = "<pre>" + esc(JSON.stringify(json, null, 2)) + "</pre>";
+      return;
+    }
+
+    // Toolbar + layout
     container.innerHTML = `
-      <div style="margin-bottom:12px;">
-        <button onclick="window.print()" style="padding:8px 14px; font-size:14px;">Print</button>
-        <span style="margin-left:10px; font: 12px system-ui; opacity:.7;">${json.renderUrl ? "Print-perfect render" : "PDF fallback"}</span>
+      <div class="print-toolbar">
+        <button class="print-btn" type="button" onclick="window.print()">Print</button>
+        <span class="print-meta">Job: <code>${esc(jobId)}</code></span>
       </div>
-      <iframe src="${src}" style="width:100%; height:90vh; border:none;"></iframe>
+
+      <div class="print-grid">
+        ${renderUrl ? `
+          <section class="print-pane">
+            <div class="print-pane-title">Print-perfect render (Path B)</div>
+            <iframe class="print-frame" src="${esc(renderUrl)}"></iframe>
+          </section>
+        ` : ""}
+
+        ${pdfUrl ? `
+          <section class="print-pane">
+            <div class="print-pane-title">Official FL-300 PDF (Path A)</div>
+            <iframe class="print-frame" src="${esc(pdfUrl)}"></iframe>
+          </section>
+        ` : ""}
+      </div>
+
+      <details class="print-debug">
+        <summary>Debug job JSON</summary>
+        <pre>${esc(JSON.stringify(json, null, 2))}</pre>
+      </details>
     `;
   } catch (err) {
-    container.innerHTML = "<pre>" + String(err) + "</pre>";
+    container.innerHTML = "<pre>" + esc(String(err?.message || err)) + "</pre>";
   }
 })();
