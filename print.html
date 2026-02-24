@@ -1,42 +1,50 @@
-<!doctype html>
+ <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Print — SharpeSystem</title>
-  <meta name="description" content="Immutable print job surface." />
-  <link rel="stylesheet" href="/styles.css" />
+  <title>Print Job</title>
+  <style>
+    body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+    .print-toolbar {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 14px; border-bottom: 1px solid rgba(0,0,0,.12);
+      position: sticky; top: 0; background: white; z-index: 10;
+    }
+    .print-btn { padding: 8px 14px; font-size: 14px; cursor: pointer; }
+    .print-meta { font-size: 12px; opacity: .75; }
+    .print-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      padding: 12px;
+    }
+    .print-pane { border: 1px solid rgba(0,0,0,.12); border-radius: 12px; overflow: hidden; }
+    .print-pane-title {
+      padding: 10px 12px;
+      font-size: 13px;
+      border-bottom: 1px solid rgba(0,0,0,.10);
+      background: rgba(0,0,0,.03);
+    }
+    .print-frame { width: 100%; height: calc(100vh - 120px); border: 0; display: block; }
+    .print-debug { padding: 12px; }
+    .print-debug pre { white-space: pre-wrap; overflow: auto; border: 1px solid rgba(0,0,0,.12); border-radius: 12px; padding: 12px; }
+
+    @media (max-width: 980px) {
+      .print-grid { grid-template-columns: 1fr; }
+      .print-frame { height: 70vh; }
+    }
+
+    @media print {
+      .print-toolbar, .print-debug, .print-pane-title { display: none !important; }
+      .print-grid { padding: 0; gap: 0; }
+      .print-pane { border: 0; border-radius: 0; }
+      .print-frame { height: 100vh; }
+    }
+  </style>
 </head>
-
-<body data-require-auth="1" data-require-tier="basic" data-require-active="1">
-  <div id="site-header"></div>
-
-  <main class="page">
-    <div class="container content">
-      <section class="card">
-        <div class="row" style="justify-content:space-between; align-items:center; gap:12px;">
-          <div>
-            <h1 style="margin:0;">Print Job</h1>
-            <p class="muted" style="margin:6px 0 0;">/print.html?job=...</p>
-          </div>
-          <div class="row" style="gap:10px; flex-wrap:wrap;">
-            <a class="button" href="/app.html">App</a>
-          </div>
-        </div>
-        <hr style="margin:14px 0; opacity:.25;">
-        <div id="print-body">
-          <p class="muted">Loading…</p>
-        </div>
-      </section>
-    </div>
-  </main>
-
-  <script src="/ui.js" defer></script>
-  <script src="/header-loader.js" defer></script>
-  <script src="/partials/header.js" defer></script>
-  <script src="/i18n.js" defer></script>
-
+<body>
+  <div id="print-body"></div>
   <script src="/print.js" defer></script>
-  <script type="module" src="/gate.js"></script>
 </body>
 </html>
