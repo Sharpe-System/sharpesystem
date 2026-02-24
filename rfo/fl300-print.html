@@ -6,69 +6,57 @@
   <title>FL-300 — Print</title>
   <link rel="stylesheet" href="/styles.css" />
   <style>
-    .wrap { max-width: 1200px; margin: 18px auto; padding: 0 14px; }
-    .topbar { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px; }
-    .pill { font-size:12px; opacity:.85; padding:6px 10px; border:1px solid rgba(255,255,255,.12); border-radius:999px; }
-    .grid { display:grid; grid-template-columns: 420px 1fr; gap:14px; align-items:start; }
-    .card { background: rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.10); border-radius:14px; padding:12px; }
-    .btnrow { display:flex; gap:10px; flex-wrap:wrap; }
-    .btn { padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.15); background: rgba(255,255,255,.06); color:#fff; cursor:pointer; }
-    .btn.primary { background: rgba(70,140,255,.18); border-color: rgba(70,140,255,.35); }
+    body { background:#0b0f14; color:#e9eef6; }
+    .wrap { max-width: 1200px; margin: 24px auto; padding: 0 16px; }
+    .top { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:14px; }
+    .pill { border:1px solid rgba(255,255,255,.15); background:rgba(255,255,255,.04); color:#e9eef6; padding:8px 10px; border-radius:999px; font-size:13px; }
+    .btn { border:1px solid rgba(255,255,255,.2); background:rgba(255,255,255,.08); color:#fff; padding:10px 12px; border-radius:12px; cursor:pointer; font-weight:600; }
+    .btn.primary { background:#2b6df6; border-color:#2b6df6; }
     .btn:disabled { opacity:.45; cursor:not-allowed; }
-    .kv { display:grid; grid-template-columns: 120px 1fr; gap:6px 10px; font-size:13px; }
-    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
-    .muted { opacity:.75; }
-    iframe { width:100%; height: 860px; border:0; border-radius:14px; background:#111; }
-    .small { font-size:12px; }
-    .err { color:#ffb4b4; }
-    .ok { color:#b7ffbf; }
+    .grid { display:grid; grid-template-columns: 1fr 1fr; gap:14px; }
+    .card { border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.04); border-radius:16px; padding:14px; }
+    .h { font-size:18px; font-weight:700; margin:0 0 10px; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size:12.5px; white-space:pre-wrap; }
+    .muted { opacity:.75; font-size:13px; }
+    iframe { width:100%; height:720px; border:1px solid rgba(255,255,255,.12); border-radius:14px; background:#000; }
+    @media (max-width: 980px){ .grid { grid-template-columns:1fr; } iframe { height:620px; } }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <div class="topbar">
-      <div class="btnrow">
-        <button class="btn" id="backBtn">Back to Review</button>
-        <span class="pill" id="metaPill">FL-300 Populate (v0.1)</span>
-        <span class="pill mono" id="tplPill">Template: /templates/jcc/fl300/FL-300.pdf</span>
-      </div>
-      <div class="btnrow">
-        <button class="btn primary" id="genBtn">Generate filled PDF</button>
-        <button class="btn" id="openBtn" disabled>Open filled PDF</button>
-        <button class="btn" id="dlBtn" disabled>Download filled PDF</button>
-      </div>
+    <div class="top">
+      <a class="btn" href="/app.html?flow=rfo&stage=review">Back to Review</a>
+      <span class="pill">FL-300 Populate (v0.1)</span>
+      <span class="pill">Template: /templates/jcc/fl300/FL-300.pdf</span>
+      <button id="btnGen" class="btn primary">Generate filled PDF</button>
+      <button id="btnOpen" class="btn" disabled>Open filled PDF</button>
+      <button id="btnDl" class="btn" disabled>Download filled PDF</button>
     </div>
 
     <div class="grid">
       <div class="card">
-        <h3 style="margin:0 0 8px 0;">Input (6–10 fields) — from job or local draft</h3>
-        <div class="kv" id="kv"></div>
-
-        <div style="margin-top:10px;" class="card">
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <strong class="small">Debug</strong>
-            <span class="small muted" id="srcLabel">—</span>
-          </div>
-          <pre class="mono small" id="debug" style="margin:10px 0 0 0; white-space:pre-wrap;"></pre>
+        <div class="h">Input (6–10 fields) — from job or local draft</div>
+        <div id="inputBox" class="mono">Loading…</div>
+        <div class="muted" style="margin-top:10px;">
+          Rule: black text, no shrink-to-fit. If “Details” is too long, we auto-create an attachment and the box reads “See Attachment 1”.
         </div>
 
-        <p class="small muted" style="margin-top:10px;">
-          Rule: black text, no shrink-to-fit. If “Details” is too long, we auto-create an Attachment page and the box reads “See Attachment 1”.
-        </p>
+        <div style="margin-top:14px;" class="h">Debug</div>
+        <div id="dbg" class="mono">{}</div>
       </div>
 
       <div class="card">
-        <h3 style="margin:0 0 8px 0;">Official FL-300 PDF (filled output)</h3>
-        <div class="small muted" id="statusLine">Not generated</div>
+        <div class="h">Official FL-300 PDF (filled output)</div>
+        <div class="muted" id="status">Not generated</div>
         <div style="margin-top:10px;">
-          <iframe id="pdfFrame" title="Filled FL-300 PDF"></iframe>
+          <iframe id="viewer" title="Filled PDF"></iframe>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- pdf-lib (local) -->
-  <script src="/rfo/pdf-lib.min.js"></script>
-  <script type="module" src="/rfo/fl300-print.js"></script>
+  <!-- Use RELATIVE paths to avoid Cloudflare route rewriting -->
+  <script src="./pdf-lib.min.js"></script>
+  <script type="module" src="./fl300-print.js"></script>
 </body>
 </html>
