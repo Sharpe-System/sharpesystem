@@ -183,6 +183,15 @@
     else if (stage === "export") renderExport();
 
     prevBtn.disabled = stageIdx <= 0;
+
+    // Stage-specific CTA labeling.
+    if (stage === "review") nextBtn.textContent = "Export";
+    else nextBtn.textContent = "Next";
+
+    // Export stage has its own primary action button.
+    if (stage === "export") nextBtn.style.display = "none";
+    else nextBtn.style.display = "";
+
     nextBtn.disabled = stageIdx >= (STAGES.length - 1);
   }
 
