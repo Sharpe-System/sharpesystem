@@ -1,7 +1,8 @@
 {
-  "scripts": {
-    "canon-guard": "node scripts/canon-guard.js",
-    "rfo-guard": "node scripts/rfo-guard.js",
-    "test": "npm run canon-guard && npm run rfo-guard"
+  "name": "sharpesystem",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "pdf-lib": "^1.17.1"
   }
 }
