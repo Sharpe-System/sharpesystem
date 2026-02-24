@@ -1,25 +1,25 @@
 export async function onRequest(context) {
   if (context.request.method !== "POST") {
-    return new Response(JSON.stringify({ error: "POST required" }), {
+    return new Response(JSON.stringify({ ok: false, error: "Method Not Allowed" }, null, 2), {
       status: 405,
-      headers: { "content-type": "application/json" }
+      headers: { "content-type": "application/json; charset=utf-8" }
     });
   }
 
-  let body = {};
-  try {
-    body = await context.request.json();
-  } catch (_) {}
+  const jobId =
+    (globalThis.crypto && crypto.randomUUID)
+      ? crypto.randomUUID()
+      : ("job_" + Math.random().toString(16).slice(2));
 
-  const jobId = crypto.randomUUID();
+  // Stub: always point to a known PDF artifact.
+  const pdfUrl = "/assets/sample.pdf";
 
-  // For now, fake job storage via response only.
-  // Next step: real job persistence.
-  return new Response(JSON.stringify({
-    ok: true,
-    jobId,
-    received: body
-  }), {
-    headers: { "content-type": "application/json" }
-  });
+  return new Response(
+    JSON.stringify(
+      { ok: true, jobId, pdfUrl, status: "stub", note: "Next: persist job record + generate real PDF." },
+      null,
+      2
+    ),
+    { headers: { "content-type": "application/json; charset=utf-8" } }
+  );
 }

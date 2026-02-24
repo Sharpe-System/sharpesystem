@@ -1,17 +1,23 @@
 export async function onRequest(context) {
-  const jobId = context.params.jobId;
+  const url = new URL(context.request.url);
+  const m = url.pathname.match(/\/api\/jobs\/([^/]+)$/);
+  const jobId = m ? decodeURIComponent(m[1]) : null;
 
-  // v1 stub: no persistence yet — just prove the contract.
-  // Next step: read from Firestore/R2 via job metadata.
-  const job = {
-    ok: true,
-    jobId,
-    status: "stub",
-    note: "This is a placeholder job record. Next step: persist jobs.",
-    createdAt: new Date().toISOString(),
-  };
+  // Stub: job lookup always returns the placeholder pdfUrl.
+  const pdfUrl = "/assets/sample.pdf";
 
-  return new Response(JSON.stringify(job, null, 2), {
-    headers: { "content-type": "application/json; charset=utf-8" }
-  });
+  return new Response(
+    JSON.stringify(
+      {
+        ok: true,
+        jobId,
+        status: "stub",
+        pdfUrl,
+        note: "This is a placeholder job record. Next step: persist jobs."
+      },
+      null,
+      2
+    ),
+    { headers: { "content-type": "application/json; charset=utf-8" } }
+  );
 }
