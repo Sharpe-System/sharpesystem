@@ -187,7 +187,7 @@
     const tplBytes = await tplRes.arrayBuffer();
 
     setStatus("Filling fields…");
-    const pdfDoc = await window.PDFLib.PDFDocument.load(tplBytes);
+    const pdfDoc = await window.PDFLib.PDFDocument.load(tplBytes, { ignoreEncryption: true });
     const form = pdfDoc.getForm();
 
     // IMPORTANT FIX: embed a font and pass it to updateFieldAppearances.
