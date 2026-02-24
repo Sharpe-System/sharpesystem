@@ -1,363 +1,279 @@
 /* /rfo/fl300-print.js
-   FL-300 Populate (minimal vertical v0)
-
-   Goal:
-   - Load official PDF: /templates/jcc/fl300/FL-300.pdf
-   - Load draft data from:
-       A) job payload (if job= present)
-       B) localStorage fallback (best-effort)
-   - Fill ~6–10 fields by heuristic name matching (no hardcoded field list required)
-   - Render filled PDF in iframe + allow open/download
+   FL-300 Populate (v0) — minimal 6–10 fields
+   Fixes: pdf-lib font undefined crash (updateFieldAppearances), better data sourcing,
+   and robust job fetch.
 */
-
 (function () {
   "use strict";
 
-  const TEMPLATE_URL = "/templates/jcc/fl300/FL-300.pdf";
+  const $ = (sel, root = document) => root.querySelector(sel);
 
-  const $ = (sel) => document.querySelector(sel);
+  const jobId = new URL(location.href).searchParams.get("job") || "";
 
-  const els = {
-    status: $("#status"),
-    jobId: $("#jobId"),
-    vCounty: $("#vCounty"),
-    vBranch: $("#vBranch"),
-    vCase: $("#vCase"),
-    vRole: $("#vRole"),
-    vCustody: $("#vCustody"),
-    vSupport: $("#vSupport"),
-    vOther: $("#vOther"),
-    vDetails: $("#vDetails"),
-    debug: $("#debug"),
-    raw: $("#raw"),
-    pdfState: $("#pdfState"),
-    pdfFrame: $("#pdfFrame"),
-    btnFill: $("#btnFill"),
-    btnOpen: $("#btnOpen"),
-    btnDownload: $("#btnDownload"),
-  };
+  // UI hooks (these IDs/classes should already exist in your HTML; if not, it fails soft)
+  const btnGen = $("#btnGenerate") || $("button[data-action='generate']") || $("button");
+  const btnOpen = $("#btnOpen") || $("button[data-action='open']");
+  const btnDl = $("#btnDownload") || $("button[data-action='download']");
+  const outFrame = $("#filledFrame") || $("#pdfFrame") || $("iframe");
+  const statusEl = $("#filledStatus") || $("#statusFilled") || $(".status") || null;
+  const debugEl = $("#debugJson") || $("#fieldMapDebug") || $("#debug") || null;
+  const rawEl = $("#rawPayload") || $("#rawJson") || null;
 
-  function safeJson(x) {
-    try { return JSON.stringify(x, null, 2); } catch { return String(x); }
+  function setStatus(msg) {
+    if (statusEl) statusEl.textContent = msg;
   }
 
-  function getJobId() {
-    const u = new URL(location.href);
-    return u.searchParams.get("job") || "";
-  }
-
-  async function fetchJson(url) {
-    const res = await fetch(url, { credentials: "include" });
-    if (!res.ok) throw new Error(`${url} -> ${res.status}`);
-    return await res.json();
-  }
-
-  async function loadJob(jobId) {
-    if (!jobId) return null;
-
-    // Try a few likely endpoints, in order.
-    const tries = [
-      `/api/jobs/${encodeURIComponent(jobId)}`,
-      `/api/print/jobs/${encodeURIComponent(jobId)}`,
-      `/functions/api/jobs/${encodeURIComponent(jobId)}`,
-      `/functions/api/print/jobs/${encodeURIComponent(jobId)}`
-    ];
-
-    let lastErr = null;
-    for (const url of tries) {
-      try {
-        return await fetchJson(url);
-      } catch (e) {
-        lastErr = e;
-      }
-    }
-    throw lastErr || new Error("Job load failed");
-  }
-
-  function loadLocalDraft() {
-    // Best-effort: scan localStorage keys that typically hold a draft object.
-    // We intentionally avoid assumptions about exact keys.
-    const candidates = [
-      "draft",
-      "sharpesystem:draft",
-      "sharpe:draft",
-      "ss:draft",
-      "rfo:draft"
-    ];
-
-    for (const k of candidates) {
-      const v = localStorage.getItem(k);
-      if (!v) continue;
-      try {
-        const obj = JSON.parse(v);
-        if (obj && typeof obj === "object") return obj;
-      } catch (_) {}
-    }
-
-    // As a fallback, scan all keys for something that looks like an RFO payload.
+  function safeJson(el, obj) {
+    if (!el) return;
     try {
-      for (let i = 0; i < localStorage.length; i++) {
-        const k = localStorage.key(i);
-        if (!k) continue;
-        const v = localStorage.getItem(k);
-        if (!v || v.length < 20) continue;
-        try {
-          const obj = JSON.parse(v);
-          if (obj && typeof obj === "object" && (obj.rfo || obj.flow === "rfo")) return obj;
-        } catch (_) {}
-      }
-    } catch (_) {}
-
-    return null;
-  }
-
-  function extractRfoPayload(jobOrDraft) {
-    // Accept a variety of shapes.
-    const root = jobOrDraft || {};
-    const data =
-      root.data ||
-      root.payload ||
-      root.job ||
-      root.draft ||
-      root;
-
-    const rfo =
-      (data && data.rfo) ||
-      (data && data.data && data.data.rfo) ||
-      (data && data.payload && data.payload.rfo) ||
-      null;
-
-    return { root, data, rfo: rfo || {} };
-  }
-
-  function normRole(role) {
-    const s = String(role || "").toLowerCase().trim();
-    if (s === "petitioner") return "petitioner";
-    if (s === "respondent") return "respondent";
-    return s || "";
-  }
-
-  function boolToYesNo(v) {
-    return v ? "Yes" : "No";
-  }
-
-  function renderInputs(rfo, jobId, rootForRaw) {
-    els.jobId.textContent = jobId || "—";
-
-    els.vCounty.textContent = rfo.county || "—";
-    els.vBranch.textContent = rfo.branch || "—";
-    els.vCase.textContent = rfo.caseNumber || "—";
-    els.vRole.textContent = normRole(rfo.role) || "—";
-    els.vCustody.textContent = boolToYesNo(!!rfo.reqCustody);
-    els.vSupport.textContent = boolToYesNo(!!rfo.reqSupport);
-    els.vOther.textContent = boolToYesNo(!!rfo.reqOther);
-    els.vDetails.textContent = rfo.requestDetails || "—";
-
-    els.raw.textContent = safeJson(rootForRaw);
+      el.textContent = JSON.stringify(obj, null, 2);
+    } catch (_) {
+      el.textContent = String(obj);
+    }
   }
 
   function lower(s) { return String(s || "").toLowerCase(); }
 
-  function pickFieldNameByHeuristics(allFieldNames, patterns) {
-    const names = allFieldNames || [];
-    for (const p of patterns) {
-      const re = new RegExp(p, "i");
-      const hit = names.find(n => re.test(n));
-      if (hit) return hit;
+  // Try multiple endpoints so we don’t get stuck on one path.
+  async function fetchJob(jobId) {
+    if (!jobId) return null;
+
+    const candidates = [
+      `/api/print/jobs?job=${encodeURIComponent(jobId)}`,
+      `/api/print/job?job=${encodeURIComponent(jobId)}`,
+      `/api/jobs?job=${encodeURIComponent(jobId)}`,
+      `/api/print/jobs/${encodeURIComponent(jobId)}`
+    ];
+
+    let lastErr = null;
+    for (const url of candidates) {
+      try {
+        const res = await fetch(url, { credentials: "include" });
+        if (!res.ok) { lastErr = new Error(`${url} -> ${res.status}`); continue; }
+        const json = await res.json();
+        // Accept either {ok:true, ...} or a raw job object.
+        return json;
+      } catch (e) {
+        lastErr = e;
+      }
     }
-    return "";
+    throw lastErr || new Error("Unable to fetch job");
   }
 
-  async function generateFilledPdf(rfo) {
-    if (!window.PDFLib) throw new Error("pdf-lib not loaded");
+  function readLocalDraft() {
+    // Best-effort: try a few likely keys used by the app controller/drafts.
+    const keys = [
+      "sharpesystem:draft",
+      "sharpesystem:draft:rfo",
+      "draft:rfo",
+      "rfo:draft",
+      "sharpesystem:lastDraft"
+    ];
+    for (const k of keys) {
+      try {
+        const v = localStorage.getItem(k);
+        if (!v) continue;
+        const obj = JSON.parse(v);
+        if (obj && typeof obj === "object") return obj;
+      } catch (_) {}
+    }
+    return {};
+  }
 
-    // Load template bytes
-    const tplRes = await fetch(TEMPLATE_URL);
-    if (!tplRes.ok) throw new Error(`Template fetch failed: ${tplRes.status}`);
-    const tplBytes = new Uint8Array(await tplRes.arrayBuffer());
+  function coalesceRfoData(jobJson) {
+    // Prefer explicit data payloads if present.
+    // Accept: jobJson.data, jobJson.payload, jobJson.draft, jobJson.rfo, etc.
+    const fromJob =
+      jobJson?.data ||
+      jobJson?.payload ||
+      jobJson?.draft ||
+      jobJson?.draftData ||
+      jobJson?.inputs ||
+      null;
 
-    const pdfDoc = await PDFLib.PDFDocument.load(tplBytes, { ignoreEncryption: true });
+    const local = readLocalDraft();
+
+    // Normalize to a single draft object with d.rfo
+    const d = {};
+    const merged = Object.assign({}, local || {}, fromJob || {});
+    d.rfo = Object.assign({}, (local && local.rfo) || {}, (fromJob && fromJob.rfo) || {}, merged.rfo || {});
+    return d;
+  }
+
+  function summarizeInputs(d) {
+    const r = d.rfo || {};
+    return {
+      jobId: jobId || "—",
+      county: r.county || "—",
+      branch: r.branch || "—",
+      caseNumber: r.caseNumber || "—",
+      role: r.role || "—",
+      custody: !!r.reqCustody,
+      support: !!r.reqSupport,
+      other: !!r.reqOther,
+      details: r.requestDetails || "—"
+    };
+  }
+
+  // Heuristic field match helpers
+  function pickFieldByName(form, patterns) {
+    const fields = form.getFields();
+    const pats = patterns.map(p => (p instanceof RegExp ? p : new RegExp(p, "i")));
+    for (const f of fields) {
+      const name = f.getName ? f.getName() : "";
+      for (const re of pats) {
+        if (re.test(name)) return f;
+      }
+    }
+    return null;
+  }
+
+  function setMaybe(field, value, debug) {
+    if (!field) return false;
+    const v = String(value ?? "").trim();
+    const name = field.getName ? field.getName() : "(unknown)";
+    try {
+      if (typeof field.setText === "function") {
+        field.setText(v);
+        debug[name] = { set: "text", value: v };
+        return true;
+      }
+      if (typeof field.select === "function") {
+        // dropdown / radio style
+        field.select(v);
+        debug[name] = { set: "select", value: v };
+        return true;
+      }
+      if (typeof field.check === "function") {
+        // checkbox
+        if (value) field.check();
+        else if (typeof field.uncheck === "function") field.uncheck();
+        debug[name] = { set: "check", value: !!value };
+        return true;
+      }
+      debug[name] = { set: "unknown-type", value: v };
+      return false;
+    } catch (e) {
+      debug[name] = { error: String(e) };
+      return false;
+    }
+  }
+
+  async function generateFilledPdf() {
+    if (!window.PDFLib) throw new Error("PDFLib not found on window (pdf-lib not loaded).");
+
+    setStatus("Loading job…");
+    let jobJson = null;
+    try {
+      jobJson = await fetchJob(jobId);
+    } catch (e) {
+      // If job fetch fails, we still try local draft.
+      jobJson = { ok: false, error: String(e) };
+    }
+
+    safeJson(rawEl, jobJson);
+
+    const d = coalesceRfoData(jobJson);
+    const inputs = summarizeInputs(d);
+
+    // If you have an inputs panel, we populate it.
+    const inputEl = $("#inputSummary") || $("#inputsTable") || null;
+    if (inputEl) safeJson(inputEl, inputs);
+
+    setStatus("Loading FL-300 template…");
+    const tplUrl = "/templates/jcc/fl300/FL-300.pdf";
+    const tplRes = await fetch(tplUrl);
+    if (!tplRes.ok) throw new Error(`Template fetch failed: ${tplRes.status} (${tplUrl})`);
+    const tplBytes = await tplRes.arrayBuffer();
+
+    setStatus("Filling fields…");
+    const pdfDoc = await window.PDFLib.PDFDocument.load(tplBytes);
     const form = pdfDoc.getForm();
 
-    const fields = form.getFields();
-    const allNames = fields.map(f => f.getName());
+    // IMPORTANT FIX: embed a font and pass it to updateFieldAppearances.
+    const font = await pdfDoc.embedFont(window.PDFLib.StandardFonts.Helvetica);
 
-    // Target values (minimal vertical)
-    const vals = {
-      county: String(rfo.county || ""),
-      branch: String(rfo.branch || ""),
-      caseNumber: String(rfo.caseNumber || ""),
-      role: normRole(rfo.role),
-      reqCustody: !!rfo.reqCustody,
-      reqSupport: !!rfo.reqSupport,
-      reqOther: !!rfo.reqOther,
-      details: String(rfo.requestDetails || "")
-    };
+    const r = d.rfo || {};
+    const dbg = { matched: {}, notFound: [] };
 
-    // Heuristic mapping patterns (we expect to refine after first run using debug output)
-    const map = {
-      county: pickFieldNameByHeuristics(allNames, [
-        "county", "County of", "SUPERIOR.*COUNTY", "court.*county"
-      ]),
-      branch: pickFieldNameByHeuristics(allNames, [
-        "branch", "Branch Name", "courthouse", "court.*branch"
-      ]),
-      caseNumber: pickFieldNameByHeuristics(allNames, [
-        "case.*number", "CaseNumber", "Case No", "Case_No", "Case"
-      ]),
-      petitionerOrRespondentRole: pickFieldNameByHeuristics(allNames, [
-        "role", "petitioner.*respondent", "party.*type"
-      ]),
-      details: pickFieldNameByHeuristics(allNames, [
-        "details", "requested.*orders", "orders.*requested", "other.*orders", "request.*details"
-      ]),
-      cbCustody: pickFieldNameByHeuristics(allNames, [
-        "custody", "visitation", "child.*custody"
-      ]),
-      cbSupport: pickFieldNameByHeuristics(allNames, [
-        "support", "child.*support"
-      ]),
-      cbOther: pickFieldNameByHeuristics(allNames, [
-        "^other$", "other.*request", "other.*orders"
-      ]),
-    };
+    // Minimal 6–10 “single vertical” mapping (heuristic by field name)
+    const map = [
+      { key: "county", value: r.county, patterns: [/county/i, /cnty/i] },
+      { key: "branch", value: r.branch, patterns: [/branch/i, /courthouse/i, /branch name/i] },
+      { key: "caseNumber", value: r.caseNumber, patterns: [/case.*number/i, /case.*no/i] },
+      { key: "role", value: r.role, patterns: [/petitioner/i, /respondent/i, /your role/i, /role/i] },
+      { key: "reqCustody", value: !!r.reqCustody, patterns: [/custody/i, /visitation/i] },
+      { key: "reqSupport", value: !!r.reqSupport, patterns: [/support/i, /child support/i] },
+      { key: "reqOther", value: !!r.reqOther, patterns: [/other/i] },
+      { key: "details", value: r.requestDetails, patterns: [/request/i, /orders/i, /details/i, /other.*orders/i] }
+    ];
 
-    const debug = {
-      template: TEMPLATE_URL,
-      detectedFieldCount: allNames.length,
-      chosenMap: map,
-      values: vals,
-      note: "If any chosenMap entries are blank, we didn't find a match. We'll refine patterns after first run."
-    };
-
-    // Fill helper that tolerates mismatch types
-    function trySetText(fieldName, value) {
-      if (!fieldName) return { ok: false, why: "no match" };
-      try {
-        const tf = form.getTextField(fieldName);
-        tf.setText(String(value || ""));
-        return { ok: true };
-      } catch (e) {
-        // Not a text field; try dropdown
-        try {
-          const dd = form.getDropdown(fieldName);
-          dd.select(String(value || ""));
-          return { ok: true, used: "dropdown" };
-        } catch (_) {
-          return { ok: false, why: String(e?.message || e) };
-        }
+    for (const item of map) {
+      const field = pickFieldByName(form, item.patterns);
+      if (!field) {
+        dbg.notFound.push({ key: item.key, patterns: item.patterns.map(String) });
+        continue;
       }
+      setMaybe(field, item.value, dbg.matched);
     }
 
-    function trySetCheckbox(fieldName, checked) {
-      if (!fieldName) return { ok: false, why: "no match" };
-      try {
-        const cb = form.getCheckBox(fieldName);
-        if (checked) cb.check();
-        else cb.uncheck();
-        return { ok: true };
-      } catch (e) {
-        return { ok: false, why: String(e?.message || e) };
-      }
-    }
+    // Update appearances WITHOUT crashing.
+    form.updateFieldAppearances(font);
 
-    const results = {
-      county: trySetText(map.county, vals.county),
-      branch: trySetText(map.branch, vals.branch),
-      caseNumber: trySetText(map.caseNumber, vals.caseNumber),
-      role: trySetText(map.petitionerOrRespondentRole, vals.role),
-      details: trySetText(map.details, vals.details),
-      cbCustody: trySetCheckbox(map.cbCustody, vals.reqCustody),
-      cbSupport: trySetCheckbox(map.cbSupport, vals.reqSupport),
-      cbOther: trySetCheckbox(map.cbOther, vals.reqOther),
-    };
-
-    // Make appearance updates so values render in typical PDF viewers
-    try {
-      form.updateFieldAppearances(pdfDoc);
-    } catch (_) {}
-
+    // Save bytes
     const outBytes = await pdfDoc.save();
-
-    return { outBytes, debug, results, allNames };
-  }
-
-  function setPdfBlob(bytes) {
-    const blob = new Blob([bytes], { type: "application/pdf" });
+    const blob = new Blob([outBytes], { type: "application/pdf" });
     const url = URL.createObjectURL(blob);
 
-    els.pdfFrame.src = url;
-    els.pdfState.textContent = "Filled PDF ready";
+    // Render into iframe if present
+    if (outFrame && outFrame.tagName === "IFRAME") outFrame.src = url;
 
-    els.btnOpen.disabled = false;
-    els.btnDownload.disabled = false;
-
-    els.btnOpen.onclick = () => window.open(url, "_blank", "noopener,noreferrer");
-    els.btnDownload.onclick = () => {
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "FL-300-filled.pdf";
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-    };
-  }
-
-  async function main() {
-    const jobId = getJobId();
-    els.status.textContent = "Loading…";
-    els.pdfState.textContent = "Not generated";
-    els.pdfFrame.src = "";
-
-    let root = null;
-    try {
-      root = await loadJob(jobId);
-      els.status.textContent = jobId ? "Loaded from job" : "Loaded";
-    } catch (e) {
-      const local = loadLocalDraft();
-      if (local) {
-        root = local;
-        els.status.textContent = "Loaded from local draft (fallback)";
-      } else {
-        root = { error: "No job payload and no local draft found." };
-        els.status.textContent = "No data found";
-      }
+    // Enable open/download buttons if present
+    if (btnOpen) {
+      btnOpen.disabled = false;
+      btnOpen.onclick = () => window.open(url, "_blank", "noopener,noreferrer");
+    }
+    if (btnDl) {
+      btnDl.disabled = false;
+      btnDl.onclick = () => {
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "FL-300-filled.pdf";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      };
     }
 
-    const extracted = extractRfoPayload(root);
-    const rfo = extracted.rfo || {};
-
-    renderInputs(rfo, jobId, root);
-
-    els.btnFill.disabled = false;
-    els.btnFill.onclick = async () => {
-      try {
-        els.btnFill.disabled = true;
-        els.pdfState.textContent = "Generating…";
-        els.debug.textContent = "Working…";
-
-        const { outBytes, debug, results } = await generateFilledPdf(rfo);
-
-        els.debug.textContent = safeJson({ debug, results });
-        setPdfBlob(outBytes);
-
-        els.btnFill.disabled = false;
-      } catch (err) {
-        els.pdfState.textContent = "Failed to generate";
-        els.debug.textContent = safeJson({
-          error: String(err?.message || err),
-          hint: "If this fails, we stop and move on (per your rule)."
-        });
-        els.btnFill.disabled = false;
-      }
-    };
-
-    // Auto-generate once on load (so you see immediately if it works)
-    setTimeout(() => els.btnFill.click(), 250);
+    safeJson(debugEl, dbg);
+    setStatus("Filled PDF ready.");
   }
 
-  main().catch((e) => {
-    els.status.textContent = "Crash";
-    els.debug.textContent = safeJson({ error: String(e?.message || e) });
-  });
+  function wire() {
+    if (btnGen) {
+      btnGen.disabled = false;
+      btnGen.onclick = () => {
+        generateFilledPdf().catch(err => {
+          const msg = String(err?.message || err);
+          safeJson(debugEl, { error: msg, hint: "If this fails, we stop and move on (per your rule)." });
+          setStatus("Failed to generate");
+          console.error(err);
+        });
+      };
+    }
+
+    // Auto-run once if you want immediate feedback
+    // (kept conservative: only autorun when jobId exists)
+    if (jobId) {
+      // Don’t block UI; just attempt.
+      generateFilledPdf().catch(err => {
+        const msg = String(err?.message || err);
+        safeJson(debugEl, { error: msg, hint: "Click Generate filled PDF after page loads." });
+        setStatus("Failed to generate");
+        console.error(err);
+      });
+    }
+  }
+
+  wire();
 })();
