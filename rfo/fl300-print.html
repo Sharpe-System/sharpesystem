@@ -6,110 +6,69 @@
   <title>FL-300 — Print</title>
   <link rel="stylesheet" href="/styles.css" />
   <style>
-    .wrap { max-width: 1200px; margin: 0 auto; padding: 16px; }
-    .topbar { display:flex; align-items:center; justify-content:space-between; gap:12px; }
-    .topbar .left { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
-    .pill { padding:6px 10px; border:1px solid rgba(255,255,255,.14); border-radius:999px; opacity:.9; font-size:12px; }
-    .grid { display:grid; grid-template-columns: 1.05fr .95fr; gap:16px; margin-top:14px; }
-    @media (max-width: 980px) { .grid { grid-template-columns: 1fr; } }
-    .panel { border: 1px solid rgba(255,255,255,.14); border-radius: 14px; overflow:hidden; background: rgba(255,255,255,.03); }
-    .panel h2 { margin:0; padding:12px 14px; font-size:14px; border-bottom:1px solid rgba(255,255,255,.10); opacity:.95; display:flex; align-items:center; justify-content:space-between; gap:10px; }
-    .panel .body { padding: 14px; }
+    .wrap { max-width: 1200px; margin: 18px auto; padding: 0 14px; }
+    .topbar { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px; }
+    .pill { font-size:12px; opacity:.85; padding:6px 10px; border:1px solid rgba(255,255,255,.12); border-radius:999px; }
+    .grid { display:grid; grid-template-columns: 420px 1fr; gap:14px; align-items:start; }
+    .card { background: rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.10); border-radius:14px; padding:12px; }
     .btnrow { display:flex; gap:10px; flex-wrap:wrap; }
-    .btn { cursor:pointer; border-radius: 999px; padding: 10px 14px; border: 1px solid rgba(255,255,255,.18); background: rgba(255,255,255,.06); color: inherit; }
-    .btn.primary { background: rgba(66,153,225,.18); border-color: rgba(66,153,225,.35); }
-    .btn:disabled { opacity:.55; cursor:not-allowed; }
-    .muted { opacity:.75; font-size:13px; }
+    .btn { padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.15); background: rgba(255,255,255,.06); color:#fff; cursor:pointer; }
+    .btn.primary { background: rgba(70,140,255,.18); border-color: rgba(70,140,255,.35); }
+    .btn:disabled { opacity:.45; cursor:not-allowed; }
+    .kv { display:grid; grid-template-columns: 120px 1fr; gap:6px 10px; font-size:13px; }
     .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
-    .kv { display:grid; grid-template-columns: 140px 1fr; gap:8px 12px; font-size:13px; }
-    .kv .k { opacity:.75; }
-    .kv .v { overflow-wrap:anywhere; }
-    iframe { width:100%; height: 78vh; border:0; background:#0b0f14; }
-    pre { white-space: pre-wrap; overflow-wrap:anywhere; background: rgba(0,0,0,.25); border:1px solid rgba(255,255,255,.10); border-radius:12px; padding:10px; }
-    .warn { color: #ffd27d; }
+    .muted { opacity:.75; }
+    iframe { width:100%; height: 860px; border:0; border-radius:14px; background:#111; }
+    .small { font-size:12px; }
+    .err { color:#ffb4b4; }
+    .ok { color:#b7ffbf; }
   </style>
-
-  <!-- pdf-lib (not Firebase) -->
-  <script defer src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
-  <script defer type="module" src="/rfo/fl300-print.js"></script>
 </head>
-
 <body>
   <div class="wrap">
     <div class="topbar">
-      <div class="left">
-        <a class="btn" href="/app.html?flow=rfo&stage=review">Back to Review</a>
-        <span class="pill">FL-300 Populate (v0)</span>
-        <span class="pill">Template: /templates/jcc/fl300/FL-300.pdf</span>
+      <div class="btnrow">
+        <button class="btn" id="backBtn">Back to Review</button>
+        <span class="pill" id="metaPill">FL-300 Populate (v0.1)</span>
+        <span class="pill mono" id="tplPill">Template: /templates/jcc/fl300/FL-300.pdf</span>
       </div>
-      <div class="left">
-        <button class="btn primary" id="btnFill">Generate filled PDF</button>
-        <button class="btn" id="btnOpen" disabled>Open filled PDF</button>
-        <button class="btn" id="btnDownload" disabled>Download filled PDF</button>
+      <div class="btnrow">
+        <button class="btn primary" id="genBtn">Generate filled PDF</button>
+        <button class="btn" id="openBtn" disabled>Open filled PDF</button>
+        <button class="btn" id="dlBtn" disabled>Download filled PDF</button>
       </div>
     </div>
 
     <div class="grid">
-      <section class="panel">
-        <h2>
-          <span>Input (6–10 fields) — from job or local draft</span>
-          <span class="muted" id="status">Loading…</span>
-        </h2>
-        <div class="body">
-          <div class="kv">
-            <div class="k">Job ID</div><div class="v mono" id="jobId">—</div>
-            <div class="k">County</div><div class="v mono" id="vCounty">—</div>
-            <div class="k">Branch</div><div class="v mono" id="vBranch">—</div>
-            <div class="k">Case #</div><div class="v mono" id="vCase">—</div>
-            <div class="k">Role</div><div class="v mono" id="vRole">—</div>
-            <div class="k">Custody</div><div class="v mono" id="vCustody">—</div>
-            <div class="k">Support</div><div class="v mono" id="vSupport">—</div>
-            <div class="k">Other</div><div class="v mono" id="vOther">—</div>
-            <div class="k">Details</div><div class="v mono" id="vDetails">—</div>
+      <div class="card">
+        <h3 style="margin:0 0 8px 0;">Input (6–10 fields) — from job or local draft</h3>
+        <div class="kv" id="kv"></div>
+
+        <div style="margin-top:10px;" class="card">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <strong class="small">Debug</strong>
+            <span class="small muted" id="srcLabel">—</span>
           </div>
-
-          <p class="muted" style="margin-top:12px;">
-            This tries to auto-map FL-300 AcroForm field names by heuristic matching.
-            If mapping fails, the debug panel below will show exactly what it tried.
-          </p>
-
-          <div class="panel" style="margin-top:12px;">
-            <h2>
-              <span>Field Map Debug</span>
-              <span class="muted">What matched (or didn’t)</span>
-            </h2>
-            <div class="body">
-              <pre class="mono" id="debug">—</pre>
-            </div>
-          </div>
-
-          <div class="panel" style="margin-top:12px;">
-            <h2>
-              <span>Raw Payload (for sanity)</span>
-              <span class="muted">Collapsed view</span>
-            </h2>
-            <div class="body">
-              <pre class="mono" id="raw">—</pre>
-            </div>
-          </div>
-
-          <p class="muted warn" style="margin-top:12px;">
-            Note: This does NOT attempt the full 4-page court-perfect mapping yet — just a minimal vertical.
-            If this minimal populate doesn’t work reliably, we stop here and move back to spine work.
-          </p>
+          <pre class="mono small" id="debug" style="margin:10px 0 0 0; white-space:pre-wrap;"></pre>
         </div>
-      </section>
 
-      <section class="panel">
-        <h2>
-          <span>Official FL-300 PDF (filled output)</span>
-          <span class="muted" id="pdfState">Not generated</span>
-        </h2>
-        <div class="body" style="padding:0;">
-          <iframe id="pdfFrame" title="FL-300 Filled PDF"></iframe>
+        <p class="small muted" style="margin-top:10px;">
+          Rule: black text, no shrink-to-fit. If “Details” is too long, we auto-create an Attachment page and the box reads “See Attachment 1”.
+        </p>
+      </div>
+
+      <div class="card">
+        <h3 style="margin:0 0 8px 0;">Official FL-300 PDF (filled output)</h3>
+        <div class="small muted" id="statusLine">Not generated</div>
+        <div style="margin-top:10px;">
+          <iframe id="pdfFrame" title="Filled FL-300 PDF"></iframe>
         </div>
-      </section>
+      </div>
     </div>
   </div>
+
+  <!-- pdf-lib (local) -->
+  <script src="/rfo/pdf-lib.min.js"></script>
+  <script type="module" src="/rfo/fl300-print.js"></script>
 </body>
 </html>
