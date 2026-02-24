@@ -26,6 +26,26 @@
       .replaceAll("'", "&#39;");
   }
 
+
+  // Draft adapters for flow plugins.
+  // Keep plugin API stable even if internal draft helpers change.
+  function readDraftData() {
+    // Prefer existing helper if present.
+    try { return (typeof readDraft === "function") ? (readDraft() || {}) : {}; }
+    catch (_) { return {}; }
+  }
+
+  function writeDraftData(next) {
+    try {
+      if (typeof writeDraft === "function") {
+        writeDraft(next || {});
+      } else if (typeof saveDraft === "function") {
+        // Some older modules used saveDraft()
+        saveDraft(next || {});
+      }
+    } catch (_) {}
+  }
+
   const params = new URLSearchParams(location.search);
   const flow = (params.get("flow") || "").trim();
   const stage = (params.get("stage") || "").trim() || "intake";
