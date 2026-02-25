@@ -1,11 +1,10 @@
-<!-- /rfo/start.html -->
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>RFO — Start (Public) — SharpeSystem</title>
-  <meta name="description" content="Public-first RFO start page with PeacePath off-ramp." />
+  <title>RFO — Public Intake — SharpeSystem</title>
+  <meta name="description" content="Public-first RFO intake. Saves locally to a single canonical draft key." />
   <link rel="stylesheet" href="/styles.css" />
 </head>
 
@@ -16,72 +15,117 @@
     <div class="container content">
 
       <section class="card" style="padding:var(--pad);">
-        <h1>Request for Order (RFO)</h1>
-        <p class="muted" style="margin-top:6px;">
-          Use this flow when you need the court to change custody/visitation, support, or other family-law orders.
-          Public mode saves locally on your device. You only log in at the print step.
-        </p>
+        <div class="row" style="justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap;">
+          <div>
+            <h1 style="margin:0;">RFO — Public Intake</h1>
+            <p class="muted" style="margin:6px 0 0 0;">
+              This page saves your draft locally on this device. No login. No redirects.
+            </p>
+          </div>
+
+          <div class="row" style="gap:10px; flex-wrap:wrap;">
+            <a class="btn" href="/rfo/start.html">RFO Start</a>
+            <a class="btn" href="/home.html">Home</a>
+          </div>
+        </div>
 
         <div class="hr"></div>
 
-        <!-- PeacePath must be present on every adversarial page -->
         <section class="card" style="padding:14px; margin:0 0 14px 0;">
           <h2 style="margin:0 0 6px 0;">Before you continue with court</h2>
           <p class="muted" style="margin:0;">
             If agreement is realistically possible, it is usually cheaper, faster, and better for children than litigation.
-            SharpeSystem gives you a map to file — but we prefer you don’t have to.
           </p>
-
           <div class="row" style="margin-top:12px; gap:10px; flex-wrap:wrap;">
             <a class="btn" href="/amicable.html">Try Amicable (Agreement Path)</a>
             <a class="btn" href="/peace-path.html">Peace Path (De-escalated Messaging)</a>
-            <a class="btn primary" href="#court">Continue with court</a>
           </div>
-
           <div class="small soft" style="margin-top:10px;">
             Not legal advice. Procedural guidance + document organization only.
           </div>
         </section>
 
-        <div id="court"></div>
+        <h2 style="margin:0 0 10px 0;">Minimum intake (to generate FL-300)</h2>
 
-        <h3 style="margin-top:0;">Start your public RFO draft</h3>
-        <p class="muted" style="margin-top:6px;">
-          Public mode stores your draft in your browser (localStorage). You can resume later from this device.
-        </p>
+        <div class="grid-2" style="gap:12px;">
+          <label class="field">
+            <span class="label">County</span>
+            <input class="input" id="county" type="text" placeholder="Orange" />
+          </label>
 
-        <div class="grid-2" style="gap:14px; margin-top:12px;">
-          <a class="card" href="/rfo/public-intake.html" style="text-decoration:none;">
-            <h3 style="margin:0 0 6px 0;">Start (Public Draft)</h3>
-            <p class="muted" style="margin:0;">No account. Local save. Guided intake.</p>
-          </a>
+          <label class="field">
+            <span class="label">Branch (optional)</span>
+            <input class="input" id="branch" type="text" placeholder="Lamoreaux / Central / etc." />
+          </label>
 
-          <a class="card" href="/rfo/public-intake.html#resume" style="text-decoration:none;">
-            <h3 style="margin:0 0 6px 0;">Resume (Public Draft)</h3>
-            <p class="muted" style="margin:0;">Continue your saved draft (this device).</p>
-          </a>
+          <label class="field">
+            <span class="label">Case Number</span>
+            <input class="input" id="caseNumber" type="text" placeholder="17D009277" />
+          </label>
+
+          <label class="field">
+            <span class="label">Your role</span>
+            <select class="input" id="role">
+              <option value="">Select…</option>
+              <option value="petitioner">Petitioner</option>
+              <option value="respondent">Respondent</option>
+              <option value="other">Other</option>
+            </select>
+          </label>
         </div>
 
         <div class="hr"></div>
 
-        <h3 style="margin-top:0;">Need export / print?</h3>
-        <p class="muted" style="margin-top:6px;">
-          Export and print are unlocked at the Print Gate (login/subscription). If you’re already subscribed, open the paid module.
-        </p>
+        <h2 style="margin:0 0 10px 0;">What are you asking the court to change?</h2>
 
-        <div class="row" style="margin-top:12px; gap:10px; flex-wrap:wrap;">
-          <a class="btn primary" href="/rfo/index.html">Open RFO (Paid Module)</a>
-          <a class="btn" href="/home.html">Back to Home</a>
+        <div class="row" style="gap:12px; flex-wrap:wrap;">
+          <label class="row" style="gap:8px; align-items:center; margin:0;">
+            <input type="checkbox" id="reqCustody" />
+            <span class="muted">Custody / visitation</span>
+          </label>
+
+          <label class="row" style="gap:8px; align-items:center; margin:0;">
+            <input type="checkbox" id="reqSupport" />
+            <span class="muted">Support</span>
+          </label>
+
+          <label class="row" style="gap:8px; align-items:center; margin:0;">
+            <input type="checkbox" id="reqOther" />
+            <span class="muted">Other orders</span>
+          </label>
+        </div>
+
+        <label class="field" style="margin-top:12px;">
+          <span class="label">Request details (short)</span>
+          <textarea class="input" id="requestDetails" rows="5" placeholder="One paragraph. We'll expand later."></textarea>
+        </label>
+
+        <div class="hr"></div>
+
+        <div class="row" style="justify-content:space-between; gap:12px; flex-wrap:wrap;">
+          <div class="small soft">
+            Draft key: <code>localStorage["ss:draft:rfo:v1"]</code>
+          </div>
+
+          <div class="row" style="gap:10px; flex-wrap:wrap;">
+            <button class="btn" id="btnClear" type="button">Clear draft</button>
+            <a class="btn primary" id="btnContinue" href="/rfo/fl300-print">Continue to Print</a>
+          </div>
+        </div>
+
+        <div class="small soft" style="margin-top:12px;">
+          Public mode stores data in your browser only. Clearing browser storage clears the draft.
         </div>
       </section>
 
     </div>
   </main>
 
-  <!-- Public canonical stack (NO gate.js) -->
   <script src="/ui.js"></script>
   <script src="/header-loader.js"></script>
   <script src="/partials/header.js"></script>
   <script src="/i18n.js"></script>
+
+  <script src="/rfo/public-intake.js"></script>
 </body>
 </html>

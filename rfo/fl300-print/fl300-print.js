@@ -1,19 +1,15 @@
+// rfo/fl300-print/fl300-print.js
 (function () {
   "use strict";
 
-  var DRAFT_KEY = "ss:draft:rfo";
-  var API_URL = "/api/render/fl300";
-  var DOWNLOAD_NAME = "FL-300.pdf";
+  const KEY = "ss:draft:rfo:v1";
 
-  var lastBlobUrl = "";
-  var lastBlob = null;
-
-  function $(sel, root) {
-    return (root || document).querySelector(sel);
+  function $(sel, root = document) {
+    return root.querySelector(sel);
   }
 
   function esc(s) {
-    return String(s == null ? "" : s)
+    return String(s ?? "")
       .replaceAll("&", "&amp;")
       .replaceAll("<", "&lt;")
       .replaceAll(">", "&gt;")
@@ -21,259 +17,161 @@
       .replaceAll("'", "&#39;");
   }
 
+  function readLocalDraft() {
+    try {
+      const raw = localStorage.getItem(KEY);
+      if (!raw) return null;
+      const obj = JSON.parse(raw);
+      return obj && typeof obj === "object" ? obj : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function setDebug(obj) {
+    const pre = $("#debugOut");
+    if (!pre) return;
+    pre.textContent = typeof obj === "string" ? obj : JSON.stringify(obj, null, 2);
+  }
+
   function setStatus(s) {
-    var el = $("#pdfStatus");
+    const el = $("#pdfStatus");
     if (el) el.textContent = String(s || "");
   }
 
   function setPreview(url) {
-    var iframe = $("#pdfPreview");
+    const iframe = $("#pdfPreview");
     if (iframe) iframe.src = url || "";
   }
 
-  function setDownload(blobUrl, enabled) {
-    var a = $("#btnDownload");
+  function setDownload(blobUrl) {
+    const a = $("#btnDownload");
     if (!a) return;
 
-    if (!enabled || !blobUrl) {
+    if (!blobUrl) {
       a.setAttribute("href", "#");
       a.setAttribute("aria-disabled", "true");
       a.classList.add("disabled");
-      a.removeAttribute("download");
       return;
     }
 
     a.classList.remove("disabled");
     a.removeAttribute("aria-disabled");
     a.setAttribute("href", blobUrl);
-    a.setAttribute("download", DOWNLOAD_NAME);
+    a.setAttribute("download", "FL-300-filled.pdf");
   }
 
-  function revokeLastBlobUrl() {
-    if (lastBlobUrl) {
-      try { URL.revokeObjectURL(lastBlobUrl); } catch (_) {}
-      lastBlobUrl = "";
+  function renderNoDraft() {
+    setStatus("No draft found");
+    setPreview("");
+    setDownload("");
+    setDebug({
+      ok: false,
+      note: `No local draft found at localStorage["${KEY}"].`,
+      action: "Return to public intake and complete at least County, then Continue to Print.",
+      intakeUrl: "/rfo/public-intake.html",
+    });
+
+    const list = $("#inputList");
+    if (list) {
+      list.innerHTML = `
+        <div><strong>No draft found.</strong></div>
+        <div style="margin-top:10px;">
+          <a class="btn primary" href="/rfo/public-intake.html">Go to Public Intake</a>
+        </div>
+        <div class="muted" style="margin-top:10px;">
+          Expected key: <code>${esc(KEY)}</code>
+        </div>
+      `;
     }
-  }
 
-  function setDebug(obj) {
-    var pre = $("#debugOut");
-    if (!pre) return;
-    pre.textContent = typeof obj === "string" ? obj : JSON.stringify(obj, null, 2);
-  }
-
-  function readLocalDraftRaw() {
-    try {
-      return localStorage.getItem(DRAFT_KEY) || "";
-    } catch (_) {
-      return "";
-    }
-  }
-
-  function readLocalDraftObject() {
-    var raw = readLocalDraftRaw();
-    if (!raw) return { ok: false, reason: "missing", raw: "" };
-
-    try {
-      var obj = JSON.parse(raw);
-      if (!obj || typeof obj !== "object") return { ok: false, reason: "not_object", raw: raw };
-      return { ok: true, reason: "ok", raw: raw, obj: obj };
-    } catch (e) {
-      return { ok: false, reason: "invalid_json", raw: raw, error: String(e && e.message ? e.message : e) };
-    }
-  }
-
-  function payloadByteSize(str) {
-    try {
-      return new TextEncoder().encode(str).byteLength;
-    } catch (_) {
-      return str.length;
-    }
-  }
-
-  function showNoDraftNotice(reason, extra) {
-    var box = $("#draftNotice");
-    var list = $("#inputList");
-    var btn = $("#btnGen");
-
+    const btn = $("#btnGen");
     if (btn) btn.disabled = true;
-    if (list) list.innerHTML = "";
-    if (!box) return;
+  }
 
-    var html = "";
-    if (reason === "missing") {
-      html =
-        "<div><strong>No draft found.</strong></div>" +
-        "<div class='muted' style='margin-top:6px;'>Expected localStorage key <code>" + esc(DRAFT_KEY) + "</code>.</div>" +
-        "<div style='margin-top:10px;' class='row'>" +
-          "<a class='btn' href='/rfo/review'>Go to /rfo/review</a>" +
-          "<a class='btn' href='/start'>Go to /start</a>" +
-        "</div>";
-    } else if (reason === "invalid_json") {
-      html =
-        "<div><strong>Draft is not valid JSON.</strong></div>" +
-        "<div class='muted' style='margin-top:6px;'>Clear the key and rebuild the draft from review/start.</div>" +
-        "<div class='mono' style='margin-top:10px;'>" + esc(extra || "") + "</div>" +
-        "<div style='margin-top:10px;' class='row'>" +
-          "<a class='btn' href='/rfo/review'>Go to /rfo/review</a>" +
-          "<a class='btn' href='/start'>Go to /start</a>" +
-        "</div>";
-    } else {
-      html =
-        "<div><strong>Draft could not be loaded.</strong></div>" +
-        "<div class='mono' style='margin-top:10px;'>" + esc(extra || "") + "</div>" +
-        "<div style='margin-top:10px;' class='row'>" +
-          "<a class='btn' href='/rfo/review'>Go to /rfo/review</a>" +
-          "<a class='btn' href='/start'>Go to /start</a>" +
-        "</div>";
+  function hydratePanel(draft) {
+    const r = draft?.rfo || {};
+
+    const list = $("#inputList");
+    if (list) {
+      list.innerHTML = `
+        <div><strong>Loaded from:</strong> localStorage:${esc(KEY)}</div>
+        <div style="margin-top:10px; line-height:1.35;">
+          <div><strong>County</strong>: ${esc(r.county || "—")}</div>
+          <div><strong>Branch</strong>: ${esc(r.branch || "—")}</div>
+          <div><strong>Case #</strong>: ${esc(r.caseNumber || "—")}</div>
+          <div><strong>Role</strong>: ${esc(r.role || "—")}</div>
+          <div><strong>Custody</strong>: ${r.reqCustody ? "Yes" : "No"}</div>
+          <div><strong>Support</strong>: ${r.reqSupport ? "Yes" : "No"}</div>
+          <div><strong>Other</strong>: ${r.reqOther ? "Yes" : "No"}</div>
+          <div><strong>Details</strong>: ${esc(r.requestDetails || "—")}</div>
+        </div>
+      `;
     }
 
-    box.style.display = "";
-    box.innerHTML = html;
-  }
-
-  function hideNoDraftNotice() {
-    var box = $("#draftNotice");
-    if (!box) return;
-    box.style.display = "none";
-    box.innerHTML = "";
-  }
-
-  function hydratePanel(draftObj) {
-    hideNoDraftNotice();
-
-    var list = $("#inputList");
-    if (!list) return;
-
-    var r = (draftObj && draftObj.rfo && typeof draftObj.rfo === "object") ? draftObj.rfo : {};
-
-    list.innerHTML =
-      "<div><strong>Loaded from:</strong> localStorage:" + esc(DRAFT_KEY) + "</div>" +
-      "<div style='margin-top:10px; line-height:1.35;'>" +
-        "<div><strong>County</strong>: " + esc(r.county || "—") + "</div>" +
-        "<div><strong>Branch</strong>: " + esc(r.branch || "—") + "</div>" +
-        "<div><strong>Case #</strong>: " + esc(r.caseNumber || "—") + "</div>" +
-        "<div><strong>Role</strong>: " + esc(r.role || "—") + "</div>" +
-        "<div><strong>Custody</strong>: " + (r.reqCustody ? "Yes" : "No") + "</div>" +
-        "<div><strong>Support</strong>: " + (r.reqSupport ? "Yes" : "No") + "</div>" +
-        "<div><strong>Other</strong>: " + (r.reqOther ? "Yes" : "No") + "</div>" +
-        "<div><strong>Details</strong>: " + esc(r.requestDetails || "—") + "</div>" +
-      "</div>";
-
+    setDebug({});
     setStatus("Not generated");
     setPreview("");
-    setDownload("", false);
-    setDebug({
-      payloadBytes: 0,
-      lastResponseStatus: null,
-      lastContentType: null
-    });
+    setDownload("");
   }
 
-  async function generateFilledPdf(draftObj) {
-    var btn = $("#btnGen");
+  async function generateFilledPdf(draft) {
+    const btn = $("#btnGen");
     if (btn) btn.disabled = true;
-
-    revokeLastBlobUrl();
-    lastBlob = null;
 
     try {
       setStatus("Generating…");
-      setDownload("", false);
 
-      var payload = JSON.stringify({ rfo: draftObj });
-      var size = payloadByteSize(payload);
-
-      var res = await fetch(API_URL, {
+      const res = await fetch("/api/render/fl300", {
         method: "POST",
-        headers: {
-          "content-type": "application/json",
-          "accept": "application/pdf, application/json"
-        },
-        body: payload
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ rfo: (draft?.rfo || {}) }),
       });
 
-      var ct = (res.headers.get("content-type") || "");
-      setDebug({
-        payloadBytes: size,
-        lastResponseStatus: res.status,
-        lastContentType: ct
-      });
-
-      if (res.status === 200 && ct.toLowerCase().indexOf("application/pdf") !== -1) {
-        var buf = await res.arrayBuffer();
-        var blob = new Blob([buf], { type: "application/pdf" });
-        var blobUrl = URL.createObjectURL(blob);
-
-        lastBlob = blob;
-        lastBlobUrl = blobUrl;
-
-        setPreview(blobUrl);
-        setDownload(blobUrl, true);
-        setStatus("Generated");
+      if (!res.ok) {
+        const txt = await res.text().catch(() => "");
+        setStatus("Failed");
+        setDebug({ ok: false, status: res.status, body: txt.slice(0, 4000) });
         return;
       }
 
-      var bodyText = "";
-      try {
-        if (ct.toLowerCase().indexOf("application/json") !== -1) {
-          var j = await res.json();
-          bodyText = JSON.stringify(j, null, 2);
-        } else {
-          bodyText = await res.text();
-        }
-      } catch (e) {
-        bodyText = "Could not read error body: " + String(e && e.message ? e.message : e);
-      }
+      const buf = await res.arrayBuffer();
+      const blob = new Blob([buf], { type: "application/pdf" });
+      const blobUrl = URL.createObjectURL(blob);
 
-      setStatus("Failed");
-      setDebug({
-        payloadBytes: size,
-        lastResponseStatus: res.status,
-        lastContentType: ct,
-        error: bodyText ? String(bodyText).slice(0, 4000) : ""
-      });
+      setPreview(blobUrl);
+      setDownload(blobUrl);
+      setStatus("Generated");
+
+      const dbgHeader = res.headers.get("x-sharpesystem-debug");
+      if (dbgHeader) {
+        try {
+          setDebug(JSON.parse(decodeURIComponent(dbgHeader)));
+        } catch (_) {
+          setDebug({ note: "debug header present (could not parse)" });
+        }
+      } else {
+        setDebug({ ok: true, note: "PDF returned (no debug header)." });
+      }
     } catch (e) {
       setStatus("Failed");
-      setDebug({
-        payloadBytes: 0,
-        lastResponseStatus: null,
-        lastContentType: null,
-        error: String(e && e.message ? e.message : e)
-      });
+      setDebug({ ok: false, error: String(e?.message || e) });
     } finally {
       if (btn) btn.disabled = false;
     }
   }
 
   function boot() {
-    var draftRead = readLocalDraftObject();
-
-    if (!draftRead.ok) {
-      setPreview("");
-      setDownload("", false);
-      setStatus("No draft");
-      if (draftRead.reason === "missing") showNoDraftNotice("missing", "");
-      else if (draftRead.reason === "invalid_json") showNoDraftNotice("invalid_json", draftRead.error || "");
-      else showNoDraftNotice(draftRead.reason, "");
-      setDebug({
-        payloadBytes: 0,
-        lastResponseStatus: null,
-        lastContentType: null
-      });
+    const draft = readLocalDraft();
+    if (!draft || !draft.rfo || typeof draft.rfo !== "object") {
+      renderNoDraft();
       return;
     }
 
-    var btn = $("#btnGen");
-    if (btn) btn.disabled = false;
+    hydratePanel(draft);
 
-    hydratePanel(draftRead.obj);
-
-    if (btn) {
-      btn.addEventListener("click", function () {
-        generateFilledPdf(draftRead.obj);
-      });
-    }
+    const btn = $("#btnGen");
+    if (btn) btn.addEventListener("click", () => generateFilledPdf(draft));
   }
 
   if (document.readyState === "loading") {
