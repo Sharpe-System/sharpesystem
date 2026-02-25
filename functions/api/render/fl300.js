@@ -38,7 +38,7 @@ export async function onRequest(context) {
       status: 200,
       headers: {
         "content-type": "application/pdf",
-        "content-disposition": 'inline; filename="FL-300.pdf"',
+        "content-disposition": "inline; filename=\"FL-300.pdf\"",
         "cache-control": "no-store",
       },
     });
