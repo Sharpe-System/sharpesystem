@@ -5,40 +5,22 @@ export async function onRequest(context) {
 
   if (request.method !== "POST") {
     return new Response(
-      JSON.stringify(
-        { ok: false, error: "Method not allowed. Use POST.", route: "/api/render/fl300" },
-        null,
-        2
-      ),
+      JSON.stringify({ ok: false, error: "Method not allowed. Use POST.", route: "/api/render/fl300" }, null, 2),
       { status: 405, headers: { "content-type": "application/json; charset=utf-8" } }
     );
   }
 
-  let body = null;
   try {
-    body = await request.json();
-  } catch (e) {
-    return new Response(
-      JSON.stringify({ ok: false, error: "Invalid JSON body.", route: "/api/render/fl300" }, null, 2),
-      { status: 400, headers: { "content-type": "application/json; charset=utf-8" } }
-    );
-  }
+    const url = new URL(request.url);
+    const templateUrl =
+      url.searchParams.get("template") ||
+      "https://sharpesystem.pages.dev/templates/jcc/fl300/FL-300.pdf";
 
-  try {
-    const templatePath = "/templates/jcc/fl300/FL-300.pdf";
-    const templateUrl = new URL(templatePath, request.url);
-
-    const tplRes = await fetch(templateUrl.toString(), { headers: { accept: "application/pdf" } });
-    if (!tplRes.ok) {
+    const res = await fetch(templateUrl);
+    if (!res.ok) {
       return new Response(
         JSON.stringify(
-          {
-            ok: false,
-            error: "Template fetch failed.",
-            route: "/api/render/fl300",
-            templatePath,
-            status: tplRes.status
-          },
+          { ok: false, error: "Template fetch failed.", status: res.status, templateUrl, route: "/api/render/fl300" },
           null,
           2
         ),
@@ -46,29 +28,24 @@ export async function onRequest(context) {
       );
     }
 
-    const tplBytes = await tplRes.arrayBuffer();
+    const bytes = new Uint8Array(await res.arrayBuffer());
 
-    const pdfDoc = await PDFDocument.load(tplBytes, { ignoreEncryption: true });
+    const pdf = await PDFDocument.load(bytes, { ignoreEncryption: true });
 
-    const outBytes = await pdfDoc.save();
+    const out = await pdf.save();
 
-    return new Response(outBytes, {
+    return new Response(out, {
       status: 200,
       headers: {
         "content-type": "application/pdf",
-        "content-disposition": 'inline; filename="FL-300-filled.pdf"',
-        "cache-control": "no-store"
-      }
+        "content-disposition": 'inline; filename="FL-300.pdf"',
+        "cache-control": "no-store",
+      },
     });
-  } catch (err) {
+  } catch (e) {
     return new Response(
       JSON.stringify(
-        {
-          ok: false,
-          error: "PDF render failed.",
-          message: String(err?.message || err),
-          route: "/api/render/fl300"
-        },
+        { ok: false, error: "PDF render failed.", message: String(e?.message || e), route: "/api/render/fl300" },
         null,
         2
       ),
