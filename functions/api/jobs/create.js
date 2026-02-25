@@ -1,7 +1,11 @@
+// FILE: functions/api/jobs/create.js
 const REQUIRED_KV_BINDING = "JOBS_KV";
 const RENDERER_PATH = "/api/render/fl300";
 const TEMPLATE_PATH = "/templates/jcc/fl300/tpl.pdf";
 const RENDERER_ID = "render/fl300@v1";
+
+import { verifyFirebaseIdToken } from "../../_lib/verify-firebase.js";
+import { requireExportEntitlement } from "../../_lib/entitlement.js";
 
 function json(status, obj) {
   return new Response(JSON.stringify(obj, null, 2), {
@@ -26,6 +30,12 @@ function requireKv(env) {
   return kv;
 }
 
+function bearerToken(request) {
+  const authz = request.headers.get("Authorization") || "";
+  const m = authz.match(/^Bearer\s+(.+)$/i);
+  return m ? m[1] : "";
+}
+
 export async function onRequest(context) {
   const { request, env } = context;
 
@@ -42,6 +52,29 @@ export async function onRequest(context) {
       fix: "Add a Pages KV binding named JOBS_KV (Settings → Functions → KV bindings).",
       route: "/api/jobs/create"
     });
+  }
+
+  const token = bearerToken(request);
+  if (!token) {
+    return json(401, { ok: false, error: "Missing bearer token.", route: "/api/jobs/create" });
+  }
+
+  let decoded;
+  try {
+    decoded = await verifyFirebaseIdToken(token, context);
+  } catch (e) {
+    return json(401, { ok: false, error: "Invalid token.", route: "/api/jobs/create" });
+  }
+
+  const uid = decoded?.user_id || decoded?.uid;
+  if (!uid) {
+    return json(401, { ok: false, error: "Invalid token payload.", route: "/api/jobs/create" });
+  }
+
+  try {
+    await requireExportEntitlement(uid, context);
+  } catch (e) {
+    return json(e?.status || 403, { ok: false, error: "Entitlement required.", route: "/api/jobs/create" });
   }
 
   let body;
@@ -63,7 +96,6 @@ export async function onRequest(context) {
     return json(400, { ok: false, error: "Invalid draft payload. Expected { draft: { rfo: {...} } }.", route: "/api/jobs/create" });
   }
 
-  // Normalize by deep-cloning through JSON (removes functions, undefined, prototypes).
   let renderPayload;
   try {
     renderPayload = JSON.parse(JSON.stringify(draft));
@@ -73,7 +105,6 @@ export async function onRequest(context) {
 
   const origin = new URL(request.url).origin;
 
-  // Template ID = SHA-256 of template bytes (immutable identifier).
   let templateId = "";
   try {
     const tplRes = await fetch(origin + TEMPLATE_PATH);
@@ -86,7 +117,6 @@ export async function onRequest(context) {
     return json(500, { ok: false, error: "Template hash failed.", message: String(e?.message || e), route: "/api/jobs/create" });
   }
 
-  // Render PDF once (server-side) using the existing renderer contract.
   let pdfBytes;
   let pdfSha256 = "";
   let pdfBase64 = "";
@@ -121,8 +151,6 @@ export async function onRequest(context) {
     const buf = await renderRes.arrayBuffer();
     pdfBytes = new Uint8Array(buf);
     pdfSha256 = await sha256Bytes(buf);
-
-    // nodejs_compat is enabled; Buffer is available.
     pdfBase64 = Buffer.from(pdfBytes).toString("base64");
   } catch (e) {
     return json(500, { ok: false, error: "Render fetch failed.", message: String(e?.message || e), route: "/api/jobs/create" });
@@ -151,7 +179,6 @@ export async function onRequest(context) {
 
   const key = "job:" + jobId;
 
-  // Enforce immutability: refuse overwrite (should never happen with UUID, but enforce anyway).
   const existing = await kv.get(key);
   if (existing) {
     return json(409, { ok: false, error: "JobId collision (refused overwrite).", jobId, route: "/api/jobs/create" });
