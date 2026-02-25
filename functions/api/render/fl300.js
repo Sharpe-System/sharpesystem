@@ -1,4 +1,3 @@
-// functions/api/render/fl300.js
 import { PDFDocument } from "pdf-lib";
 
 export async function onRequest(context) {
@@ -49,11 +48,8 @@ export async function onRequest(context) {
 
     const tplBytes = await tplRes.arrayBuffer();
 
-    // Key fix: official court PDFs are often encrypted; pdf-lib requires this flag.
     const pdfDoc = await PDFDocument.load(tplBytes, { ignoreEncryption: true });
 
-    // v1: prove we can load + emit a valid PDF byte stream.
-    // Next step: fill AcroForm fields (or overlay text) deterministically from `body`.
     const outBytes = await pdfDoc.save();
 
     return new Response(outBytes, {
