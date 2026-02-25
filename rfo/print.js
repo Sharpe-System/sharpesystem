@@ -2,7 +2,8 @@
   "use strict";
 
   const KEY = "ss:draft:rfo:v1";
-  const API = "/api/render/fl300";
+  const API_RENDER = "/api/render/fl300";
+  const API_JOB_GET = "/api/jobs/get?id=";
 
   function $(s){return document.querySelector(s)}
 
@@ -15,12 +16,9 @@
       .replaceAll("'","&#39;");
   }
 
-  function readDraft(){
+  function getParam(name){
     try{
-      const raw = localStorage.getItem(KEY);
-      if(!raw) return null;
-      const obj = JSON.parse(raw);
-      return obj?.rfo ? obj.rfo : null;
+      return new URL(window.location.href).searchParams.get(name);
     }catch{
       return null;
     }
@@ -49,9 +47,88 @@
       "<strong>Details:</strong>\n"+esc(r.requestDetails||"");
   }
 
-  async function loadPdf(r){
+  function setDownload(url){
+    const dl = $("#btnDownload");
+    if(!dl) return;
+    if(!url){
+      dl.href="#";
+      dl.classList.add("disabled");
+      dl.setAttribute("aria-disabled","true");
+      dl.removeAttribute("download");
+      return;
+    }
+    dl.href=url;
+    dl.classList.remove("disabled");
+    dl.removeAttribute("aria-disabled");
+    dl.download="FL-300.pdf";
+  }
+
+  function bytesFromBase64(b64){
+    const bin = atob(b64);
+    const len = bin.length;
+    const bytes = new Uint8Array(len);
+    for(let i=0;i<len;i++) bytes[i]=bin.charCodeAt(i);
+    return bytes;
+  }
+
+  function loadPdfFromBytes(bytes){
+    const blob = new Blob([bytes], { type: "application/pdf" });
+    const url = URL.createObjectURL(blob);
+    $("#pdfFrame").src = url;
+    setDownload(url);
+  }
+
+  async function loadJob(jobId){
     try{
-      const res = await fetch(API,{
+      $("#perfect").innerHTML = "<div class='muted'>Loading job…</div>";
+      setDownload("");
+
+      const res = await fetch(API_JOB_GET + encodeURIComponent(jobId), { method: "GET" });
+      if(!res.ok){
+        const txt = await res.text().catch(()=> "");
+        $("#perfect").innerHTML = "<div class='mono'>Job load error:\n"+esc(txt.slice(0,4000))+"</div>";
+        return;
+      }
+
+      const job = await res.json();
+
+      const payload = job && job.renderPayload ? job.renderPayload : null;
+      const r = payload && payload.rfo ? payload.rfo : null;
+      if(!r){
+        $("#perfect").innerHTML = "<div class='mono'>Job missing renderPayload.rfo</div>";
+        return;
+      }
+
+      renderPerfect(r);
+
+      const b64 = job?.pdf?.base64 || "";
+      if(!b64){
+        $("#perfect").innerHTML = "<div class='mono'>Job missing pdf bytes.</div>";
+        return;
+      }
+
+      const bytes = bytesFromBase64(b64);
+      loadPdfFromBytes(bytes);
+
+    }catch(e){
+      $("#perfect").innerHTML = "<div class='mono'>Job fetch failed:\n"+esc(String(e))+"</div>";
+    }
+  }
+
+  function readDraft(){
+    try{
+      const raw = localStorage.getItem(KEY);
+      if(!raw) return null;
+      const obj = JSON.parse(raw);
+      return obj?.rfo ? obj.rfo : null;
+    }catch{
+      return null;
+    }
+  }
+
+  async function loadPdfFromDraft(r){
+    try{
+      const res = await fetch(API_RENDER,{
         method:"POST",
         headers:{"content-type":"application/json"},
         body:JSON.stringify({rfo:r})
@@ -65,16 +142,7 @@
       }
 
       const buf = await res.arrayBuffer();
-      const blob = new Blob([buf],{type:"application/pdf"});
-      const url = URL.createObjectURL(blob);
-
-      $("#pdfFrame").src = url;
-
-      const dl = $("#btnDownload");
-      dl.href = url;
-      dl.classList.remove("disabled");
-      dl.removeAttribute("aria-disabled");
-      dl.download = "FL-300.pdf";
+      loadPdfFromBytes(new Uint8Array(buf));
 
     }catch(e){
       $("#perfect").innerHTML =
@@ -83,14 +151,20 @@
   }
 
   function boot(){
-    const r = readDraft();
-    if(!r){
-      renderNoDraft();
-      return;
+    const jobId = getParam("job");
+    if(jobId){
+      // Canon: if job param present, do NOT read localStorage.
+      loadJob(jobId);
+    } else {
+      const r = readDraft();
+      if(!r){
+        renderNoDraft();
+        setDownload("");
+        return;
+      }
+      renderPerfect(r);
+      loadPdfFromDraft(r);
     }
-
-    renderPerfect(r);
-    loadPdf(r);
 
     const btn = $("#btnPrint");
     if(btn) btn.addEventListener("click",()=>window.print());
