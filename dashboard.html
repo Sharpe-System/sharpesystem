@@ -1,92 +1,79 @@
-<!-- /dashboard.html -->
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Dashboard — SharpeSystem</title>
-  <meta name="description" content="Authenticated routing hub for SharpeSystem." />
+  <meta charset="UTF-8" />
+  <title>SharpeSystem — Documents</title>
   <link rel="stylesheet" href="/styles.css" />
 </head>
+<body>
 
-<body
-  class="shell"
-  data-require-auth="1"
-  data-require-tier="basic"
-  data-require-active="1"
->
-  <div id="site-header"></div>
+<div class="page">
+  <h1>Your Documents</h1>
 
-  <main>
-    <div class="container">
+  <div id="empty" style="display:none;">
+    No documents yet.
+  </div>
 
-      <section class="panel" style="padding:var(--pad);">
-        <div class="row" style="justify-content:space-between; align-items:flex-start;">
-          <div>
-            <h1>Dashboard</h1>
-            <p class="muted" style="margin-top:6px;">Account + routing hub.</p>
-          </div>
-          <div class="badge" title="Tier">
-            <span aria-hidden="true" style="width:8px; height:8px; border-radius:50%; background:rgba(52,211,153,.8); display:inline-block;"></span>
-            Basic
-          </div>
-        </div>
+  <table id="jobsTable" class="table" style="display:none;">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Title</th>
+        <th>Case #</th>
+        <th>County</th>
+        <th>Pages</th>
+        <th>Date</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
 
-        <div class="hr"></div>
+<script type="module">
+import { getAuthToken } from "/firebase-config.js";
 
-        <div class="card" style="padding:14px;">
-          <div id="who" class="muted">Checking session…</div>
-          <div class="row" style="margin-top:10px;">
-            <span class="badge" id="tierPill">Tier: —</span>
-            <span class="badge" id="activePill">Active: —</span>
-          </div>
-        </div>
+async function loadJobs() {
+  const token = await getAuthToken();
 
-        <div class="hr"></div>
+  const res = await fetch("/api/jobs/list", {
+    headers: { Authorization: "Bearer " + token }
+  });
 
-        <div class="grid-2">
-          <div class="card" style="padding:14px;">
-            <h2 style="margin-top:0;">App</h2>
-            <p class="muted">Route based on tier + intake.</p>
-            <div class="row" style="margin-top:10px;">
-              <a class="btn primary" href="/start.html">Start</a>
-              <a class="btn" href="/intake.html">Intake</a>
-              <a class="btn" href="/snapshot.html">Snapshot</a>
-              <a class="btn" href="/timeline.html">Timeline</a>
-              <a class="btn" href="/checklist.html">Checklist</a>
-              <a class="btn" href="/rfo/index.html">Request for Order</a>
-            </div>
-          </div>
+  const data = await res.json();
 
-          <div class="card" style="padding:14px;">
-            <h2 style="margin-top:0;">Billing</h2>
-            <p class="muted">If you already paid, activation should set tier + active on your user document.</p>
-            <div class="row" style="margin-top:10px;">
-              <a class="btn" href="/tier1.html">Plans</a>
-              <a class="btn" href="/subscribe.html">Subscribe</a>
-              <a class="btn" href="/billing.html">Billing</a>
-            </div>
+  const table = document.getElementById("jobsTable");
+  const empty = document.getElementById("empty");
+  const tbody = table.querySelector("tbody");
 
-            <div class="alert warn" style="margin-top:12px;">
-              If your tier is not updating, your user document may not have been written/updated yet.
-              Use <span class="kbd">Status</span> to confirm services are up.
-            </div>
-          </div>
-        </div>
-      </section>
+  if (!data.jobs || data.jobs.length === 0) {
+    empty.style.display = "block";
+    return;
+  }
 
-    </div>
-  </main>
+  table.style.display = "table";
 
-  <script src="/ui.js"></script>
-  <script src="/header-loader.js"></script>
-  <script src="/partials/header.js"></script>
-  <script src="/i18n.js"></script>
+  data.jobs.forEach(j => {
+    const tr = document.createElement("tr");
 
-  <!-- Page module BEFORE gate -->
-  <script type="module" src="/dashboard.js"></script>
+    tr.innerHTML = `
+      <td>${j.flow}/${j.form}</td>
+      <td>${j.title || ""}</td>
+      <td>${j.caseNumber || ""}</td>
+      <td>${j.county || ""}</td>
+      <td>${j.pageCount || ""}</td>
+      <td>${new Date(j.createdAt).toLocaleDateString()}</td>
+      <td>
+        <a href="/print.html?job=${j.jobId}" target="_blank">Print</a>
+      </td>
+    `;
 
-  <!-- Gate MUST be last -->
-  <script type="module" src="/gate.js"></script>
+    tbody.appendChild(tr);
+  });
+}
+
+loadJobs();
+</script>
+
 </body>
 </html>
