@@ -3,3 +3,8 @@ compatibility_date = "2026-02-20"
 compatibility_flags = ["nodejs_compat"]
 
 pages_build_output_dir = "."
+
+[[kv_namespaces]]
+binding = "JOBS_KV"
+id = "46eeb2999a8a465d804173efc9d984ec"
+preview_id = "01cd4f3eb1d447ed8d98cc197d500571"
