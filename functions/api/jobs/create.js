@@ -108,4 +108,3 @@
     jobId,
     pdfUrl: "/api/jobs/get?id=" + encodeURIComponent(jobId) + "&asset=pdf"
   });
-}
