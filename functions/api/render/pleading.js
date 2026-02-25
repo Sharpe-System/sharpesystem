@@ -1,0 +1,193 @@
+import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
+
+function json(status, obj) {
+  return new Response(JSON.stringify(obj, null, 2), {
+    status,
+    headers: { "content-type": "application/json; charset=utf-8" }
+  });
+}
+
+function clean(s) {
+  return String(s ?? "").replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+}
+
+function linesFromText(s) {
+  const t = clean(s);
+  return t.split("\n");
+}
+
+function pick(obj, k) {
+  const v = obj && typeof obj === "object" ? obj[k] : "";
+  return clean(v).trim();
+}
+
+export async function onRequest(context) {
+  const { request } = context;
+
+  if (request.method !== "POST") {
+    return json(405, { ok: false, error: "Method not allowed. Use POST.", route: "/api/render/pleading" });
+  }
+
+  let payload;
+  try {
+    payload = await request.json();
+  } catch (e) {
+    return json(400, { ok: false, error: "Invalid JSON body.", message: String(e?.message || e), route: "/api/render/pleading" });
+  }
+
+  const p = payload && typeof payload === "object" ? payload.pleading : null;
+  if (!p || typeof p !== "object") {
+    return json(400, { ok: false, error: "Missing required key: pleading", route: "/api/render/pleading" });
+  }
+
+  const courtName = pick(p, "courtName");
+  const county = pick(p, "county");
+  const caseNumber = pick(p, "caseNumber");
+  const petitioner = pick(p, "petitioner");
+  const respondent = pick(p, "respondent");
+  const filingParty = pick(p, "filingParty");
+  const attorneyName = pick(p, "attorneyName");
+  const attorneyBar = pick(p, "attorneyBar");
+  const attorneyAddress = pick(p, "attorneyAddress");
+  const documentTitle = pick(p, "documentTitle");
+  const bodyText = clean(p.bodyText ?? "");
+
+  if (!courtName || !caseNumber || !petitioner || !respondent || !documentTitle || !bodyText.trim()) {
+    return json(400, {
+      ok: false,
+      error: "Missing required fields.",
+      required: ["courtName", "caseNumber", "petitioner", "respondent", "documentTitle", "bodyText"],
+      route: "/api/render/pleading"
+    });
+  }
+
+  try {
+    const pdfDoc = await PDFDocument.create();
+    const page = pdfDoc.addPage([612, 792]);
+
+    const font = await pdfDoc.embedFont(StandardFonts.TimesRoman);
+    const fontBold = await pdfDoc.embedFont(StandardFonts.TimesRomanBold);
+
+    const width = page.getWidth();
+    const height = page.getHeight();
+
+    const leftNumX = 24;
+    const leftTextX = 72;
+    const rightMargin = 54;
+
+    const topMargin = 54;
+    const bottomMargin = 54;
+
+    const lineCount = 28;
+    const lineSpacing = (height - topMargin - bottomMargin) / lineCount;
+
+    const bodyFontSize = 12;
+    const captionFontSize = 12;
+    const titleFontSize = 14;
+
+    const lineColor = rgb(0, 0, 0);
+
+    for (let i = 1; i <= lineCount; i++) {
+      const y = height - topMargin - (i - 0.85) * lineSpacing;
+      page.drawText(String(i), {
+        x: leftNumX,
+        y,
+        size: 10,
+        font,
+        color: lineColor
+      });
+    }
+
+    const captionLines = [];
+    if (attorneyName) captionLines.push(attorneyName);
+    if (attorneyBar) captionLines.push("State Bar No.: " + attorneyBar);
+    if (attorneyAddress) captionLines.push(attorneyAddress);
+    if (filingParty) captionLines.push("Attorney for: " + filingParty);
+
+    const courtLine = county ? `${courtName}, ${county}` : courtName;
+
+    const captionBlock = [
+      ...captionLines,
+      "",
+      courtLine,
+      "",
+      `${petitioner},`,
+      "Petitioner,",
+      "v.",
+      `${respondent},`,
+      "Respondent.",
+      "",
+      "Case No.: " + caseNumber
+    ].filter((x) => x !== undefined);
+
+    let cy = height - topMargin - 1.35 * lineSpacing;
+    const maxCaptionWidth = width - leftTextX - rightMargin;
+
+    for (const ln of captionBlock) {
+      const text = ln || "";
+      page.drawText(text, {
+        x: leftTextX,
+        y: cy,
+        size: captionFontSize,
+        font: ln === courtLine ? fontBold : font,
+        color: lineColor,
+        maxWidth: maxCaptionWidth
+      });
+      cy -= lineSpacing;
+      if (cy < bottomMargin) break;
+    }
+
+    const titleY = height - topMargin - 13.0 * lineSpacing;
+    const titleWidth = fontBold.widthOfTextAtSize(documentTitle, titleFontSize);
+    const titleX = Math.max(leftTextX, (width - titleWidth) / 2);
+
+    page.drawText(documentTitle, {
+      x: titleX,
+      y: titleY,
+      size: titleFontSize,
+      font: fontBold,
+      color: lineColor
+    });
+
+    const bodyStartY = height - topMargin - 15.0 * lineSpacing;
+    const bodyLines = linesFromText(bodyText);
+
+    let by = bodyStartY;
+    const bodyMaxWidth = width - leftTextX - rightMargin;
+
+    for (const ln of bodyLines) {
+      if (by < bottomMargin) break;
+      page.drawText(ln, {
+        x: leftTextX,
+        y: by,
+        size: bodyFontSize,
+        font,
+        color: lineColor,
+        maxWidth: bodyMaxWidth
+      });
+      by -= lineSpacing;
+    }
+
+    const footer = "Generated by SharpeSystem";
+    page.drawText(footer, {
+      x: leftTextX,
+      y: bottomMargin - 18,
+      size: 9,
+      font,
+      color: lineColor
+    });
+
+    const out = await pdfDoc.save();
+
+    return new Response(out, {
+      status: 200,
+      headers: {
+        "content-type": "application/pdf",
+        "content-disposition": 'inline; filename="pleading-paper.pdf"',
+        "cache-control": "no-store"
+      }
+    });
+  } catch (e) {
+    return json(500, { ok: false, error: "PDF render failed.", message: String(e?.message || e), route: "/api/render/pleading" });
+  }
+}
