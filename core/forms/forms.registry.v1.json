@@ -1,0 +1,48 @@
+{
+  "registryVersion": 1,
+  "forms": [
+    {
+      "id": "fl300",
+      "displayName": "Request for Order (FL-300)",
+      "templateSrcUrl": "/templates/jcc/fl300/src.pdf",
+      "templateTplUrl": "/templates/jcc/fl300/tpl.pdf",
+      "fieldsUrl": "/templates/jcc/fl300/fields.json",
+      "rendererEndpoint": "/api/render/fl300",
+      "version": 1,
+      "staged": false,
+      "verify": {
+        "templateSrcPath": "templates/jcc/fl300/src.pdf",
+        "templateTplPath": "templates/jcc/fl300/tpl.pdf",
+        "fieldsPath": "templates/jcc/fl300/fields.json",
+        "rendererFunctionPath": "functions/api/render/fl300.js"
+      },
+      "quirks": {}
+    },
+    {
+      "id": "fl150",
+      "displayName": "Income and Expense Declaration (FL-150)",
+      "templateSrcUrl": "/templates/jcc/fl150/src.pdf",
+      "templateTplUrl": "/templates/jcc/fl150/tpl.pdf",
+      "version": 1,
+      "staged": true,
+      "verify": {
+        "templateSrcPath": "templates/jcc/fl150/src.pdf",
+        "templateTplPath": "templates/jcc/fl150/tpl.pdf"
+      },
+      "quirks": {}
+    },
+    {
+      "id": "dv100",
+      "displayName": "Request for Domestic Violence Restraining Order (DV-100)",
+      "templateSrcUrl": "/templates/jcc/dv100/src.pdf",
+      "templateTplUrl": "/templates/jcc/dv100/tpl.pdf",
+      "version": 1,
+      "staged": true,
+      "verify": {
+        "templateSrcPath": "templates/jcc/dv100/src.pdf",
+        "templateTplPath": "templates/jcc/dv100/tpl.pdf"
+      },
+      "quirks": {}
+    }
+  ]
+}
