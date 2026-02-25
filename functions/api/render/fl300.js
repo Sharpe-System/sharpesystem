@@ -14,10 +14,35 @@ export async function onRequest(context) {
     );
   }
 
+  let payload;
+  try {
+    payload = await request.json();
+  } catch (e) {
+    return new Response(
+      JSON.stringify(
+        { ok: false, error: "Invalid JSON body.", message: String(e?.message || e), route: "/api/render/fl300" },
+        null,
+        2
+      ),
+      { status: 400, headers: { "content-type": "application/json; charset=utf-8" } }
+    );
+  }
+
+  const rfo = payload && typeof payload === "object" ? payload.rfo : null;
+  if (!rfo || typeof rfo !== "object") {
+    return new Response(
+      JSON.stringify(
+        { ok: false, error: "Missing required key: rfo", route: "/api/render/fl300" },
+        null,
+        2
+      ),
+      { status: 400, headers: { "content-type": "application/json; charset=utf-8" } }
+    );
+  }
+
   try {
     const url = new URL(request.url);
 
-    // Canonical template path
     const templateUrl = `${url.origin}/templates/jcc/fl300/tpl.pdf`;
 
     const tplRes = await fetch(templateUrl);
