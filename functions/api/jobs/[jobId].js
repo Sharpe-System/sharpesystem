@@ -46,7 +46,7 @@ export async function onRequest(context) {
   let job;
   try {
     job = JSON.parse(raw);
-  } catch (e) {
+  } catch {
     return json(500, { ok: false, error: "Stored job is corrupt JSON.", jobId, route: "/api/jobs/:jobId" });
   }
 
@@ -60,7 +60,6 @@ export async function onRequest(context) {
     createdAt: job.createdAt,
     rendererId: job.rendererId,
     templateId: job.templateId,
-    pdfUrl,
-    renderUrl: ""
+    pdfUrl
   });
 }
