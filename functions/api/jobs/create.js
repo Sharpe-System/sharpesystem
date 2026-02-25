@@ -1,7 +1,4 @@
 const REQUIRED_KV_BINDING = "JOBS_KV";
-const RENDERER_PATH = "/api/render/fl300";
-const TEMPLATE_PATH = "/templates/jcc/fl300/tpl.pdf";
-const RENDERER_ID = "render/fl300@v1";
 
 import { verifyFirebaseIdToken } from "../../_lib/verify-firebase.js";
 
@@ -115,6 +112,38 @@ function requireKv(env) {
   return kv;
 }
 
+function isPlainObject(x) {
+  return !!x && typeof x === "object" && !Array.isArray(x);
+}
+
+function resolveContract(flow, form) {
+  if (flow === "rfo" && form === "fl300") {
+    return {
+      flow,
+      form,
+      rendererPath: "/api/render/fl300",
+      templatePath: "/templates/jcc/fl300/tpl.pdf",
+      rendererId: "render/fl300@v1",
+      filename: "FL-300.pdf",
+      requiredKey: "rfo"
+    };
+  }
+
+  if (flow === "pleading" && form === "pleading28") {
+    return {
+      flow,
+      form,
+      rendererPath: "/api/render/pleading",
+      templatePath: "/templates/pleading/blank.pdf",
+      rendererId: "render/pleading@v1",
+      filename: "pleading-paper.pdf",
+      requiredKey: "pleading"
+    };
+  }
+
+  return null;
+}
+
 export async function onRequest(context) {
   const { request, env } = context;
 
@@ -153,7 +182,7 @@ export async function onRequest(context) {
     return json(400, { ok: false, error: "Invalid JSON.", route: "/api/jobs/create" });
   }
 
-  const flow = body?.flow;
+   const flow = body?.flow;
   const form = body?.form;
   const draft = body?.draft;
 
@@ -163,7 +192,34 @@ export async function onRequest(context) {
 
   if (!draft || !draft.rfo) {
     return json(400, { ok: false, error: "Invalid draft.", route: "/api/jobs/create" });
+   const flow = isPlainObject(body) ? body.flow : null;
+  const form = isPlainObject(body) ? body.form : null;
+  const draft = isPlainObject(body) ? body.draft : null;
+
+  const contract = resolveContract(flow, form);
+  if (!contract) {
+    return json(400, {
+      ok: false,
+      error: "Unsupported flow/form.",
+      expected: [
+        { flow: "rfo", form: "fl300" },
+        { flow: "pleading", form: "pleading28" }
+      ],
+      got: { flow, form },
+      route: "/api/jobs/create"
+    });
   }
+
+  if (!isPlainObject(draft) || !isPlainObject(draft[contract.requiredKey])) {
+    return json(400, {
+      ok: false,
+      error: "Invalid draft payload.",
+      expected: contract.requiredKey === "rfo"
+        ? "{ draft: { rfo: {...} } }"
+        : "{ draft: { pleading: {...} } }",
+      route: "/api/jobs/create"
+    });
+   }
 
   let renderPayload;
   try {
@@ -176,9 +232,19 @@ export async function onRequest(context) {
 
   let templateId = "";
   try {
-    const tplRes = await fetch(origin + TEMPLATE_PATH);
+     const tplRes = await fetch(origin + TEMPLATE_PATH);
     if (!tplRes.ok) return json(500, { ok: false, error: "Template fetch failed.", route: "/api/jobs/create" });
-    const tplBuf = await tplRes.arrayBuffer();
+     const tplRes = await fetch(origin + contract.templatePath);
+    if (!tplRes.ok) {
+      return json(500, {
+        ok: false,
+        error: "Template fetch failed.",
+        status: tplRes.status,
+        path: contract.templatePath,
+        route: "/api/jobs/create"
+      });
+    }
+     const tplBuf = await tplRes.arrayBuffer();
     templateId = await sha256Bytes(tplBuf);
   } catch {
     return json(500, { ok: false, error: "Template hash failed.", route: "/api/jobs/create" });
@@ -189,7 +255,7 @@ export async function onRequest(context) {
   let pdfBase64 = "";
 
   try {
-    const renderRes = await fetch(origin + RENDERER_PATH, {
+    const renderRes = await fetch(origin + contract.rendererPath, {
       method: "POST",
       headers: { "content-type": "application/json", accept: "application/pdf" },
       body: JSON.stringify(renderPayload)
@@ -202,7 +268,8 @@ export async function onRequest(context) {
     const buf = await renderRes.arrayBuffer();
     pdfBytes = new Uint8Array(buf);
     pdfSha256 = await sha256Bytes(buf);
-    pdfBase64 = Buffer.from(pdfBytes).toString("base64");
+  
+     pdfBase64 = Buffer.from(pdfBytes).toString("base64");
   } catch {
     return json(500, { ok: false, error: "Render failed.", route: "/api/jobs/create" });
   }
@@ -213,16 +280,16 @@ export async function onRequest(context) {
   const job = {
     ok: true,
     jobId,
-    flow,
-    form,
+    flow: contract.flow,
+    form: contract.form,
     createdAt,
-    rendererId: RENDERER_ID,
-    templatePath: TEMPLATE_PATH,
+    rendererId: contract.rendererId,
+    templatePath: contract.templatePath,
     templateId,
     renderPayload,
     pdf: {
       contentType: "application/pdf",
-      filename: "FL-300.pdf",
+      filename: contract.filename,
       sha256: pdfSha256,
       base64: pdfBase64
     }
