@@ -1,70 +1,103 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>FL-300 — Split Print</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FL-300 Print</title>
+
   <link rel="stylesheet" href="/styles.css" />
   <style>
-    .split {
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap:16px;
-      padding:16px;
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background: #f5f5f5;
     }
+
+    .print-shell {
+      display: flex;
+      height: calc(100vh - 56px);
+    }
+
     .pane {
-      border:1px solid rgba(255,255,255,.12);
-      border-radius:12px;
-      padding:12px;
-      background:rgba(255,255,255,.03);
+      flex: 1;
+      overflow: auto;
+      background: white;
+      border-left: 1px solid #ddd;
     }
+
+    .pane:first-child {
+      border-left: none;
+    }
+
+    .pane-header {
+      position: sticky;
+      top: 0;
+      background: #fafafa;
+      border-bottom: 1px solid #ddd;
+      padding: 10px 14px;
+      font-weight: 600;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 1;
+    }
+
     iframe {
-      width:100%;
-      height:78vh;
-      border:0;
-      border-radius:8px;
-      background:#111;
+      width: 100%;
+      height: calc(100% - 44px);
+      border: none;
     }
-    .perfect {
-      font-family: system-ui, sans-serif;
-      line-height:1.4;
-      white-space:pre-wrap;
+
+    .perfect-print {
+      padding: 24px;
+      max-width: 800px;
+      margin: auto;
     }
-    @media (max-width:980px){
-      .split{grid-template-columns:1fr}
-      iframe{height:60vh}
+
+    .message {
+      padding: 40px;
+      text-align: center;
+      color: #444;
+    }
+
+    .btn {
+      background: #0b5cff;
+      color: white;
+      padding: 8px 12px;
+      border-radius: 4px;
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    .btn.secondary {
+      background: #666;
     }
   </style>
 </head>
-<body class="shell">
-  <div id="site-header"></div>
+<body>
 
-  <main class="page">
-    <div class="row" style="justify-content:space-between;padding:16px 16px 0 16px;">
-      <a class="btn" href="/rfo/public-intake.html">Back to Intake</a>
-      <div class="row" style="gap:10px;">
-        <button id="btnPrint" class="btn">Print Page</button>
-        <a id="btnDownload" class="btn disabled" href="#" aria-disabled="true">Download PDF</a>
+  <div class="print-shell">
+
+    <!-- LEFT: Official PDF -->
+    <div class="pane">
+      <div class="pane-header">
+        <span>Official Court Form (FL-300)</span>
+        <a id="btnDownload" class="btn" download="FL-300.pdf">Download PDF</a>
       </div>
+      <iframe id="pdfFrame"></iframe>
     </div>
 
-    <div class="split">
-      <section class="pane">
-        <h3>Official Court PDF</h3>
-        <iframe id="pdfFrame"></iframe>
-      </section>
-
-      <section class="pane">
-        <h3>Perfect Print</h3>
-        <div id="perfect"></div>
-      </section>
+    <!-- RIGHT: Perfect Print -->
+    <div class="pane">
+      <div class="pane-header">
+        <span>Perfect Print</span>
+        <a class="btn secondary" onclick="window.print()">Print Page</a>
+      </div>
+      <div id="perfectPrint" class="perfect-print"></div>
     </div>
-  </main>
 
-  <script src="/ui.js" defer></script>
-  <script src="/header-loader.js" defer></script>
-  <script src="/partials/header.js" defer></script>
-  <script src="/i18n.js" defer></script>
-  <script src="/rfo/print.js" defer></script>
+  </div>
+
+  <script src="/rfo/print.js"></script>
 </body>
 </html>
