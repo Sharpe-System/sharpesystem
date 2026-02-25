@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>RFO — Paid Module — SharpeSystem</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+
+<body class="shell">
+  <div id="site-header"></div>
+
+  <main class="page">
+    <div class="container content">
+      <section class="card" style="padding:var(--pad);">
+        <h1>RFO (Paid)</h1>
+        <p class="muted" style="margin-top:6px;">Checking access…</p>
+      </section>
+    </div>
+  </main>
+
+  <script src="/ui.js"></script>
+  <script src="/header-loader.js"></script>
+  <script src="/partials/header.js"></script>
+  <script src="/i18n.js"></script>
+
+  <script src="/gate.js"></script>
+  <script>
+    (function () {
+      var target = "/app.html?flow=rfo&stage=intake";
+      location.replace(target);
+    })();
+  </script>
+</body>
+</html>

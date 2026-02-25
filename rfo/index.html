@@ -1,46 +1,94 @@
-<!-- /rfo/index.html -->
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Request for Order — SharpeSystem</title>
-  <meta name="description" content="RFO workflow." />
+  <title>RFO — Start — SharpeSystem</title>
+  <meta name="description" content="Public-first RFO start page. No login until Print Gate." />
   <link rel="stylesheet" href="/styles.css" />
-  <link rel="stylesheet" href="/rfo/rfo.css" />
 </head>
-<body data-require-auth="1" data-require-tier="basic" data-require-active="1">
+
+<body class="shell">
   <div id="site-header"></div>
 
   <main class="page">
     <div class="container content">
-      <section class="page-hero">
-        <h1>Request for Order (RFO)</h1>
-        <p class="sub">Workflow entry. Your router/state/ui modules own the flow.</p>
-      </section>
 
-      <section class="template-box">
-        <div class="cta-row">
-          <a class="button primary" href="/rfo/index.html">Start / Resume</a>
-          <a class="button" href="/dashboard.html">Dashboard</a>
+      <section class="card" style="padding:var(--pad);">
+        <h1>Request for Order (RFO)</h1>
+        <p class="muted" style="margin-top:6px;">
+          Public mode saves locally on your device. You only log in at the print step.
+        </p>
+
+        <div class="hr"></div>
+
+        <section class="card" style="padding:14px; margin:0 0 14px 0;">
+          <h2 style="margin:0 0 6px 0;">Before you continue with court</h2>
+          <p class="muted" style="margin:0;">
+            If agreement is realistically possible, it is usually cheaper, faster, and better for children than litigation.
+            SharpeSystem gives you a map to file — but we prefer you don’t have to.
+          </p>
+
+          <div class="row" style="margin-top:12px; gap:10px; flex-wrap:wrap;">
+            <a class="btn" href="/amicable.html">Try Amicable (Agreement Path)</a>
+            <a class="btn" href="/peace-path.html">Peace Path (De-escalated Messaging)</a>
+            <button class="btn primary" id="btnContinue" type="button">Continue with court</button>
+          </div>
+
+          <div class="small soft" style="margin-top:10px;">
+            Not legal advice. Procedural guidance + document organization only.
+          </div>
+        </section>
+
+        <div id="court"></div>
+
+        <h3 style="margin-top:0;">Start your public RFO draft</h3>
+        <p class="muted" style="margin-top:6px;">
+          Public mode stores your draft in your browser (localStorage). You can resume later from this device.
+        </p>
+
+        <div class="grid-2" style="gap:14px; margin-top:12px;">
+          <a class="card" href="/rfo/public-intake.html" style="text-decoration:none;">
+            <h3 style="margin:0 0 6px 0;">Start (Public Draft)</h3>
+            <p class="muted" style="margin:0;">No account. Local save. Guided intake.</p>
+          </a>
+
+          <a class="card" href="/rfo/public-intake.html?resume=1" style="text-decoration:none;">
+            <h3 style="margin:0 0 6px 0;">Resume (Public Draft)</h3>
+            <p class="muted" style="margin:0;">Continue your saved draft (this device).</p>
+          </a>
+        </div>
+
+        <div class="hr"></div>
+
+        <h3 style="margin-top:0;">Need export / print?</h3>
+        <p class="muted" style="margin-top:6px;">
+          Export and print are unlocked at the Print Gate (login/subscription). If you’re already subscribed, open the paid module.
+        </p>
+
+        <div class="row" style="margin-top:12px; gap:10px; flex-wrap:wrap;">
+          <a class="btn primary" href="/rfo/paid.html">Open RFO (Paid Module)</a>
+          <a class="btn" href="/home.html">Back to Home</a>
         </div>
       </section>
 
-      <section class="card" style="padding:14px;margin-top:14px;">
-        <div class="muted">Loading RFO module…</div>
-      </section>
     </div>
   </main>
 
-  <script src="/ui.js" defer></script>
-  <script src="/header-loader.js" defer></script>
-  <script src="/partials/header.js" defer></script>
-  <script src="/i18n.js" defer></script>
-  <script type="module" src="/gate.js"></script>
+  <script>
+    (function () {
+      var btn = document.getElementById("btnContinue");
+      var court = document.getElementById("court");
+      if (!btn || !court) return;
+      btn.addEventListener("click", function () {
+        court.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    })();
+  </script>
 
-  <script type="module" src="/rfo/rfo-state.js"></script>
-  <script type="module" src="/rfo/rfo-router.js"></script>
-  <script type="module" src="/rfo/rfo-locations.js"></script>
-  <script type="module" src="/rfo/rfo-ui.js"></script>
+  <script src="/ui.js"></script>
+  <script src="/header-loader.js"></script>
+  <script src="/partials/header.js"></script>
+  <script src="/i18n.js"></script>
 </body>
 </html>
