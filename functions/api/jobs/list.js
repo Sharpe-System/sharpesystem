@@ -1,3 +1,5 @@
+// FILE: functions/api/jobs/list.js  (OVERWRITE)
+
 const REQUIRED_KV_BINDING = "JOBS_KV";
 
 import { verifyFirebaseIdToken } from "../../_lib/verify-firebase.js";
@@ -75,7 +77,10 @@ export async function onRequest(context) {
   }
 
   const keys = Array.isArray(resp?.keys) ? resp.keys : [];
-  const nextCursor = safeStr(resp?.cursor || "") || null;
+
+  // Canon: nextCursor MUST be null when list_complete.
+  const listComplete = resp?.list_complete === true;
+  const nextCursor = listComplete ? null : (safeStr(resp?.cursor || "") || null);
 
   const jobs = [];
   for (const k of keys) {
