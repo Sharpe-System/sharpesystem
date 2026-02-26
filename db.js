@@ -7,71 +7,47 @@ import {
   fsDoc,
   fsGetDoc,
   fsSetDoc,
-  fsUpdateDoc,
-  fsCollection
+  fsUpdateDoc
 } from "./firebase-config.js";
 
-export { db, fsDoc, fsGetDoc, fsSetDoc, fsUpdateDoc, fsCollection };
-
-function nowIso() {
-  return new Date().toISOString();
-}
-
-// Ensure users/{uid} exists (idempotent)
+// Create the user doc if it doesn't exist.
+// IMPORTANT: we only CREATE here. We do NOT update tier/active/role client-side.
 export async function ensureUserDoc(uid) {
   if (!uid) throw new Error("missing_uid");
+
   const ref = fsDoc(db, "users", uid);
-
   const snap = await fsGetDoc(ref);
-  if (snap && snap.exists()) return true;
 
-  await fsSetDoc(
-    ref,
-    { createdAt: nowIso(), updatedAt: nowIso() },
-    { merge: true }
-  );
-  return true;
+  if (snap.exists()) return;
+
+  // Only minimal safe defaults. Do not include tier/active/role here unless you *intend*
+  // the client to be able to create them. Create is allowed by your rules anyway.
+  await fsSetDoc(ref, {
+    createdAt: new Date().toISOString()
+  });
 }
 
-// Read users/{uid} data (returns {} if missing)
 export async function readUserDoc(uid) {
   if (!uid) throw new Error("missing_uid");
   const ref = fsDoc(db, "users", uid);
   const snap = await fsGetDoc(ref);
-  if (!snap || !snap.exists()) return {};
-  return snap.data() || {};
+  return snap.exists() ? snap.data() : null;
 }
 
-// Write intake payload under users/{uid}.intake (idempotent, merge-safe)
+// Write intake WITHOUT touching other fields (critical for your rules).
 export async function writeIntake(uid, intake) {
   if (!uid) throw new Error("missing_uid");
-  if (!intake || typeof intake !== "object") throw new Error("invalid_intake");
+  if (!intake || typeof intake !== "object") throw new Error("missing_intake");
 
   const ref = fsDoc(db, "users", uid);
 
-  // updateDoc fails if doc doesn't exist, so ensure first.
-  await ensureUserDoc(uid);
-
-  try {
-    await fsUpdateDoc(ref, {
-      intake,
-      intakeUpdatedAt: nowIso(),
-      updatedAt: nowIso()
-    });
-  } catch {
-    // Fallback if update fails for any reason
-    await fsSetDoc(
-      ref,
-      {
-        intake,
-        intakeUpdatedAt: nowIso(),
-        updatedAt: nowIso()
-      },
-      { merge: true }
-    );
-  }
-
-  return true;
+  // Only updates intake + updatedAt; tier/active/role remain unchanged -> rules pass.
+  await fsUpdateDoc(ref, {
+    intake,
+    updatedAt: new Date().toISOString()
+  });
 }
 
+// Keep legacy exports if anything else imports them
+export { db, fsDoc, fsGetDoc, fsSetDoc, fsUpdateDoc };
 export default {};
