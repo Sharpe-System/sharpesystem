@@ -37,15 +37,23 @@ export async function readUserDoc(uid) {
 // Write intake WITHOUT touching other fields (critical for your rules).
 export async function writeIntake(uid, intake) {
   if (!uid) throw new Error("missing_uid");
-  if (!intake || typeof intake !== "object") throw new Error("missing_intake");
 
   const ref = fsDoc(db, "users", uid);
+  const snap = await fsGetDoc(ref);
+  if (!snap.exists()) throw new Error("user_doc_missing");
 
-  // Only updates intake + updatedAt; tier/active/role remain unchanged -> rules pass.
-  await fsUpdateDoc(ref, {
+  const cur = snap.data() || {};
+  const patch = {
     intake,
     updatedAt: new Date().toISOString()
-  });
+  };
+
+  // IMPORTANT: only preserve protected fields if they already exist.
+  if (Object.prototype.hasOwnProperty.call(cur, "tier")) patch.tier = cur.tier;
+  if (Object.prototype.hasOwnProperty.call(cur, "active")) patch.active = cur.active;
+  if (Object.prototype.hasOwnProperty.call(cur, "role")) patch.role = cur.role;
+
+  await fsUpdateDoc(ref, patch);
 }
 
 // Keep legacy exports if anything else imports them
