@@ -1,7 +1,3 @@
-// FILE: /scripts/jobs-stub.js  (OVERWRITE)
-// UI-only stub adapter.
-// Contract shape MUST match the API contract exactly.
-
 export function getJobsStub() {
   return [
     {
@@ -13,7 +9,7 @@ export function getJobsStub() {
       county: "Orange",
       pageCount: 12,
       createdAt: "2026-02-25T10:30:00Z",
-      downloadUrl: "" // optional
+      downloadUrl: ""
     },
     {
       jobId: "def456",
@@ -22,9 +18,10 @@ export function getJobsStub() {
       title: "Pleading Paper",
       caseNumber: "17D009277",
       county: "Orange",
-      pageCount: null,
-      createdAt: "2026-02-24T22:10:00Z",
+      pageCount: 2,
+      createdAt: "2026-02-24T15:12:00Z",
       downloadUrl: ""
     }
   ];
 }
+
