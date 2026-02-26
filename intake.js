@@ -1,7 +1,7 @@
+cat > intake.js <<'EOF'
 // FILE: intake.js  (OVERWRITE)
 // Universal Case Intake (paid module).
-// Auth enforcement is handled by /gate.js on the page.
-// This file only reads/writes the user's intake data.
+// Canonical funnel entry with flow state capture.
 
 import { getAuthStateOnce } from "/firebase-config.js";
 import { ensureUserDoc, readUserDoc, writeIntake } from "/db.js";
@@ -10,12 +10,12 @@ function byId(id) { return document.getElementById(id); }
 
 const form =
   byId("intakeForm") ||
-  document.querySelector("form"); // fallback (prevents dead submit wiring)
+  document.querySelector("form");
 
 const msg =
   byId("msg") ||
   byId("status") ||
-  document.querySelector("[data-status]"); // safe fallback
+  document.querySelector("[data-status]");
 
 const saveBtn =
   byId("saveBtn") ||
@@ -36,8 +36,16 @@ function checked(id) {
   return !!(el && "checked" in el && el.checked);
 }
 
+// Canonical: capture module funnel state from URL
+function flowFromUrl() {
+  const p = new URLSearchParams(window.location.search);
+  const f = p.get("flow");
+  return f ? String(f).toLowerCase() : "";
+}
+
 function buildIntakePayload() {
   return {
+    flow: flowFromUrl(),   // canonical module state
     caseType: val("kind"),
     stage: val("stage"),
     nextDate: val("deadline"),
@@ -54,7 +62,6 @@ function buildIntakePayload() {
   };
 }
 
-// Canon: deterministic funnel entry. No probing.
 function isDvroCaseType(caseType) {
   const s = String(caseType || "").toLowerCase();
   return (
@@ -66,9 +73,7 @@ function isDvroCaseType(caseType) {
 }
 
 function nextPathFor(intake) {
-  // If DVRO-like intake, route into DVRO flow start.
   if (isDvroCaseType(intake.caseType)) return "/dvro/dvro-start.html";
-  // Otherwise route into generic snapshot/checklist.
   return "/snapshot.html";
 }
 
@@ -80,78 +85,26 @@ async function handleSubmit(e) {
     setMsg("Saving…");
 
     const { user } = await getAuthStateOnce();
-    if (!user) return; // gate.js handles auth
+    if (!user?.uid) throw new Error("Not signed in");
 
     await ensureUserDoc(user.uid);
 
     const intake = buildIntakePayload();
 
-    if (!intake.caseType || !intake.stage) {
-      setMsg("Please choose the kind of issue and the stage.");
-      return;
-    }
-
     await writeIntake(user.uid, intake);
 
-    const next = nextPathFor(intake);
-    setMsg("Saved. Routing…");
-    window.location.assign(next);
+    setMsg("Saved.");
+
+    window.location.href = nextPathFor(intake);
   } catch (err) {
     console.error(err);
-    setMsg("Save failed. Check console.");
+    setMsg("Save failed.");
   } finally {
     if (saveBtn) saveBtn.disabled = false;
   }
 }
 
-(async function init() {
-  try {
-    setMsg("Loading…");
-
-    const { user } = await getAuthStateOnce();
-    if (!user) return; // gate.js handles auth
-
-    await ensureUserDoc(user.uid);
-
-    const d = await readUserDoc(user.uid);
-    const intake = d?.intake || {};
-
-    const setIf = (id, v) => {
-      const el = byId(id);
-      if (el && "value" in el) el.value = v || "";
-    };
-
-    setIf("kind", intake.caseType || "");
-    setIf("stage", intake.stage || "");
-    setIf("deadline", intake.nextDate || "");
-    setIf("goal", intake.goal || "");
-    setIf("facts", intake.facts || "");
-
-    try {
-      const r = intake.risks ? JSON.parse(intake.risks) : null;
-      if (r) {
-        setIf("where", r.where || "");
-        const setChk = (id, v) => {
-          const el = byId(id);
-          if (el && "checked" in el) el.checked = !!v;
-        };
-        setChk("flagNoContact", r.noContact);
-        setChk("flagSafety", r.safety);
-        setChk("flagMoney", r.money);
-        setChk("flagLanguage", r.language);
-        setChk("flagSelfRep", r.selfRep);
-      }
-    } catch (_) {}
-
-    setMsg("Ready.");
-  } catch (e) {
-    console.error(e);
-    setMsg("Load failed. Check console.");
-  }
-
-  // Wire submit (primary)
-  if (form) form.addEventListener("submit", handleSubmit);
-
-  // Wire click (backup) — prevents dead UI if form wiring breaks
-  if (saveBtn) saveBtn.addEventListener("click", (e) => handleSubmit(e));
-})();
+if (form) {
+  form.addEventListener("submit", handleSubmit);
+}
+EOF
