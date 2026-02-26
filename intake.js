@@ -1,6 +1,4 @@
 // FILE: intake.js  (OVERWRITE)
-
-// /intake.js
 // Universal Case Intake (paid module).
 // Auth enforcement is handled by /gate.js on the page.
 // This file only reads/writes the user's intake data.
@@ -8,36 +6,57 @@
 import { getAuthStateOnce } from "/firebase-config.js";
 import { ensureUserDoc, readUserDoc, writeIntake } from "/db.js";
 
-function $(id){ return document.getElementById(id); }
+function byId(id) { return document.getElementById(id); }
 
-const form = $("intakeForm");
-const msg = $("msg");
-const saveBtn = $("saveBtn");
+const form =
+  byId("intakeForm") ||
+  document.querySelector("form"); // fallback (prevents dead submit wiring)
 
-function setMsg(t){ if (msg) msg.textContent = t || ""; }
+const msg =
+  byId("msg") ||
+  byId("status") ||
+  document.querySelector("[data-status]"); // safe fallback
 
-function safeStr(x){ return String(x ?? "").trim(); }
+const saveBtn =
+  byId("saveBtn") ||
+  (form ? form.querySelector('button[type="submit"], input[type="submit"]') : null);
 
-function buildIntakePayload(){
+function setMsg(t) {
+  if (!msg) return;
+  msg.textContent = t || "";
+}
+
+function val(id) {
+  const el = byId(id);
+  return (el && "value" in el) ? String(el.value || "").trim() : "";
+}
+
+function checked(id) {
+  const el = byId(id);
+  return !!(el && "checked" in el && el.checked);
+}
+
+function buildIntakePayload() {
   return {
-    caseType: safeStr($("kind")?.value),
-    stage: safeStr($("stage")?.value),
-    nextDate: safeStr($("deadline")?.value),
-    goal: safeStr($("goal")?.value),
+    caseType: val("kind"),
+    stage: val("stage"),
+    nextDate: val("deadline"),
+    goal: val("goal"),
     risks: JSON.stringify({
-      noContact: !!$("flagNoContact")?.checked,
-      safety: !!$("flagSafety")?.checked,
-      money: !!$("flagMoney")?.checked,
-      language: !!$("flagLanguage")?.checked,
-      selfRep: !!$("flagSelfRep")?.checked,
-      where: safeStr($("where")?.value)
+      noContact: checked("flagNoContact"),
+      safety: checked("flagSafety"),
+      money: checked("flagMoney"),
+      language: checked("flagLanguage"),
+      selfRep: checked("flagSelfRep"),
+      where: val("where")
     }),
-    facts: safeStr($("facts")?.value)
+    facts: val("facts")
   };
 }
 
-function isDvroCaseType(caseType){
-  const s = safeStr(caseType).toLowerCase();
+// Canon: deterministic funnel entry. No probing.
+function isDvroCaseType(caseType) {
+  const s = String(caseType || "").toLowerCase();
   return (
     s.includes("dvro") ||
     s.includes("restrain") ||
@@ -46,33 +65,22 @@ function isDvroCaseType(caseType){
   );
 }
 
-// Canon: deterministic funnel entry. No probing.
-function nextPathFor(intake){
+function nextPathFor(intake) {
+  // If DVRO-like intake, route into DVRO flow start.
   if (isDvroCaseType(intake.caseType)) return "/dvro/dvro-start.html";
-  // RFO funnel currently lives under /start.html in this repo.
-  return "/start.html";
+  // Otherwise route into generic snapshot/checklist.
+  return "/snapshot.html";
 }
 
-function withTimeout(promise, ms){
-  let t;
-  const timeout = new Promise((_, reject) => {
-    t = setTimeout(() => reject(new Error("timeout")), ms);
-  });
-  return Promise.race([promise, timeout]).finally(() => clearTimeout(t));
-}
-
-async function handleSaveAndContinue(){
-  const originalText = saveBtn ? saveBtn.textContent : "";
+async function handleSubmit(e) {
+  e?.preventDefault?.();
 
   try {
-    if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = "Working…"; }
+    if (saveBtn) saveBtn.disabled = true;
     setMsg("Saving…");
 
     const { user } = await getAuthStateOnce();
-    if (!user) {
-      setMsg("Not signed in.");
-      return; // gate.js owns auth redirects
-    }
+    if (!user) return; // gate.js handles auth
 
     await ensureUserDoc(user.uid);
 
@@ -83,56 +91,55 @@ async function handleSaveAndContinue(){
       return;
     }
 
-    // Best-effort save. Never block routing.
-    try {
-      await withTimeout(writeIntake(user.uid, intake), 6000);
-    } catch (e) {
-      console.warn("writeIntake failed (non-fatal):", e);
-      setMsg("Saved locally. Continuing…");
-    }
+    await writeIntake(user.uid, intake);
 
-    const nextPath = nextPathFor(intake);
-    setMsg("Continuing…");
-    window.location.assign(nextPath);
+    const next = nextPathFor(intake);
+    setMsg("Saved. Routing…");
+    window.location.assign(next);
   } catch (err) {
     console.error(err);
     setMsg("Save failed. Check console.");
   } finally {
-    if (saveBtn) {
-      saveBtn.disabled = false;
-      saveBtn.textContent = originalText || "Save and continue";
-    }
+    if (saveBtn) saveBtn.disabled = false;
   }
 }
 
-(async function init(){
+(async function init() {
   try {
     setMsg("Loading…");
 
     const { user } = await getAuthStateOnce();
-    if (!user) return; // gate.js already handles auth redirects
+    if (!user) return; // gate.js handles auth
 
     await ensureUserDoc(user.uid);
 
-    // Prefill from existing intake
     const d = await readUserDoc(user.uid);
     const intake = d?.intake || {};
 
-    if ($("kind")) $("kind").value = intake.caseType || "";
-    if ($("stage")) $("stage").value = intake.stage || "";
-    if ($("deadline")) $("deadline").value = intake.nextDate || "";
-    if ($("goal")) $("goal").value = intake.goal || "";
-    if ($("facts")) $("facts").value = intake.facts || "";
+    const setIf = (id, v) => {
+      const el = byId(id);
+      if (el && "value" in el) el.value = v || "";
+    };
+
+    setIf("kind", intake.caseType || "");
+    setIf("stage", intake.stage || "");
+    setIf("deadline", intake.nextDate || "");
+    setIf("goal", intake.goal || "");
+    setIf("facts", intake.facts || "");
 
     try {
       const r = intake.risks ? JSON.parse(intake.risks) : null;
       if (r) {
-        if ($("where")) $("where").value = r.where || "";
-        if ($("flagNoContact")) $("flagNoContact").checked = !!r.noContact;
-        if ($("flagSafety")) $("flagSafety").checked = !!r.safety;
-        if ($("flagMoney")) $("flagMoney").checked = !!r.money;
-        if ($("flagLanguage")) $("flagLanguage").checked = !!r.language;
-        if ($("flagSelfRep")) $("flagSelfRep").checked = !!r.selfRep;
+        setIf("where", r.where || "");
+        const setChk = (id, v) => {
+          const el = byId(id);
+          if (el && "checked" in el) el.checked = !!v;
+        };
+        setChk("flagNoContact", r.noContact);
+        setChk("flagSafety", r.safety);
+        setChk("flagMoney", r.money);
+        setChk("flagLanguage", r.language);
+        setChk("flagSelfRep", r.selfRep);
       }
     } catch (_) {}
 
@@ -142,7 +149,9 @@ async function handleSaveAndContinue(){
     setMsg("Load failed. Check console.");
   }
 
-  // Support submit and explicit click, in case markup changes later.
-  form?.addEventListener("submit", (e) => { e.preventDefault(); handleSaveAndContinue(); });
-  saveBtn?.addEventListener("click", (e) => { e.preventDefault(); handleSaveAndContinue(); });
+  // Wire submit (primary)
+  if (form) form.addEventListener("submit", handleSubmit);
+
+  // Wire click (backup) — prevents dead UI if form wiring breaks
+  if (saveBtn) saveBtn.addEventListener("click", (e) => handleSubmit(e));
 })();
