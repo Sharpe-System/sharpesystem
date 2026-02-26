@@ -72,6 +72,18 @@ function render(items){
 (async function main(){
   ensureUI();
 
+  // Backbone: funnel export handoff
+  const params = new URLSearchParams(location.search);
+  const flow = params.get("flow");
+  if (flow === "rfo") {
+    const mount = document.querySelector(".content") || document.body;
+    const box = document.createElement("div");
+    box.className = "cta-row";
+    box.style.margin = "16px 0";
+    box.innerHTML = `<a class="button primary" href="/rfo/public-print.html">Export RFO Packet</a>`;
+    mount.appendChild(box);
+  }
+
   const { user } = await requireTier1();
   let items = [];
 
