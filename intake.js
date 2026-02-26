@@ -1,8 +1,3 @@
-cat > intake.js <<'EOF'
-// FILE: intake.js  (OVERWRITE)
-// Universal Case Intake (paid module).
-// Canonical funnel entry with flow state capture.
-
 import { getAuthStateOnce } from "/firebase-config.js";
 import { ensureUserDoc, readUserDoc, writeIntake } from "/db.js";
 
@@ -36,44 +31,44 @@ function checked(id) {
   return !!(el && "checked" in el && el.checked);
 }
 
-// Canonical: capture module funnel state from URL
-function flowFromUrl() {
-  const p = new URLSearchParams(window.location.search);
-  const f = p.get("flow");
-  return f ? String(f).toLowerCase() : "";
+function pickFlowFrom(kind, urlFlow) {
+  const u = String(urlFlow || "").trim().toLowerCase();
+  if (u) return u;
+
+  const k = String(kind || "").trim().toLowerCase();
+  if (k === "criminal") return "criminal";
+  if (k === "protective_order") return "dvro";
+  if (k === "family") return "rfo";
+  return "";
 }
 
 function buildIntakePayload() {
+  const qs = new URLSearchParams(location.search);
+  const urlFlow = qs.get("flow") || "";
+
+  const kind = val("kind");
+  const flow = pickFlowFrom(kind, urlFlow);
+
   return {
-    flow: flowFromUrl(),   // canonical module state
-    caseType: val("kind"),
+    flow,
+    caseType: kind,
     stage: val("stage"),
     nextDate: val("deadline"),
     goal: val("goal"),
-    risks: JSON.stringify({
+    risks: {
       noContact: checked("flagNoContact"),
       safety: checked("flagSafety"),
       money: checked("flagMoney"),
       language: checked("flagLanguage"),
       selfRep: checked("flagSelfRep"),
       where: val("where")
-    }),
-    facts: val("facts")
+    },
+    facts: val("facts"),
+    updatedAt: new Date().toISOString()
   };
 }
 
-function isDvroCaseType(caseType) {
-  const s = String(caseType || "").toLowerCase();
-  return (
-    s.includes("dvro") ||
-    s.includes("restrain") ||
-    s.includes("protect") ||
-    s.includes("domestic violence")
-  );
-}
-
-function nextPathFor(intake) {
-  if (isDvroCaseType(intake.caseType)) return "/dvro/dvro-start.html";
+function nextPathFor() {
   return "/snapshot.html";
 }
 
@@ -85,26 +80,76 @@ async function handleSubmit(e) {
     setMsg("Saving…");
 
     const { user } = await getAuthStateOnce();
-    if (!user?.uid) throw new Error("Not signed in");
+    if (!user?.uid) throw new Error("auth_missing");
 
     await ensureUserDoc(user.uid);
 
     const intake = buildIntakePayload();
+    if (!intake.caseType || !intake.stage) {
+      setMsg("Please select the required fields.");
+      if (saveBtn) saveBtn.disabled = false;
+      return;
+    }
 
     await writeIntake(user.uid, intake);
 
-    setMsg("Saved.");
+    sessionStorage.setItem("ss.flow", intake.flow || "");
+    sessionStorage.setItem("ss.stage", intake.stage || "");
+    sessionStorage.setItem("ss.caseType", intake.caseType || "");
 
-    window.location.href = nextPathFor(intake);
+    const d = await readUserDoc(user.uid);
+    if (d && typeof d === "object") {
+      if (d.tier != null) sessionStorage.setItem("ss.tier", String(d.tier));
+      if (d.active != null) sessionStorage.setItem("ss.active", String(d.active));
+      if (d.role != null) sessionStorage.setItem("ss.role", String(d.role));
+    }
+
+    location.href = nextPathFor(intake);
   } catch (err) {
     console.error(err);
-    setMsg("Save failed.");
-  } finally {
+    setMsg("Save failed. Check console.");
     if (saveBtn) saveBtn.disabled = false;
   }
 }
 
 if (form) {
   form.addEventListener("submit", handleSubmit);
+} else if (saveBtn) {
+  saveBtn.addEventListener("click", handleSubmit);
 }
-EOF
+
+(async function hydrate() {
+  try {
+    const { user } = await getAuthStateOnce();
+    if (!user?.uid) return;
+
+    const d = await readUserDoc(user.uid);
+    const intake = d?.intake;
+    if (!intake) return;
+
+    const setIf = (id, v) => {
+      const el = byId(id);
+      if (!el) return;
+      if ("value" in el && v != null) el.value = String(v);
+    };
+
+    setIf("kind", intake.caseType || "");
+    setIf("stage", intake.stage || "");
+    setIf("where", intake?.risks?.where || "");
+    setIf("deadline", intake.nextDate || "");
+    setIf("goal", intake.goal || "");
+    setIf("facts", intake.facts || "");
+
+    const setCheck = (id, v) => {
+      const el = byId(id);
+      if (!el) return;
+      if ("checked" in el) el.checked = !!v;
+    };
+
+    setCheck("flagNoContact", !!intake?.risks?.noContact);
+    setCheck("flagSafety", !!intake?.risks?.safety);
+    setCheck("flagMoney", !!intake?.risks?.money);
+    setCheck("flagLanguage", !!intake?.risks?.language);
+    setCheck("flagSelfRep", !!intake?.risks?.selfRep);
+  } catch (_) {}
+})();
