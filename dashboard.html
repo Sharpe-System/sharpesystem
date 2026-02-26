@@ -1,183 +1,143 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>SharpeSystem — Documents</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <link rel="stylesheet" href="/styles.css" />
-</head>
-<body>
-<div class="page">
-  <h1>My Documents</h1>
-
-  <div class="row" style="display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:10px;">
-    <div class="muted" id="status">Ready.</div>
-    <button class="btn" id="refreshBtn" type="button">Refresh</button>
-  </div>
-
-  <input id="searchBox" type="search" placeholder="Search title, case #, county…" style="width:min(520px,100%);padding:10px 12px;border:1px solid #ddd;border-radius:10px;" />
-
-  <div id="error" class="error" style="display:none; margin-top:12px;"></div>
-
-  <div id="empty" style="display:none; margin-top:12px;">No documents yet.</div>
-
-  <div id="tableWrap" style="display:none; margin-top:12px;">
-    <table id="jobsTable" class="table">
-      <thead>
-        <tr>
-          <th>Type</th>
-          <th>Title</th>
-          <th>Case #</th>
-          <th>County</th>
-          <th>Pages</th>
-          <th>Created</th>
-          <th class="right">Actions</th>
-        </tr>
-      </thead>
-      <tbody id="tbody"></tbody>
-    </table>
-  </div>
-
-</div>
-
-<script type="module" src="/scripts/dashboard-ui.js"></script>
-</body>
-</html><!doctype html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>My Documents — SharpeSystem</title>
-
-  <!-- Canon CSS -->
   <link rel="stylesheet" href="/styles.css" />
-
-  <style>
-    /* UI-only, no assumptions about global styles */
-    .ss-page { max-width: 1100px; margin: 0 auto; padding: 16px; }
-    .ss-row { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
-    .ss-row.space { justify-content: space-between; }
-    .ss-muted { color:#666; font-size: 13px; }
-    .ss-card { border:1px solid #e6e6e6; border-radius: 12px; padding: 14px; background:#fff; }
-    .ss-input { padding: 10px 12px; border:1px solid #ddd; border-radius: 10px; width: min(520px, 100%); font: inherit; }
-    .ss-btn { padding: 9px 12px; border:1px solid #ddd; border-radius: 10px; background:#fff; cursor:pointer; font: inherit; }
-    .ss-btn:disabled { opacity:.55; cursor:default; }
-    .ss-error { border:1px solid #f2b8b5; background:#fff5f5; color:#8a0f0f; border-radius: 12px; padding: 12px; white-space: pre-wrap; }
-    .ss-empty { border:1px dashed #bbb; border-radius: 12px; padding: 14px; background:#fafafa; }
-    .ss-table { width:100%; border-collapse: collapse; margin-top: 10px; }
-    .ss-table th, .ss-table td { border-bottom: 1px solid #eee; padding: 10px 8px; text-align:left; vertical-align: top; }
-    .ss-table th { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color:#555; }
-    .ss-right { text-align: right; }
-    .ss-actions a, .ss-actions button { margin-left: 8px; }
-    .ss-link { color: inherit; text-decoration: underline; }
-    .ss-skel td { padding: 12px 8px; }
-    .ss-skel .bar { height: 10px; border-radius: 999px; background: #f0f0f0; width: 100%; }
-    .ss-skel .bar.w40 { width: 40%; }
-    .ss-skel .bar.w60 { width: 60%; }
-    .ss-skel .bar.w80 { width: 80%; }
-
-    /* Mobile: table -> stacked cards */
-    @media (max-width: 820px) {
-      .ss-table thead { display:none; }
-      .ss-table, .ss-table tbody, .ss-table tr, .ss-table td { display:block; width:100%; }
-      .ss-table tr { border:1px solid #eee; border-radius: 12px; margin-top: 10px; padding: 10px; background:#fff; }
-      .ss-table td { border-bottom: none; padding: 6px 0; }
-      .ss-table td[data-label]::before {
-        content: attr(data-label) ": ";
-        font-weight: 600;
-        color:#555;
-      }
-      .ss-right { text-align:left; }
-    }
-  </style>
 </head>
+<body class="ss-page">
+  <header id="ss-header"></header>
 
-<body class="ss-dashboard">
-  <!-- Canon header loader (path may already exist in your stack) -->
-  <div id="headerMount"></div>
+  <main class="ss-container">
+    <h1>My Documents</h1>
 
-  <main class="ss-page">
-    <div class="ss-row space" style="margin-bottom: 10px;">
-      <h1 style="margin:0; font-size: 22px;">My Documents</h1>
-      <div class="ss-row">
-        <span class="ss-muted" id="statusText">Ready.</span>
-        <button class="ss-btn" id="refreshBtn" type="button">Refresh</button>
-      </div>
+    <div class="ss-toolbar">
+      <input id="searchBox" class="ss-input" placeholder="Search title, case, county…" />
     </div>
 
-    <div class="ss-card">
-      <div class="ss-row space">
-        <div class="ss-row" style="flex:1;">
-          <input id="searchBox" class="ss-input" type="search" placeholder="Search title, case #, county…" autocomplete="off" />
-        </div>
-        <div class="ss-row">
-          <span class="ss-muted" id="countText"></span>
-        </div>
-      </div>
+    <div id="loadingState" class="ss-muted">Loading…</div>
 
-      <!-- states -->
-      <div id="errorBox" class="ss-error" style="display:none; margin-top: 12px;"></div>
+    <div id="errorState" class="ss-error" hidden></div>
 
-      <div id="emptyBox" class="ss-empty" style="display:none; margin-top: 12px;">
-        <div><strong>No documents yet</strong></div>
-        <div class="ss-muted" style="margin-top:6px;">
-          Create a document, then return to this page.
-        </div>
-      </div>
+    <div id="emptyState" class="ss-muted" hidden>
+      No documents yet.
+    </div>
 
-      <div id="tableWrap" style="display:none; margin-top: 10px;">
-        <table class="ss-table" aria-label="Jobs table">
-          <thead>
-            <tr>
-              <th>Type</th>
-              <th>Title</th>
-              <th>Case #</th>
-              <th>County</th>
-              <th>Pages</th>
-              <th>Created</th>
-              <th class="ss-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody id="jobsTbody"></tbody>
-        </table>
-      </div>
-
-      <div id="loadingBox" style="display:none; margin-top: 10px;">
-        <table class="ss-table" aria-label="Loading">
-          <tbody>
-            <tr class="ss-skel">
-              <td colspan="7">
-                <div class="bar w80"></div>
-                <div style="height:10px;"></div>
-                <div class="bar w60"></div>
-              </td>
-            </tr>
-            <tr class="ss-skel">
-              <td colspan="7">
-                <div class="bar w60"></div>
-                <div style="height:10px;"></div>
-                <div class="bar w40"></div>
-              </td>
-            </tr>
-            <tr class="ss-skel">
-              <td colspan="7">
-                <div class="bar w80"></div>
-                <div style="height:10px;"></div>
-                <div class="bar w60"></div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+    <div id="tableWrap" hidden>
+      <table class="ss-table">
+        <thead>
+          <tr>
+            <th>Type</th>
+            <th>Title</th>
+            <th>Case #</th>
+            <th>County</th>
+            <th>Pages</th>
+            <th>Created</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="jobsBody"></tbody>
+      </table>
     </div>
   </main>
 
-  <!-- Canon stack (UI-only; no Firebase imports here) -->
-  <script src="/scripts/header-loader.js" defer></script>
-  <script src="/scripts/ui.js" defer></script>
-  <script src="/scripts/i18n.js" defer></script>
-  <!-- gate.js optional by page class; DO NOT add redirects here -->
+  <script type="module">
+    import { getJobsStub } from "/scripts/jobs-stub.js";
 
-  <script type="module" src="/scripts/dashboard-ui.js"></script>
+    // ---------- DATA LAYER ----------
+    async function fetchJobs() {
+      // STUB MODE (swap this line later)
+      return getJobsStub();
+
+      // REAL MODE (API guy will own)
+      // return await fetch("/api/jobs/list").then(r => r.json());
+    }
+
+    // ---------- RENDER ----------
+    function renderJobsTable(jobs) {
+      const tbody = document.getElementById("jobsBody");
+      tbody.innerHTML = "";
+
+      for (const j of jobs) {
+        const tr = document.createElement("tr");
+
+        const type = [j.flow, j.form].filter(Boolean).join(" / ") || "-";
+        const title = j.title || "-";
+        const caseNum = j.caseNumber || "-";
+        const county = j.county || "-";
+        const pages = j.pageCount ?? "-";
+        const created = j.createdAt ? new Date(j.createdAt).toLocaleDateString() : "-";
+
+        const printUrl = `/print.html?job=${encodeURIComponent(j.jobId)}`;
+
+        tr.innerHTML = `
+          <td>${type}</td>
+          <td>${title}</td>
+          <td>${caseNum}</td>
+          <td>${county}</td>
+          <td>${pages}</td>
+          <td>${created}</td>
+          <td class="ss-actions">
+            <a class="ss-btn" href="${printUrl}">Print</a>
+            ${j.downloadUrl ? `<a class="ss-btn" href="${j.downloadUrl}">Download</a>` : ``}
+          </td>
+        `;
+
+        tbody.appendChild(tr);
+      }
+    }
+
+    // ---------- FILTER ----------
+    function filterJobs(jobs, q) {
+      if (!q) return jobs;
+      q = q.toLowerCase();
+      return jobs.filter(j =>
+        (j.title || "").toLowerCase().includes(q) ||
+        (j.caseNumber || "").toLowerCase().includes(q) ||
+        (j.county || "").toLowerCase().includes(q)
+      );
+    }
+
+    // ---------- STATE ----------
+    async function initDashboard() {
+      const loading = document.getElementById("loadingState");
+      const empty = document.getElementById("emptyState");
+      const error = document.getElementById("errorState");
+      const table = document.getElementById("tableWrap");
+      const search = document.getElementById("searchBox");
+
+      try {
+        loading.hidden = false;
+        const jobs = await fetchJobs();
+
+        const sorted = [...jobs].sort(
+          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+        );
+
+        loading.hidden = true;
+
+        if (!sorted.length) {
+          empty.hidden = false;
+          return;
+        }
+
+        table.hidden = false;
+        renderJobsTable(sorted);
+
+        search.addEventListener("input", () => {
+          const filtered = filterJobs(sorted, search.value);
+          renderJobsTable(filtered);
+        });
+
+      } catch (e) {
+        loading.hidden = true;
+        error.hidden = false;
+        error.textContent = "Failed to load documents.";
+      }
+    }
+
+    initDashboard();
+  </script>
 </body>
 </html>
