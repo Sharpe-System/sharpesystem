@@ -30,6 +30,12 @@ function safeStr(x) {
   return String(x ?? "");
 }
 
+function clampInt(n, lo, hi, fallback) {
+  const v = Number.parseInt(String(n ?? ""), 10);
+  if (!Number.isFinite(v)) return fallback;
+  return Math.max(lo, Math.min(hi, v));
+}
+
 export async function onRequest(context) {
   const { request, env } = context;
 
@@ -55,58 +61,63 @@ export async function onRequest(context) {
   const uid = decoded?.user_id || decoded?.uid;
   if (!uid) return json(401, { ok: false, error: "Invalid token payload.", route: "/api/jobs/list" });
 
+  const url = new URL(request.url);
   const prefix = `users/${uid}/jobs/`;
-  const limit = 200;
 
-  let cursor = null;
-  const jobs = [];
+  const limit = clampInt(url.searchParams.get("limit"), 1, 200, 50);
+  const cursor = safeStr(url.searchParams.get("cursor") || "") || undefined;
 
+  let resp;
   try {
-    while (jobs.length < limit) {
-      const resp = await kv.list({ prefix, cursor, limit: 200 });
-      const keys = Array.isArray(resp?.keys) ? resp.keys : [];
-      cursor = resp?.cursor || null;
-
-      for (const k of keys) {
-        if (jobs.length >= limit) break;
-
-        const keyName = safeStr(k?.name);
-        if (!keyName) continue;
-
-        const raw = await kv.get(keyName);
-        if (!raw) continue;
-
-        let meta;
-        try {
-          meta = JSON.parse(raw);
-        } catch {
-          continue;
-        }
-
-        if (!isObj(meta)) continue;
-        if (safeStr(meta.uid) !== safeStr(uid)) continue;
-
-        jobs.push({
-          jobId: safeStr(meta.jobId || keyName.replace(prefix, "")),
-          flow: safeStr(meta.flow),
-          form: safeStr(meta.form),
-          title: safeStr(meta.title),
-          caseNumber: safeStr(meta.caseNumber),
-          county: safeStr(meta.county),
-          pageCount: meta.pageCount ?? null,
-          createdAt: safeStr(meta.createdAt)
-        });
-      }
-
-      if (!cursor) break;
-      if (resp?.list_complete === true) break;
-      if (!keys.length) break;
-    }
+    resp = await kv.list({ prefix, limit, cursor });
   } catch (e) {
-    return json(500, { ok: false, error: "KV list/read failed.", message: String(e?.message || e), route: "/api/jobs/list" });
+    return json(500, { ok: false, error: "KV list failed.", message: String(e?.message || e), route: "/api/jobs/list" });
   }
 
+  const keys = Array.isArray(resp?.keys) ? resp.keys : [];
+  const nextCursor = safeStr(resp?.cursor || "") || null;
+
+  const jobs = [];
+  for (const k of keys) {
+    const keyName = safeStr(k?.name);
+    if (!keyName) continue;
+
+    let raw = null;
+    try {
+      raw = await kv.get(keyName);
+    } catch {
+      continue;
+    }
+    if (!raw) continue;
+
+    let meta;
+    try {
+      meta = JSON.parse(raw);
+    } catch {
+      continue;
+    }
+    if (!isObj(meta)) continue;
+
+    // Canon: UID is implied by prefix. Do NOT require meta.uid.
+    jobs.push({
+      jobId: safeStr(meta.jobId || keyName.replace(prefix, "")),
+      flow: safeStr(meta.flow),
+      form: safeStr(meta.form),
+      title: safeStr(meta.title),
+      caseNumber: safeStr(meta.caseNumber),
+      county: safeStr(meta.county),
+      pageCount: meta.pageCount ?? null,
+      createdAt: safeStr(meta.createdAt)
+    });
+  }
+
+  // Optional: stable-ish ordering inside this page only.
   jobs.sort((a, b) => safeStr(b.createdAt).localeCompare(safeStr(a.createdAt)));
 
-  return json(200, { ok: true, count: jobs.length, jobs });
+  return json(200, {
+    ok: true,
+    count: jobs.length,
+    jobs,
+    nextCursor
+  });
 }
