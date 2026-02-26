@@ -4,76 +4,46 @@
   <meta charset="utf-8" />
   <title>SharpeSystem</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="SharpeSystem intake entry." />
+  <meta name="description" content="SharpeSystem — guided preparation for documents, workflows, and submissions." />
   <link rel="stylesheet" href="/styles.css" />
-
   <style>
-    .landing-wrap{
-      min-height:100vh;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      text-align:center;
-      padding:40px 20px;
-    }
-
-    .logo{
-      font-family:Georgia,"Times New Roman",Times,serif;
-      font-size:48px;
-      font-weight:700;
-      letter-spacing:-0.5px;
-      line-height:1.1;
-    }
-
-    .logo .e{
-      color:#ED1C24; /* Red Cross */
-    }
-
-    .tagline{
-      margin-top:18px;
-      font-size:18px;
-      color:var(--soft);
-    }
-
-    .cta{
-      margin-top:26px;
-      font-size:16px;
-    }
-
-    .cta a{
-      color:var(--accent);
-      text-decoration:none;
-      border-bottom:1px solid var(--accent);
-      padding-bottom:2px;
-    }
-
-    .cta a:hover{
-      opacity:.8;
-    }
+    .landing-wrap{min-height:72vh;display:grid;place-items:center;padding:28px 16px;}
+    .landing-card{max-width:980px;width:100%;border:1px solid var(--border);border-radius:var(--radius);
+      background:rgba(255,255,255,.03);padding:28px;box-shadow:var(--shadow);}
+    .wordmark{font-family:Georgia, "Times New Roman", Times, serif;font-weight:700;letter-spacing:-.02em;
+      line-height:1;margin:0;font-size:clamp(54px, 7vw, 96px);text-align:center;}
+    .wordmark .e{color:#ED1C24;}
+    .subline{margin-top:14px;text-align:center;font-size:clamp(16px, 2.2vw, 20px);color:var(--soft);}
+    .cta{margin-top:22px;display:flex;justify-content:center;gap:10px;flex-wrap:wrap;}
+    .cta a{font-size:18px;padding:12px 16px;}
   </style>
 </head>
 
 <body class="shell">
+  <div id="site-header"></div>
 
-  <main class="landing-wrap">
+  <main class="page">
+    <div class="landing-wrap">
+      <section class="landing-card">
+        <h1 class="wordmark" aria-label="SharpeSystem">
+          Sharp<span class="e">E</span>system
+        </h1>
 
-    <div>
-      <div class="logo">
-        Sharp<span class="e">E</span>system
-      </div>
+        <div class="subline">Choose your path.</div>
 
-      <div class="tagline">
-        We’re glad you’re here
-      </div>
-
-      <div class="cta">
-        <a href="/rfo/index.html">
-          We start the journey together
-        </a>
-      </div>
+        <div class="cta">
+          <a class="btn primary" href="/rfo/index.html">Start Filing</a>
+          <a class="btn" href="/respond/index.html">Respond</a>
+          <a class="btn" href="/dvro/index.html">DVRO</a>
+          <a class="btn" href="/dashboard.html">Dashboard</a>
+        </div>
+      </section>
     </div>
-
   </main>
 
+  <script src="/ui.js" defer></script>
+  <script src="/header-loader.js" defer></script>
+  <script src="/partials/header.js" defer></script>
+  <script src="/i18n.js" defer></script>
 </body>
 </html>
