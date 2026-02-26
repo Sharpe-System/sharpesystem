@@ -1,74 +1,71 @@
-cd ~/Desktop/sharpesystem
-cat > db.js <<'EOF'
 // /db.js
-// Canon DB facade used by pages (intake, snapshot, dashboard, etc).
 // Canon: Firebase CDN imports must live only in /firebase-config.js.
-// This file MUST only import from /firebase-config.js and expose stable helpers.
+// This file is a thin facade used by page modules (intake, etc).
 
 import {
   db,
   fsDoc,
   fsGetDoc,
   fsSetDoc,
-  fsUpdateDoc
+  fsUpdateDoc,
+  fsCollection
 } from "./firebase-config.js";
 
-// Re-export low-level helpers for any legacy callers.
-export { db, fsDoc, fsGetDoc, fsSetDoc, fsUpdateDoc };
+export { db, fsDoc, fsGetDoc, fsSetDoc, fsUpdateDoc, fsCollection };
 
-// ----------
-// Canon user doc helpers
-// users/{uid}
-// ----------
-
-function userDocRef(uid) {
-  return fsDoc(db, "users", String(uid));
+function nowIso() {
+  return new Date().toISOString();
 }
 
+// Ensure users/{uid} exists (idempotent)
 export async function ensureUserDoc(uid) {
-  const ref = userDocRef(uid);
+  if (!uid) throw new Error("missing_uid");
+  const ref = fsDoc(db, "users", uid);
+
   const snap = await fsGetDoc(ref);
   if (snap && snap.exists()) return true;
 
-  // Idempotent create
   await fsSetDoc(
     ref,
-    {
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    },
+    { createdAt: nowIso(), updatedAt: nowIso() },
     { merge: true }
   );
   return true;
 }
 
+// Read users/{uid} data (returns {} if missing)
 export async function readUserDoc(uid) {
-  const ref = userDocRef(uid);
+  if (!uid) throw new Error("missing_uid");
+  const ref = fsDoc(db, "users", uid);
   const snap = await fsGetDoc(ref);
-  if (!snap || !snap.exists()) return null;
-  const data = snap.data ? snap.data() : null;
-  return data && typeof data === "object" ? data : null;
+  if (!snap || !snap.exists()) return {};
+  return snap.data() || {};
 }
 
-// Intake is stored under users/{uid}.intake
+// Write intake payload under users/{uid}.intake (idempotent, merge-safe)
 export async function writeIntake(uid, intake) {
-  const ref = userDocRef(uid);
+  if (!uid) throw new Error("missing_uid");
+  if (!intake || typeof intake !== "object") throw new Error("invalid_intake");
 
-  // Ensure doc exists (safe even if it does)
+  const ref = fsDoc(db, "users", uid);
+
+  // updateDoc fails if doc doesn't exist, so ensure first.
   await ensureUserDoc(uid);
 
-  // Prefer update; fallback to set(merge) if update fails for any reason
   try {
     await fsUpdateDoc(ref, {
-      intake: intake || {},
-      updatedAt: new Date().toISOString()
+      intake,
+      intakeUpdatedAt: nowIso(),
+      updatedAt: nowIso()
     });
-  } catch (_) {
+  } catch {
+    // Fallback if update fails for any reason
     await fsSetDoc(
       ref,
       {
-        intake: intake || {},
-        updatedAt: new Date().toISOString()
+        intake,
+        intakeUpdatedAt: nowIso(),
+        updatedAt: nowIso()
       },
       { merge: true }
     );
@@ -78,4 +75,3 @@ export async function writeIntake(uid, intake) {
 }
 
 export default {};
-EOF
