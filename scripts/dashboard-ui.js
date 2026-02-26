@@ -1,4 +1,23 @@
-import { getJobsStub } from "/scripts/jobs-stub.js";
+async function fetchJobs(){
+  // REAL FETCH (canon)
+  // NOTE: requires auth token; gate.js owns redirects, but we handle 401 gracefully.
+  const { getAuthToken } = await import("/core/auth/token.js");
+  const token = await getAuthToken(true);
+
+  const res = await fetch("/api/jobs/list?limit=50", {
+    method: "GET",
+    headers: { "Authorization": `Bearer ${token}` }
+  });
+
+  if (res.status === 401) throw new Error("Unauthorized (401). Please sign in.");
+  if (res.status === 403) throw new Error("Export entitlement required (403).");
+  if (!res.ok) throw new Error(`jobs/list failed (${res.status})`);
+
+  const data = await res.json().catch(() => ({}));
+  if (!data || data.ok !== true) throw new Error(String(data?.error || "jobs/list non-ok"));
+
+  return Array.isArray(data.jobs) ? data.jobs : [];
+}import { getJobsStub } from "/scripts/jobs-stub.js";
 
 const elStatus = document.getElementById("status");
 const elError  = document.getElementById("error");
