@@ -1,5 +1,6 @@
-// UI-only stub adapter for Dashboard.
-// Canon: no globals, deterministic output, no backend assumptions.
+// FILE: /scripts/jobs-stub.js  (OVERWRITE)
+// UI-only stub adapter.
+// Contract shape MUST match the API contract exactly.
 
 export function getJobsStub() {
   return [
@@ -12,17 +13,18 @@ export function getJobsStub() {
       county: "Orange",
       pageCount: 12,
       createdAt: "2026-02-25T10:30:00Z",
-      downloadUrl: ""
+      downloadUrl: "" // optional
     },
     {
       jobId: "def456",
-      flow: "dvro",
-      form: "dv100",
-      title: "DVRO Packet",
-      caseNumber: "22D000000",
+      flow: "pleading",
+      form: "pleading-paper",
+      title: "Pleading Paper",
+      caseNumber: "17D009277",
       county: "Orange",
-      pageCount: 8,
-      createdAt: "2026-02-24T18:05:00Z"
+      pageCount: null,
+      createdAt: "2026-02-24T22:10:00Z",
+      downloadUrl: ""
     }
   ];
 }
