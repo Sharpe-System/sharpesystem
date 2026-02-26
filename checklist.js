@@ -1,24 +1,26 @@
-// /checklist.js
+// FILE: checklist.js (OVERWRITE)
+// Canonical checklist surface with flow-driven export
+
 import { requireTier1, readUserDoc, updateUserDoc } from "/gate.js";
 
 function nowIso(){ return new Date().toISOString(); }
 function $(id){ return document.getElementById(id); }
-function setMsg(t){ const el = $("msg"); if (el) el.textContent = t || ""; }
 
 function ensureUI(){
-  // If you already have a real checklist.html UI, keep it.
-  // Otherwise, we inject a minimal UI safely.
   if (document.getElementById("list")) return;
 
   const mount = document.querySelector(".content") || document.body;
+
   const wrap = document.createElement("div");
   wrap.innerHTML = `
     <h1>Checklist</h1>
     <p class="sub">Add items. Check them off. Saved to your account.</p>
 
+    <div id="exportBox" class="cta-row" style="margin:16px 0;"></div>
+
     <div class="template-box">
       <label class="label" for="newItem">New item</label>
-      <input class="input" id="newItem" type="text" placeholder="Example: Pull last 3 orders + minute orders" />
+      <input class="input" id="newItem" type="text" />
       <div class="cta-row">
         <button class="button primary" id="addBtn" type="button">Add</button>
         <button class="button" id="saveBtn" type="button">Save</button>
@@ -36,8 +38,8 @@ function ensureUI(){
 function normalizeItem(label){
   const t = String(label || "").trim();
   if (!t) return null;
-  const key = t.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
-  return { key: key || ("item_" + Math.random().toString(16).slice(2)), label: t, done: false };
+  const key = t.toLowerCase().replace(/[^a-z0-9]+/g,"_");
+  return { key, label:t, done:false };
 }
 
 function render(items){
@@ -45,99 +47,92 @@ function render(items){
   if (!host) return;
 
   host.innerHTML = "";
-  if (!items.length) {
+
+  if (!items.length){
     host.innerHTML = `<div class="muted">No items yet.</div>`;
     return;
   }
 
-  items.forEach((it, idx) => {
+  items.forEach((it,idx)=>{
     const row = document.createElement("div");
-    row.style.display = "flex";
-    row.style.gap = "10px";
-    row.style.alignItems = "flex-start";
-    row.style.margin = "10px 0";
+    row.style.display="flex";
+    row.style.gap="10px";
+    row.style.margin="10px 0";
 
     row.innerHTML = `
-      <input type="checkbox" data-idx="${idx}" ${it.done ? "checked" : ""} />
-      <div style="flex:1;">
-        <div style="font-weight:800; color: var(--text);">${it.label}</div>
-        <div class="muted" style="font-size:12px;">${it.key}</div>
-      </div>
-      <button class="button" type="button" data-del="${idx}">Remove</button>
+      <input type="checkbox" data-idx="${idx}" ${it.done?"checked":""}/>
+      <div style="flex:1;">${it.label}</div>
+      <button class="button" data-del="${idx}">Remove</button>
     `;
     host.appendChild(row);
   });
 }
 
+function exportSurfaceFor(flow){
+  if (flow==="rfo") return "/rfo/public-print.html";
+  if (flow==="dvro") return "/dvro/dvro-packet.html";
+  return "";
+}
+
+function renderExportCTA(){
+  const box = $("exportBox");
+  if (!box) return;
+
+  const flow = sessionStorage.getItem("ss.flow") || "";
+  const url = exportSurfaceFor(flow);
+
+  if (!url) return;
+
+  box.innerHTML =
+    `<a class="button primary" href="${url}">
+      Export ${flow.toUpperCase()} Packet
+    </a>`;
+}
+
 (async function main(){
   ensureUI();
-
-  // Backbone: funnel export handoff (state-driven)
-  const params = new URLSearchParams(location.search);
-  const flow = params.get("flow");
-  const EXPORT_SURFACES = {
-    rfo: "/rfo/public-print.html",
-    dvro: "/dvro/dvro-packet.html"
-  };
-  if (flow && EXPORT_SURFACES[flow]) {
-    const mount = document.querySelector(".content") || document.body;
-    const box = document.createElement("div");
-    box.className = "cta-row";
-    box.style.margin = "16px 0";
-    box.innerHTML = "<a class=\"button primary\" href=\"" + EXPORT_SURFACES[flow] + "\">Export " + flow.toUpperCase() + " Packet</a>";
-    mount.appendChild(box);
-  }
+  renderExportCTA();
 
   const { user } = await requireTier1();
-  let items = [];
+  let items=[];
 
-  try {
+  try{
     const d = await readUserDoc(user.uid);
-    items = Array.isArray(d?.checklist?.items) ? d.checklist.items : [];
-  } catch (e) {
-    console.log(e);
-  }
+    items = Array.isArray(d?.checklist?.items)?d.checklist.items:[];
+  }catch(e){}
 
   render(items);
 
-  document.addEventListener("change", (e) => {
-    const t = e.target;
-    if (!t || t.tagName !== "INPUT" || t.type !== "checkbox") return;
-    const idx = Number(t.getAttribute("data-idx"));
-    if (!Number.isFinite(idx) || !items[idx]) return;
-    items[idx].done = !!t.checked;
+  document.addEventListener("change",(e)=>{
+    const t=e.target;
+    if(t.tagName!=="INPUT") return;
+    const idx=Number(t.dataset.idx);
+    if(!items[idx]) return;
+    items[idx].done=t.checked;
   });
 
-  document.addEventListener("click", (e) => {
-    const b = e.target;
-    if (!b) return;
-    const del = b.getAttribute?.("data-del");
-    if (del == null) return;
-    const idx = Number(del);
-    if (!Number.isFinite(idx)) return;
-    items.splice(idx, 1);
+  document.addEventListener("click",(e)=>{
+    const b=e.target;
+    if(!b.dataset.del) return;
+    const idx=Number(b.dataset.del);
+    items.splice(idx,1);
     render(items);
   });
 
-  $("addBtn")?.addEventListener("click", () => {
-    const v = $("newItem")?.value || "";
-    const it = normalizeItem(v);
-    if (!it) return;
+  $("addBtn")?.addEventListener("click",()=>{
+    const v=$("newItem")?.value||"";
+    const it=normalizeItem(v);
+    if(!it) return;
     items.push(it);
-    if ($("newItem")) $("newItem").value = "";
+    $("newItem").value="";
     render(items);
   });
 
-  $("saveBtn")?.addEventListener("click", async () => {
-    try {
-      setMsg("Saving…");
-      await updateUserDoc(user.uid, {
-        checklist: { items, updatedAt: nowIso() }
-      });
-      setMsg("Saved.");
-    } catch (e) {
-      console.log(e);
-      setMsg("Save failed. Check console.");
-    }
+  $("saveBtn")?.addEventListener("click",async()=>{
+    await updateUserDoc(user.uid,{
+      checklist:{items,updatedAt:nowIso()}
+    });
+    $("msg").textContent="Saved.";
   });
+
 })();
