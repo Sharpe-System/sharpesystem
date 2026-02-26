@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Criminal — Print Gate — SharpeSystem</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Print gate for criminal packet export." />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body class="shell" data-require-auth="1" data-require-tier="basic" data-require-active="1">
+  <div id="site-header"></div>
+
+  <main class="page">
+    <div class="container content">
+      <section class="card" style="padding:var(--pad);">
+        <h1>Criminal Packet — Print Gate</h1>
+        <p class="muted">
+          This is the canonical export handoff. Next step is printable output.
+        </p>
+
+        <div class="hr"></div>
+
+        <div class="row" style="gap:10px;flex-wrap:wrap;">
+          <a class="btn" href="/checklist.html">Back to Checklist</a>
+          <a class="btn primary" href="/print.html?flow=criminal">Continue → Print</a>
+        </div>
+
+        <div class="small soft" style="margin-top:10px;">
+          Not legal advice. Procedural guidance + organization only.
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script src="/ui.js"></script>
+  <script src="/header-loader.js"></script>
+  <script src="/partials/header.js"></script>
+  <script src="/i18n.js"></script>
+
+  <script type="module" src="/gate.js"></script>
+</body>
+</html>
