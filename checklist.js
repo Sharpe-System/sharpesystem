@@ -72,15 +72,19 @@ function render(items){
 (async function main(){
   ensureUI();
 
-  // Backbone: funnel export handoff
+  // Backbone: funnel export handoff (state-driven)
   const params = new URLSearchParams(location.search);
   const flow = params.get("flow");
-  if (flow === "rfo") {
+  const EXPORT_SURFACES = {
+    rfo: "/rfo/public-print.html",
+    dvro: "/dvro/dvro-packet.html"
+  };
+  if (flow && EXPORT_SURFACES[flow]) {
     const mount = document.querySelector(".content") || document.body;
     const box = document.createElement("div");
     box.className = "cta-row";
     box.style.margin = "16px 0";
-    box.innerHTML = `<a class="button primary" href="/rfo/public-print.html">Export RFO Packet</a>`;
+    box.innerHTML = "<a class="button primary" href="" + EXPORT_SURFACES[flow] + "">Export " + flow.toUpperCase() + " Packet</a>";
     mount.appendChild(box);
   }
 
