@@ -1,96 +1,54 @@
+<!-- FILE: /dashboard.html  (OVERWRITE) -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <title>SharpeSystem — Documents</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <link rel="stylesheet" href="/styles.css" />
+  <style>
+    .row { display:flex; gap:16px; flex-wrap:wrap; align-items:center; }
+    .pill { padding:6px 10px; border:1px solid #ddd; border-radius:999px; background:#fff; }
+    #error { display:none; margin-top:12px; padding:10px 12px; border:1px solid #f2b8b5; background:#fff5f5; border-radius:10px; }
+    #empty { display:none; margin-top:12px; padding:10px 12px; border:1px solid #eee; background:#fafafa; border-radius:10px; }
+    #loadMore { display:none; margin-top:12px; padding:10px 14px; border:1px solid #ddd; background:#fff; border-radius:10px; cursor:pointer; }
+    #loadMore:disabled { opacity:0.6; cursor:default; }
+    .table { width:100%; border-collapse:collapse; margin-top:12px; }
+    .table th, .table td { border-bottom:1px solid #eee; padding:10px 8px; text-align:left; vertical-align:top; }
+    .muted { color:#666; font-size:13px; }
+  </style>
 </head>
 <body>
+  <div class="page">
+    <h1>Your Documents</h1>
 
-<div class="page">
-  <h1>Your Documents</h1>
+    <div class="row muted" style="margin-bottom:10px;">
+      <div class="pill">Tier: <span id="tierValue">—</span></div>
+      <div class="pill">Active: <span id="activeValue">—</span></div>
+      <div class="pill">Status: <span id="statusLine">…</span></div>
+    </div>
 
-  <div id="empty" style="display:none;">No documents yet.</div>
+    <div id="error"></div>
+    <div id="empty">No documents yet.</div>
 
-  <table id="jobsTable" class="table" style="display:none;">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Title</th>
-        <th>Case #</th>
-        <th>County</th>
-        <th>Pages</th>
-        <th>Date</th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-</div>
+    <table id="jobsTable" class="table" style="display:none;">
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Title</th>
+          <th>Case #</th>
+          <th>County</th>
+          <th>Pages</th>
+          <th>Date</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
 
-<script type="module">
-import { getAuthToken } from "/core/auth/token.js";
+    <button id="loadMore" type="button">Load more</button>
+  </div>
 
-async function loadJobs() {
-  const empty = document.getElementById("empty");
-  const table = document.getElementById("jobsTable");
-  const tbody = table.querySelector("tbody");
-
-  try {
-    const token = await getAuthToken(true);
-
-    const res = await fetch("/api/jobs/list", {
-      headers: { Authorization: "Bearer " + token }
-    });
-
-    const data = await res.json();
-
-    tbody.innerHTML = "";
-    table.style.display = "none";
-    empty.style.display = "none";
-
-    if (!data || data.ok !== true) {
-      console.error("jobs/list non-ok:", data);
-      empty.style.display = "block";
-      empty.textContent = "Failed to load documents. See console.";
-      return;
-    }
-
-    if (!data.jobs || data.jobs.length === 0) {
-      empty.style.display = "block";
-      return;
-    }
-
-    table.style.display = "table";
-
-    data.jobs.forEach(j => {
-      const tr = document.createElement("tr");
-      const created = j.createdAt ? new Date(j.createdAt) : null;
-      const dateStr = created && !isNaN(created) ? created.toLocaleDateString() : "";
-
-      tr.innerHTML = `
-        <td>${(j.flow || "")}/${(j.form || "")}</td>
-        <td>${j.title || ""}</td>
-        <td>${j.caseNumber || ""}</td>
-        <td>${j.county || ""}</td>
-        <td>${j.pageCount ?? ""}</td>
-        <td>${dateStr}</td>
-        <td>
-          <a href="/print.html?job=${encodeURIComponent(j.jobId)}" target="_blank" rel="noopener">Print</a>
-          ${j.pdfUrl ? `&nbsp;|&nbsp;<a href="${j.pdfUrl}" target="_blank" rel="noopener">Download</a>` : ``}
-        </td>
-      `;
-      tbody.appendChild(tr);
-    });
-  } catch (e) {
-    console.error("Dashboard load failed:", e);
-    empty.style.display = "block";
-    empty.textContent = "Not signed in, or token fetch failed. See console.";
-  }
-}
-
-loadJobs();
-</script>
-
+  <script type="module" src="/dashboard.js"></script>
 </body>
 </html>
