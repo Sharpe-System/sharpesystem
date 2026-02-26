@@ -8,17 +8,17 @@
 import { getAuthStateOnce } from "/firebase-config.js";
 import { ensureUserDoc, readUserDoc, writeIntake } from "/db.js";
 
-function $(id) { return document.getElementById(id); }
+function $(id){ return document.getElementById(id); }
 
 const form = $("intakeForm");
 const msg = $("msg");
 const saveBtn = $("saveBtn");
 
-function setMsg(t) { if (msg) msg.textContent = t || ""; }
+function setMsg(t){ if (msg) msg.textContent = t || ""; }
 
-function safeStr(x) { return String(x ?? "").trim(); }
+function safeStr(x){ return String(x ?? "").trim(); }
 
-function buildIntakePayload() {
+function buildIntakePayload(){
   return {
     caseType: safeStr($("kind")?.value),
     stage: safeStr($("stage")?.value),
@@ -36,9 +36,8 @@ function buildIntakePayload() {
   };
 }
 
-function isDvroCaseType(caseType) {
+function isDvroCaseType(caseType){
   const s = safeStr(caseType).toLowerCase();
-  // Tolerant: match whatever labels you use (protective, restraining, dvro, etc.)
   return (
     s.includes("dvro") ||
     s.includes("restrain") ||
@@ -47,64 +46,32 @@ function isDvroCaseType(caseType) {
   );
 }
 
-async function headOk(path) {
-  try {
-    const res = await fetch(path, { method: "HEAD", cache: "no-store" });
-    return res.ok;
-  } catch {
-    return false;
-  }
+// Canon: deterministic funnel entry. No probing.
+function nextPathFor(intake){
+  if (isDvroCaseType(intake.caseType)) return "/dvro/dvro-start.html";
+  // RFO funnel currently lives under /start.html in this repo.
+  return "/start.html";
 }
 
-// Resolve funnel entry without assuming exact file names.
-// Priority: DVRO funnel entry → RFO funnel entry → snapshot fallback.
-async function resolveNextPath(intake) {
-  const dvroCandidates = [
-    "/dvro/start.html",
-    "/dvro/index.html",
-    "/dvro/dvro-start.html"
-  ];
-
-  const rfoCandidates = [
-    "/rfo/start.html",
-    "/start.html",
-    "/rfo/index.html"
-  ];
-
-  const candidates = isDvroCaseType(intake.caseType) ? dvroCandidates : rfoCandidates;
-
-  for (const p of candidates) {
-    if (await headOk(p)) return p;
-  }
-
-  // Absolute fallback (always exists in repo)
-  return "/snapshot.html";
-}
-
-function withTimeout(promise, ms, label) {
+function withTimeout(promise, ms){
   let t;
   const timeout = new Promise((_, reject) => {
-    t = setTimeout(() => reject(new Error(label || "timeout")), ms);
+    t = setTimeout(() => reject(new Error("timeout")), ms);
   });
   return Promise.race([promise, timeout]).finally(() => clearTimeout(t));
 }
 
-async function handleSaveAndContinue() {
-  const originalBtnText = saveBtn ? saveBtn.textContent : "";
+async function handleSaveAndContinue(){
+  const originalText = saveBtn ? saveBtn.textContent : "";
 
   try {
-    if (saveBtn) {
-      saveBtn.disabled = true;
-      // If your UI shows "Working…" elsewhere, this keeps it consistent
-      saveBtn.textContent = "Working…";
-    }
+    if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = "Working…"; }
     setMsg("Saving…");
 
     const { user } = await getAuthStateOnce();
     if (!user) {
-      // gate.js owns auth redirects, but don't hang the UI
       setMsg("Not signed in.");
-      return;
+      return; // gate.js owns auth redirects
     }
 
     await ensureUserDoc(user.uid);
@@ -116,18 +83,16 @@ async function handleSaveAndContinue() {
       return;
     }
 
-    // Best-effort write: never allow an infinite hang to block routing.
+    // Best-effort save. Never block routing.
     try {
-      await withTimeout(writeIntake(user.uid, intake), 6000, "writeIntake_timeout");
+      await withTimeout(writeIntake(user.uid, intake), 6000);
     } catch (e) {
-      console.warn("writeIntake failed/timeout; continuing anyway:", e);
-      // Non-fatal: we still route into the funnel.
+      console.warn("writeIntake failed (non-fatal):", e);
       setMsg("Saved locally. Continuing…");
     }
 
+    const nextPath = nextPathFor(intake);
     setMsg("Continuing…");
-
-    const nextPath = await resolveNextPath(intake);
     window.location.assign(nextPath);
   } catch (err) {
     console.error(err);
@@ -135,12 +100,12 @@ async function handleSaveAndContinue() {
   } finally {
     if (saveBtn) {
       saveBtn.disabled = false;
-      saveBtn.textContent = originalBtnText || "Save and continue";
+      saveBtn.textContent = originalText || "Save and continue";
     }
   }
 }
 
-(async function init() {
+(async function init(){
   try {
     setMsg("Loading…");
 
@@ -177,17 +142,7 @@ async function handleSaveAndContinue() {
     setMsg("Load failed. Check console.");
   }
 
-  // Canon: support BOTH patterns:
-  // - button submits the form (type=submit)
-  // - button is type=button and needs an explicit click handler
-  form?.addEventListener("submit", (e) => {
-    e.preventDefault();
-    handleSaveAndContinue();
-  });
-
-  saveBtn?.addEventListener("click", (e) => {
-    // Prevent double-handling if button is submit inside the form.
-    e.preventDefault();
-    handleSaveAndContinue();
-  });
+  // Support submit and explicit click, in case markup changes later.
+  form?.addEventListener("submit", (e) => { e.preventDefault(); handleSaveAndContinue(); });
+  saveBtn?.addEventListener("click", (e) => { e.preventDefault(); handleSaveAndContinue(); });
 })();
