@@ -10,9 +10,7 @@
 <div class="page">
   <h1>Your Documents</h1>
 
-  <div id="empty" style="display:none;">
-    No documents yet.
-  </div>
+  <div id="empty" style="display:none;">No documents yet.</div>
 
   <table id="jobsTable" class="table" style="display:none;">
     <thead>
@@ -31,45 +29,64 @@
 </div>
 
 <script type="module">
-import { getAuthToken } from "/firebase-config.js";
+import { getAuthToken } from "/core/auth/token.js";
 
 async function loadJobs() {
-  const token = await getAuthToken();
-
-  const res = await fetch("/api/jobs/list", {
-    headers: { Authorization: "Bearer " + token }
-  });
-
-  const data = await res.json();
-
-  const table = document.getElementById("jobsTable");
   const empty = document.getElementById("empty");
+  const table = document.getElementById("jobsTable");
   const tbody = table.querySelector("tbody");
 
-  if (!data.jobs || data.jobs.length === 0) {
+  try {
+    const token = await getAuthToken(true);
+
+    const res = await fetch("/api/jobs/list", {
+      headers: { Authorization: "Bearer " + token }
+    });
+
+    const data = await res.json();
+
+    tbody.innerHTML = "";
+    table.style.display = "none";
+    empty.style.display = "none";
+
+    if (!data || data.ok !== true) {
+      console.error("jobs/list non-ok:", data);
+      empty.style.display = "block";
+      empty.textContent = "Failed to load documents. See console.";
+      return;
+    }
+
+    if (!data.jobs || data.jobs.length === 0) {
+      empty.style.display = "block";
+      return;
+    }
+
+    table.style.display = "table";
+
+    data.jobs.forEach(j => {
+      const tr = document.createElement("tr");
+      const created = j.createdAt ? new Date(j.createdAt) : null;
+      const dateStr = created && !isNaN(created) ? created.toLocaleDateString() : "";
+
+      tr.innerHTML = `
+        <td>${(j.flow || "")}/${(j.form || "")}</td>
+        <td>${j.title || ""}</td>
+        <td>${j.caseNumber || ""}</td>
+        <td>${j.county || ""}</td>
+        <td>${j.pageCount ?? ""}</td>
+        <td>${dateStr}</td>
+        <td>
+          <a href="/print.html?job=${encodeURIComponent(j.jobId)}" target="_blank" rel="noopener">Print</a>
+          ${j.pdfUrl ? `&nbsp;|&nbsp;<a href="${j.pdfUrl}" target="_blank" rel="noopener">Download</a>` : ``}
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  } catch (e) {
+    console.error("Dashboard load failed:", e);
     empty.style.display = "block";
-    return;
+    empty.textContent = "Not signed in, or token fetch failed. See console.";
   }
-
-  table.style.display = "table";
-
-  data.jobs.forEach(j => {
-    const tr = document.createElement("tr");
-
-    tr.innerHTML = `
-      <td>${j.flow}/${j.form}</td>
-      <td>${j.title || ""}</td>
-      <td>${j.caseNumber || ""}</td>
-      <td>${j.county || ""}</td>
-      <td>${j.pageCount || ""}</td>
-      <td>${new Date(j.createdAt).toLocaleDateString()}</td>
-      <td>
-        <a href="/print.html?job=${j.jobId}" target="_blank">Print</a>
-      </td>
-    `;
-
-    tbody.appendChild(tr);
-  });
 }
 
 loadJobs();
