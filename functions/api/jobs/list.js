@@ -1,5 +1,3 @@
-// FILE: functions/api/jobs/list.js  (OVERWRITE)
-
 const REQUIRED_KV_BINDING = "JOBS_KV";
 
 import { verifyFirebaseIdToken } from "../../_lib/verify-firebase.js";
@@ -103,9 +101,19 @@ export async function onRequest(context) {
     }
     if (!isObj(meta)) continue;
 
-    // Canon: UID is implied by prefix. Do NOT require meta.uid.
+    const jobId = safeStr(meta.jobId || keyName.replace(prefix, ""));
+
+    // HARDENING: only list jobs that actually exist in immutable space.
+    // This is NOT a scan. It's a direct key lookup for items already paged.
+    try {
+      const exists = await kv.get("job:" + jobId);
+      if (!exists) continue;
+    } catch {
+      continue;
+    }
+
     jobs.push({
-      jobId: safeStr(meta.jobId || keyName.replace(prefix, "")),
+      jobId,
       flow: safeStr(meta.flow),
       form: safeStr(meta.form),
       title: safeStr(meta.title),
@@ -116,7 +124,6 @@ export async function onRequest(context) {
     });
   }
 
-  // Optional: stable-ish ordering inside this page only.
   jobs.sort((a, b) => safeStr(b.createdAt).localeCompare(safeStr(a.createdAt)));
 
   return json(200, {
