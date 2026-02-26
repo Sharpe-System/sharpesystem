@@ -1,50 +1,126 @@
+<!-- FILE: print.html  (OVERWRITE)
+     Canon: job model print surface only: /print.html?job=XYZ
+-->
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Print Job</title>
+  <title>SharpeSystem Print</title>
   <style>
     body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
-    .print-toolbar {
-      display: flex; align-items: center; gap: 12px;
-      padding: 12px 14px; border-bottom: 1px solid rgba(0,0,0,.12);
-      position: sticky; top: 0; background: white; z-index: 10;
-    }
-    .print-btn { padding: 8px 14px; font-size: 14px; cursor: pointer; }
-    .print-meta { font-size: 12px; opacity: .75; }
-    .print-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      padding: 12px;
-    }
-    .print-pane { border: 1px solid rgba(0,0,0,.12); border-radius: 12px; overflow: hidden; }
-    .print-pane-title {
-      padding: 10px 12px;
-      font-size: 13px;
-      border-bottom: 1px solid rgba(0,0,0,.10);
-      background: rgba(0,0,0,.03);
-    }
-    .print-frame { width: 100%; height: calc(100vh - 120px); border: 0; display: block; }
-    .print-debug { padding: 12px; }
-    .print-debug pre { white-space: pre-wrap; overflow: auto; border: 1px solid rgba(0,0,0,.12); border-radius: 12px; padding: 12px; }
-
-    @media (max-width: 980px) {
-      .print-grid { grid-template-columns: 1fr; }
-      .print-frame { height: 70vh; }
-    }
-
-    @media print {
-      .print-toolbar, .print-debug, .print-pane-title { display: none !important; }
-      .print-grid { padding: 0; gap: 0; }
-      .print-pane { border: 0; border-radius: 0; }
-      .print-frame { height: 100vh; }
-    }
+    header { padding: 12px 16px; border-bottom: 1px solid #e6e6e6; display:flex; gap:12px; align-items:center; }
+    header .spacer { flex: 1; }
+    header a, header button { font: inherit; padding: 8px 10px; border-radius: 8px; border: 1px solid #ddd; background: #fff; cursor: pointer; text-decoration:none; color:#111; }
+    header a:hover, header button:hover { background:#f6f6f6; }
+    #status { padding: 10px 16px; color: #444; }
+    #error { padding: 10px 16px; color: #b00020; display:none; white-space: pre-wrap; }
+    #viewer { width: 100%; height: calc(100vh - 110px); border: 0; }
+    .muted { color:#666; font-size: 13px; }
   </style>
 </head>
 <body>
-  <div id="print-body"></div>
-  <script src="/print.js" defer></script>
+  <header>
+    <strong>Print</strong>
+    <span class="muted" id="jobLabel"></span>
+    <div class="spacer"></div>
+    <a id="downloadLink" href="#" download>Download PDF</a>
+    <a href="/dashboard.html">Dashboard</a>
+  </header>
+
+  <div id="status">Loading…</div>
+  <div id="error"></div>
+  <iframe id="viewer" title="PDF Viewer"></iframe>
+
+<script>
+(function(){
+  const qs = new URLSearchParams(location.search);
+  const jobId = qs.get("job") || "";
+  const statusEl = document.getElementById("status");
+  const errorEl = document.getElementById("error");
+  const viewer = document.getElementById("viewer");
+  const jobLabel = document.getElementById("jobLabel");
+  const downloadLink = document.getElementById("downloadLink");
+
+  jobLabel.textContent = jobId ? ("Job " + jobId) : "(missing job id)";
+
+  function showError(msg) {
+    errorEl.style.display = "block";
+    errorEl.textContent = msg;
+  }
+
+  function loginRedirect() {
+    const next = encodeURIComponent("/print.html?job=" + encodeURIComponent(jobId));
+    location.href = "/login.html?next=" + next;
+  }
+
+  async function getIdTokenOrNull() {
+    try {
+      if (!window.firebase || !firebase.auth) return null;
+      const user = firebase.auth().currentUser;
+      if (!user) return null;
+      return await user.getIdToken(false);
+    } catch {
+      return null;
+    }
+  }
+
+  async function fetchPdfWithOptionalAuth() {
+    if (!jobId) {
+      statusEl.textContent = "Missing job id.";
+      showError("No job provided. Use /print.html?job=XYZ");
+      return;
+    }
+
+    statusEl.textContent = "Fetching PDF…";
+
+    const url = "/api/jobs/get?id=" + encodeURIComponent(jobId) + "&asset=pdf";
+
+    // If Firebase is present, try authenticated fetch first.
+    const token = await getIdTokenOrNull();
+
+    let res;
+    try {
+      res = await fetch(url, {
+        method: "GET",
+        headers: token ? { "Authorization": "Bearer " + token } : {}
+      });
+    } catch (e) {
+      statusEl.textContent = "Network error.";
+      showError("Failed to fetch PDF: " + (e && e.message ? e.message : String(e)));
+      return;
+    }
+
+    if (res.status === 401) {
+      statusEl.textContent = "Authentication required.";
+      loginRedirect();
+      return;
+    }
+
+    if (!res.ok) {
+      const t = await res.text().catch(() => "");
+      statusEl.textContent = "Failed.";
+      showError("PDF fetch failed (" + res.status + ")\n" + t.slice(0, 800));
+      return;
+    }
+
+    const bytes = await res.arrayBuffer();
+    const blob = new Blob([bytes], { type: "application/pdf" });
+    const blobUrl = URL.createObjectURL(blob);
+
+    viewer.src = blobUrl;
+    downloadLink.href = blobUrl;
+
+    statusEl.textContent = "Ready.";
+  }
+
+  // If Firebase exists, wait for auth state; else just fetch.
+  if (window.firebase && firebase.auth) {
+    firebase.auth().onAuthStateChanged(() => fetchPdfWithOptionalAuth());
+  } else {
+    fetchPdfWithOptionalAuth();
+  }
+})();
+</script>
 </body>
 </html>
