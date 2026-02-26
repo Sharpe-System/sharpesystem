@@ -84,7 +84,7 @@ function render(items){
     const box = document.createElement("div");
     box.className = "cta-row";
     box.style.margin = "16px 0";
-    box.innerHTML = "<a class="button primary" href="" + EXPORT_SURFACES[flow] + "">Export " + flow.toUpperCase() + " Packet</a>";
+    box.innerHTML = "<a class=\"button primary\" href=\"" + EXPORT_SURFACES[flow] + "\">Export " + flow.toUpperCase() + " Packet</a>";
     mount.appendChild(box);
   }
 
