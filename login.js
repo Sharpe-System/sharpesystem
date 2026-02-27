@@ -1,78 +1,77 @@
-// /login.js
-// Canon rules:
-// - NO Firebase CDN imports here (only /firebase-config.js may import Firebase)
-// - NO onAuthStateChanged here (must be only in /firebase-config.js)
-// - gate.js owns gating/redirects; this page only performs sign-in then navigates
-// - ES module (must be loaded with <script type="module" src="/login.js"></script>)
-
 import { authSignIn } from "/firebase-config.js";
 
-(function () {
-  "use strict";
+function qs(name) {
+  return (new URLSearchParams(location.search).get(name) || "").trim();
+}
 
-  const $ = (s) => document.querySelector(s);
+function setUser(u) {
+  try {
+    const payload = {
+      uid: u?.uid || "",
+      email: u?.email || "",
+      ts: Date.now()
+    };
+    localStorage.setItem("ss:user", JSON.stringify(payload));
+  } catch (e) {}
+}
 
-  const msg = $("#msg");
-  const btnLogin = $("#btnLogin");
-  const btnSignup = $("#btnSignup");
-  const emailEl = $("#email");
-  const passEl = $("#password");
+function goNext() {
+  const next = qs("next");
+  if (next) location.replace(next);
+  else location.replace("/index.html");
+}
 
-  function setMsg(text, isError = false) {
-    if (!msg) return;
-    msg.textContent = text || "";
-    msg.style.color = isError ? "#ff6b6b" : "";
+function getEl(sel) {
+  return document.querySelector(sel);
+}
+
+function val(sel) {
+  const el = getEl(sel);
+  return el ? String(el.value || "").trim() : "";
+}
+
+async function onSubmit(e) {
+  e.preventDefault();
+
+  const email = val('input[type="email"]');
+  const password = val('input[type="password"]');
+
+  if (!email || !password) {
+    alert("Enter email and password.");
+    return;
   }
 
-  function safeNextUrl() {
-    const params = new URLSearchParams(location.search);
-    const next = params.get("next");
-    if (!next) return "/dashboard.html";
-    if (next.startsWith("/") && !next.startsWith("//")) return next;
-    return "/dashboard.html";
+  const btn = getEl('button[type="submit"], button');
+  if (btn) btn.disabled = true;
+
+  try {
+    const cred = await authSignIn(email, password);
+    const user = cred?.user || cred || null;
+
+    // Force ss:user so print gating is consistent
+    if (user) setUser(user);
+
+    // Deterministic redirect
+    goNext();
+  } catch (err) {
+    alert(err?.message || "Login failed.");
+    if (btn) btn.disabled = false;
   }
+}
 
-  async function doLogin() {
-    const email = String(emailEl?.value || "").trim();
-    const password = String(passEl?.value || "");
-
-    if (!email || !password) {
-      setMsg("Email and password required.", true);
+(function init() {
+  // If already logged, honor next immediately
+  try {
+    if (localStorage.getItem("ss:user")) {
+      goNext();
       return;
     }
+  } catch (e) {}
 
-    btnLogin?.setAttribute("disabled", "disabled");
-    setMsg("Signing in…");
+  const form = document.querySelector("form");
+  if (form) form.addEventListener("submit", onSubmit);
 
-    try {
-      await authSignIn(email, password);
-      window.location.href = safeNextUrl();
-    } catch (err) {
-      console.error("Login failed:", err);
-
-      let text = "Login failed.";
-      const code = err?.code || "";
-
-      if (code.includes("invalid-email") || code.includes("wrong-password") || code.includes("user-not-found")) {
-        text = "Invalid email or password.";
-      } else if (code.includes("too-many-requests")) {
-        text = "Too many attempts. Wait a moment and try again.";
-      } else if (err?.message) {
-        text = err.message;
-      }
-
-      setMsg(text, true);
-      btnLogin?.removeAttribute("disabled");
-    }
-  }
-
-  btnLogin?.addEventListener("click", doLogin);
-
-  btnSignup?.addEventListener("click", () => {
-    window.location.href = "/signup.html";
-  });
-
-  passEl?.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") doLogin();
-  });
+  // If there's no form (edge), bind first button
+  const btn = getEl('button[type="submit"], button');
+  if (btn && !form) btn.addEventListener("click", onSubmit);
 })();
