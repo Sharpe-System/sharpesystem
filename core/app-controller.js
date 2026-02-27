@@ -155,7 +155,7 @@
 
     prevBtn.addEventListener("click", () => gotoStage(stageIdx - 1));
     nextBtn.addEventListener("click", () => gotoStage(stageIdx + 1));
-    if (exitBtn) exitBtn.addEventListener("click", () => { location.href = "/home.html"; });
+    if (exitBtn) exitBtn.addEventListener("click", () => { location.href = (new URL(location.href).searchParams.get("return") || "/home.html"); });
 
     await render();
   })().catch((e) => {
