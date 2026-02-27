@@ -3,9 +3,12 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Subscribe — SharpeSystem</title>
-  <meta name="description" content="Subscription." />
+  <title>Secure Checkout — SharpeSystem</title>
+  <meta name="description" content="Secure SharpeSystem subscription checkout." />
   <link rel="stylesheet" href="/styles.css" />
+
+  <!-- Square Web Payments SDK -->
+  <script src="https://sandbox.web.squarecdn.com/v1/square.js"></script>
 </head>
 
 <body class="shell">
@@ -13,30 +16,100 @@
 
   <main class="page">
     <div class="container content">
-      <section class="template-box">
-        <h1>Subscribe</h1>
-        <p class="muted">Choose a plan to unlock paid features.</p>
 
-        <div class="cta-row" style="margin-top:12px;">
-          <button id="payBtn" class="button">Continue to Checkout</button>
+      <section class="card" style="padding:var(--pad);border-radius:18px;">
+        <h1>Secure Checkout</h1>
+        <p class="muted">
+          You’re unlocking Perfect Print export for this account.
+        </p>
+
+        <div class="hr"></div>
+
+        <div class="card" style="padding:18px;border-radius:18px;">
+          <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+            <div>
+              <div style="font-weight:700;">Selected tier</div>
+              <div id="tierLabel" class="muted">basic</div>
+            </div>
+
+            <div>
+              <div style="font-weight:700;">Price</div>
+              <div id="priceLabel" class="muted">$—</div>
+            </div>
+          </div>
+
+          <div class="hr"></div>
+
+          <div>
+            <div style="font-weight:700;margin-bottom:8px;">Payment</div>
+            <div id="card-container"></div>
+          </div>
+
+          <div style="margin-top:16px;">
+            <button id="payBtn" class="btn primary" style="padding:14px 18px;border-radius:18px;font-size:16px;">
+              Pay Securely
+            </button>
+          </div>
+
+          <p id="msg" class="muted" style="margin-top:10px;"></p>
+
+          <p class="muted" style="margin-top:12px;">
+            Perfect Print guarantees deterministic formatting fidelity for supported templates.
+          </p>
         </div>
 
-        <p id="msg" class="muted" style="margin-top:10px;"></p>
-
-        <div class="cta-row" style="margin-top:12px;">
-          <a class="button" href="/pricing.html">Plans</a>
-          <a class="button" href="/billing.html">Billing</a>
-          <a class="button" href="/">Home</a>
+        <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;">
+          <a class="btn" href="/pricing.html">Change plan</a>
+          <a class="btn" href="/billing.html">Billing</a>
+          <a class="btn" href="/">Home</a>
         </div>
+
       </section>
+
     </div>
   </main>
+
+  <script>
+    (function(){
+      try{
+        const u = new URL(window.location.href);
+        const tier = (u.searchParams.get("tier") || "basic").toLowerCase();
+        document.getElementById("tierLabel").textContent = tier;
+
+        const prices = {
+          basic: "$—",
+          pro: "$—",
+          attorney: "Contact"
+        };
+        document.getElementById("priceLabel").textContent = prices[tier] || "$—";
+      } catch(e){}
+    })();
+  </script>
+
+  <script>
+    async function initSquare() {
+      const payments = Square.payments("APP_ID", "LOCATION_ID");
+      const card = await payments.card();
+      await card.attach("#card-container");
+
+      document.getElementById("payBtn").addEventListener("click", async () => {
+        const result = await card.tokenize();
+        if (result.status === "OK") {
+          console.log("Token:", result.token);
+          document.getElementById("msg").textContent = "Processing…";
+        } else {
+          document.getElementById("msg").textContent = "Card error.";
+        }
+      });
+    }
+
+    initSquare();
+  </script>
 
   <script src="/ui.js"></script>
   <script src="/header-loader.js"></script>
   <script src="/partials/header.js"></script>
   <script src="/i18n.js"></script>
-  <script type="module" src="/subscribe.js"></script>
   <script type="module" src="/gate.js"></script>
 </body>
 </html>

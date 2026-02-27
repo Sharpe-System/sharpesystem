@@ -13,20 +13,128 @@
 
   <main class="page">
     <div class="container content">
-      <section class="card" style="padding:var(--pad);">
-        <h1>Pricing</h1>
-        <p class="muted">Choose a SharpeSystem tier.</p>
+
+      <section class="card" style="padding:var(--pad);border-radius:18px;">
+        <h1>Plans</h1>
+        <p class="muted" style="max-width:70ch;">
+          Perfect Print is deterministic formatting fidelity: stable pagination, margins, and output you can trust.
+          Choose the tier that matches the depth of workflow you need.
+        </p>
 
         <div class="hr"></div>
 
-        <div class="row">
-          <a class="btn primary" href="/subscribe.html?tier=basic">Basic</a>
-          <a class="btn" href="/subscribe.html?tier=pro">Pro</a>
-          <a class="btn" href="/">Back</a>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;align-items:stretch;">
+
+          <article class="card" style="padding:18px;border-radius:18px;">
+            <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;">
+              <div>
+                <div style="font-size:18px;font-weight:800;">Basic</div>
+                <div class="muted" style="margin-top:6px;">Export + Perfect Print</div>
+              </div>
+              <div class="muted" style="text-align:right;">
+                <div style="font-weight:800;">$—</div>
+                <div style="font-size:12px;">launch price</div>
+              </div>
+            </div>
+
+            <div class="hr"></div>
+
+            <ul style="margin:0 0 0 18px;line-height:1.55;">
+              <li>Unlock Perfect Print download</li>
+              <li>Create immutable export jobs (stable snapshots)</li>
+              <li>Designed for “I need a clean filing artifact”</li>
+            </ul>
+
+            <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;">
+              <a class="btn primary" style="border-radius:18px;padding:12px 14px;" href="/subscribe.html?tier=basic">Choose Basic</a>
+              <a class="btn" style="border-radius:18px;padding:12px 14px;" href="/subscribe.html?tier=basic">Checkout</a>
+            </div>
+
+            <p class="muted" style="margin-top:12px;font-size:12px;">
+              Guarantee scope: formatting fidelity for supported templates. Court acceptance depends on facts + procedure.
+            </p>
+          </article>
+
+          <article class="card" style="padding:18px;border-radius:18px;">
+            <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;">
+              <div>
+                <div style="font-size:18px;font-weight:800;">Pro</div>
+                <div class="muted" style="margin-top:6px;">Workflow depth</div>
+              </div>
+              <div class="muted" style="text-align:right;">
+                <div style="font-weight:800;">$—</div>
+                <div style="font-size:12px;">launch price</div>
+              </div>
+            </div>
+
+            <div class="hr"></div>
+
+            <ul style="margin:0 0 0 18px;line-height:1.55;">
+              <li>Everything in Basic</li>
+              <li>Expanded review + checklist surfaces as they ship</li>
+              <li>More flows/templates as the system grows</li>
+              <li>Best for ongoing cases and iterative drafting</li>
+            </ul>
+
+            <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;">
+              <a class="btn primary" style="border-radius:18px;padding:12px 14px;" href="/subscribe.html?tier=pro">Choose Pro</a>
+              <a class="btn" style="border-radius:18px;padding:12px 14px;" href="/subscribe.html?tier=pro">Checkout</a>
+            </div>
+
+            <p class="muted" style="margin-top:12px;font-size:12px;">
+              Pro is priced for sustained use: more guidance, more surfaces, more templates over time.
+            </p>
+          </article>
+
+          <article class="card" style="padding:18px;border-radius:18px;opacity:.9;">
+            <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;">
+              <div>
+                <div style="font-size:18px;font-weight:800;">Attorney</div>
+                <div class="muted" style="margin-top:6px;">Teams + standardization</div>
+              </div>
+              <div class="muted" style="text-align:right;">
+                <div style="font-weight:800;">—</div>
+                <div style="font-size:12px;">coming</div>
+              </div>
+            </div>
+
+            <div class="hr"></div>
+
+            <ul style="margin:0 0 0 18px;line-height:1.55;">
+              <li>Matter organization + client portal (planned)</li>
+              <li>Firm templates + standardized drafting (planned)</li>
+              <li>Delegation/review loops (planned)</li>
+            </ul>
+
+            <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;">
+              <a class="btn" style="border-radius:18px;padding:12px 14px;" href="/subscribe.html?tier=attorney">Request Access</a>
+              <a class="btn" style="border-radius:18px;padding:12px 14px;" href="/billing.html">Billing</a>
+            </div>
+
+            <p class="muted" style="margin-top:12px;font-size:12px;">
+              Intended for firms and repeat-document operations once the portal surfaces are shipped.
+            </p>
+          </article>
+
         </div>
 
-        <p class="muted" style="margin-top:12px;">Checkout opens in Square. Tier unlock happens after payment completes.</p>
+        <div class="hr" style="margin-top:16px;"></div>
+
+        <div class="card" style="padding:16px;border-radius:18px;">
+          <div style="font-weight:800;">Why this is worth paying for</div>
+          <p class="muted" style="margin-top:8px;max-width:80ch;">
+            You’re paying for deterministic, court-grade output fidelity and a workflow that compresses drafting + export friction.
+            Basic is for a single clean artifact. Pro is for ongoing work as the system expands.
+          </p>
+        </div>
+
+        <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;">
+          <a class="btn" style="border-radius:18px;" href="/billing.html">Billing</a>
+          <a class="btn" style="border-radius:18px;" href="/">Home</a>
+        </div>
+
       </section>
+
     </div>
   </main>
 
