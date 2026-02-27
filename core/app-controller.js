@@ -33,6 +33,7 @@
   }
 
   const url = new URL(location.href);
+  const returnTo = (url.searchParams.get("return") || "").trim();
   const flow = (url.searchParams.get("flow") || "rfo").trim();
   const stageFromUrl = (url.searchParams.get("stage") || "intake").trim();
 
@@ -85,18 +86,20 @@
     if (subEl) subEl.textContent = "Stage: " + stages[stageIdx];
 
     prevBtn.onclick = () => {
-      if (stageIdx > 0) setStage(stages[stageIdx - 1]);
-    };
-
-    nextBtn.onclick = () => {
+    if (stageIdx <= 0) {
+      location.href = returnTo || "/index.html";
+      return;
+    }
+    gotoStage(stageIdx - 1);
+  };
+nextBtn.onclick = () => {
       if (stageIdx < stages.length - 1)
         setStage(stages[stageIdx + 1]);
     };
 
     if (exitBtn)
-      exitBtn.onclick = () => location.href = "/rfo/start.html";
-
-    try {
+      if (exitBtn) exitBtn.onclick = () => { location.href = "/index.html"; };
+try {
       flowPlugin.render(stages[stageIdx], {
         stageEl,
         flow,
