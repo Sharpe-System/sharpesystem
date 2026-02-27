@@ -13,69 +13,65 @@
 
   <main class="page">
     <div class="container content">
+      <section class="card" style="padding:var(--pad);border-radius:18px;">
 
-      <section class="template-box">
         <h1>Subscribe</h1>
-        <p class="muted">Choose a plan to unlock paid features.</p>
+        <p class="muted">Pay here. Stay here. Unlock Perfect Print for this account.</p>
 
-        <!-- VALUE EXPLANATION -->
         <div class="card" style="margin-top:16px;padding:18px;border-radius:18px;background:#f8fafc;">
           <h2 style="margin-top:0;">Why this is worth paying for</h2>
-
           <p style="font-size:15px;line-height:1.5;">
             You are paying for court documents that come out correctly formatted and ready to file.
             No guesswork. No confusing forms. No rejected paperwork.
           </p>
-
           <p style="font-size:15px;line-height:1.5;">
             You explain what happened in your own words.
             SharpeSystem helps write it clearly in the language judges expect.
           </p>
+        </div>
 
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px;">
-            <div style="padding:14px;border-radius:16px;background:#eef2ff;">
-              <strong>Basic</strong>
-              <ul style="margin:8px 0 0 18px;">
-                <li>One perfect court document</li>
-                <li>Step-by-step guidance</li>
-                <li>Clear court wording help</li>
-                <li>Ready-to-file download</li>
-              </ul>
+        <div class="card" style="margin-top:14px;padding:18px;border-radius:18px;">
+          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;">
+            <div>
+              <div style="font-weight:800;">Selected plan</div>
+              <div id="tierLabel" class="muted">basic</div>
             </div>
-
-            <div style="padding:14px;border-radius:16px;background:#ecfeff;">
-              <strong>Pro</strong>
-              <ul style="margin:8px 0 0 18px;">
-                <li>Unlimited documents</li>
-                <li>Ongoing drafting help</li>
-                <li>Stronger court wording tools</li>
-                <li>All future upgrades</li>
-              </ul>
+            <div>
+              <div style="font-weight:800;">Price today</div>
+              <div id="priceLabel" class="muted">$25.00</div>
             </div>
           </div>
+
+          <div class="hr"></div>
+
+          <div style="display:flex;gap:12px;flex-wrap:wrap;">
+            <a id="btnBasic" class="btn" style="border-radius:18px;padding:12px 14px;background:#6366f1;color:#fff;border:0;" href="/subscribe.html?tier=basic">Basic</a>
+            <a id="btnPro" class="btn" style="border-radius:18px;padding:12px 14px;background:#06b6d4;color:#fff;border:0;" href="/subscribe.html?tier=pro">Pro</a>
+          </div>
+
+          <div class="hr" style="margin-top:14px;"></div>
+
+          <div>
+            <div style="font-weight:800;margin-bottom:8px;">Payment</div>
+            <div id="card-container"></div>
+          </div>
+
+          <div style="margin-top:16px;">
+            <button id="payBtn" class="btn primary" style="padding:14px 18px;border-radius:18px;font-size:16px;">
+              Pay Securely
+            </button>
+          </div>
+
+          <p id="msg" class="muted" style="margin-top:12px;"></p>
         </div>
 
-        <!-- TIER BUTTONS -->
-        <div class="cta-row" style="margin-top:18px;display:flex;gap:12px;flex-wrap:wrap;">
-          <button id="payBasic" style="padding:14px 18px;border-radius:18px;font-size:16px;background:#6366f1;color:#fff;border:0;">
-            Subscribe Basic
-          </button>
-
-          <button id="payPro" style="padding:14px 18px;border-radius:18px;font-size:16px;background:#06b6d4;color:#fff;border:0;">
-            Subscribe Pro
-          </button>
-        </div>
-
-        <p id="msg" class="muted" style="margin-top:12px;"></p>
-
-        <div class="cta-row" style="margin-top:14px;">
-          <a class="button" href="/pricing.html">Plans</a>
-          <a class="button" href="/billing.html">Billing</a>
-          <a class="button" href="/">Home</a>
+        <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;">
+          <a class="btn" style="border-radius:18px;" href="/pricing.html">Plans</a>
+          <a class="btn" style="border-radius:18px;" href="/billing.html">Billing</a>
+          <a class="btn" style="border-radius:18px;" href="/">Home</a>
         </div>
 
       </section>
-
     </div>
   </main>
 
@@ -87,44 +83,117 @@
   <script type="module">
     import { getAuthStateOnce } from "/firebase-config.js";
 
-    const WORKER_BASE = "https://sharpe-pay.nd-sharpe.workers.dev";
     const msg = document.getElementById("msg");
+    const payBtn = document.getElementById("payBtn");
+    const tierLabel = document.getElementById("tierLabel");
+    const priceLabel = document.getElementById("priceLabel");
 
     function setMsg(t){ if (msg) msg.textContent = t || ""; }
 
-    async function startCheckout(tier) {
+    function getTier() {
       try {
-        setMsg("Creating checkout…");
-
-        const state = await getAuthStateOnce();
-        const user = state?.user || null;
-
-        const r = await fetch(`${WORKER_BASE}/create-checkout`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            tier,
-            firebaseUid: user?.uid || null,
-            email: user?.email || null
-          })
-        });
-
-        const data = await r.json().catch(() => ({}));
-        if (!r.ok || !data.checkoutUrl) {
-          console.log("Checkout error:", data);
-          setMsg("Checkout failed.");
-          return;
-        }
-
-        window.location.href = data.checkoutUrl;
-      } catch (e) {
-        console.log(e);
-        setMsg("Network error.");
+        const u = new URL(window.location.href);
+        const t = (u.searchParams.get("tier") || "basic").toLowerCase();
+        return (t === "basic" || t === "pro") ? t : "basic";
+      } catch {
+        return "basic";
       }
     }
 
-    document.getElementById("payBasic").addEventListener("click", () => startCheckout("basic"));
-    document.getElementById("payPro").addEventListener("click", () => startCheckout("pro"));
+    function priceFor(tier) {
+      if (tier === "pro") return { cents: 4999, label: "$49.99" };
+      return { cents: 2500, label: "$25.00" };
+    }
+
+    function loadSquareScript(env) {
+      return new Promise((resolve, reject) => {
+        const isProd = String(env || "").toLowerCase() === "production";
+        const src = isProd
+          ? "https://web.squarecdn.com/v1/square.js"
+          : "https://sandbox.web.squarecdn.com/v1/square.js";
+
+        const s = document.createElement("script");
+        s.src = src;
+        s.async = true;
+        s.onload = resolve;
+        s.onerror = reject;
+        document.head.appendChild(s);
+      });
+    }
+
+    async function init() {
+      const tier = getTier();
+      const p = priceFor(tier);
+      if (tierLabel) tierLabel.textContent = tier;
+      if (priceLabel) priceLabel.textContent = p.label;
+
+      setMsg("Loading checkout…");
+
+      const cfgRes = await fetch("/api/square/config", { cache: "no-store" });
+      const cfg = await cfgRes.json().catch(() => null);
+      if (!cfgRes.ok || !cfg || !cfg.ok || !cfg.appId || !cfg.locationId) {
+        setMsg("Square config missing.");
+        return;
+      }
+
+      await loadSquareScript(cfg.env);
+
+      if (!window.Square || !Square.payments) {
+        setMsg("Square SDK failed to load.");
+        return;
+      }
+
+      const payments = Square.payments(cfg.appId, cfg.locationId);
+      const card = await payments.card();
+      await card.attach("#card-container");
+
+      setMsg("");
+
+      payBtn.addEventListener("click", async () => {
+        payBtn.disabled = true;
+        setMsg("Processing…");
+
+        try {
+          const state = await getAuthStateOnce();
+          const user = state?.user || null;
+
+          const tok = await card.tokenize();
+          if (tok.status !== "OK" || !tok.token) {
+            setMsg("Card error. Please try again.");
+            payBtn.disabled = false;
+            return;
+          }
+
+          const r = await fetch("/api/square/charge", {
+            method: "POST",
+            headers: { "content-type": "application/json; charset=utf-8" },
+            body: JSON.stringify({
+              token: tok.token,
+              tier,
+              firebaseUid: user?.uid || null,
+              email: user?.email || null
+            })
+          });
+
+          const data = await r.json().catch(() => ({}));
+          if (!r.ok || !data.ok) {
+            console.log("Charge error:", data);
+            setMsg("Payment failed. Please try again.");
+            payBtn.disabled = false;
+            return;
+          }
+
+          setMsg("Payment successful. Unlocking…");
+          window.location.href = "/billing.html?paid=1";
+        } catch (e) {
+          console.log(e);
+          setMsg("Payment error. Please try again.");
+          payBtn.disabled = false;
+        }
+      });
+    }
+
+    init().catch(() => setMsg("Checkout error."));
   </script>
 
   <script type="module" src="/gate.js"></script>
