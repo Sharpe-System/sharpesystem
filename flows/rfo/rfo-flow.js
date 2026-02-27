@@ -1,125 +1,98 @@
 export const rfoFlow = {
-  stages: ["start","build","export"],
-  render(ctx, stage) {
+  id: "rfo",
+  title: "Request for Order (RFO)",
+  stages: ["start","intake","build","review","export"],
+
+  render(stage, ctx) {
     if (stage === "start") return renderStart(ctx);
+    if (stage === "intake") return renderIntake(ctx);
     if (stage === "build") return renderBuild(ctx);
+    if (stage === "review") return renderReview(ctx);
     if (stage === "export") return renderExport(ctx);
-    return "<p>Stage not found</p>";
   }
 };
 
-function renderStart(ctx){
-  return `
-  <h2>Start your Request for Order</h2>
-  <p class="muted">
-    SharpeSystem guides you through custody, visitation, and support requests step-by-step,
-    translating your goals into court-ready language and properly structured filings.
-  </p>
+function renderStart(ctx) {
+  ctx.stageEl.innerHTML = `
+    <h2>Start your Request for Order</h2>
+    <p class="muted">
+      SharpeSystem will guide you step-by-step to prepare clear, court-ready filings.
+    </p>
 
-  <div class="card" style="margin-top:16px;">
-    <h3>What you’ll do here</h3>
-    <ul>
-      <li>Describe the orders you want</li>
-      <li>Explain why they’re needed</li>
-      <li>Organize facts the court considers</li>
-    </ul>
-  </div>
-
-  <div class="row" style="margin-top:18px; gap:10px;">
-    <a class="btn primary" href="?flow=rfo&stage=build">Continue</a>
-    <a class="btn" href="/rfo/start.html">Exit</a>
-  </div>
+    <div class="card" style="margin-top:14px;">
+      <p><strong>What happens next</strong></p>
+      <ul>
+        <li>Enter case + custody details</li>
+        <li>Define requested orders</li>
+        <li>Build declaration + exhibits</li>
+        <li>Export court-ready packet</li>
+      </ul>
+    </div>
   `;
 }
 
-function renderBuild(ctx){
-  return `
-  <h2>Turn your goals into enforceable court orders</h2>
+function renderIntake(ctx) {
+  ctx.stageEl.innerHTML = `
+    <h2>Case information</h2>
+    <p class="muted">Enter the basic court and party details.</p>
 
-  <p class="muted">
-    Courts don’t grant intentions — they grant specific orders.
-    This stage converts what you want into structured requests the judge can sign.
-  </p>
+    <div class="card" style="margin-top:14px;">
+      <label class="field">
+        <span class="label">Court county</span>
+        <input class="input" />
+      </label>
 
-  <div class="grid-2" style="margin-top:16px; gap:14px;">
-
-    <div class="card" style="padding:14px; border-left:4px solid #5b8cff;">
-      <h3 style="margin-top:0;">You describe</h3>
-      <ul>
-        <li>Custody / visitation changes</li>
-        <li>Schedule problems</li>
-        <li>Support adjustments</li>
-        <li>Safety concerns</li>
-      </ul>
+      <label class="field">
+        <span class="label">Case number</span>
+        <input class="input" />
+      </label>
     </div>
-
-    <div class="card" style="padding:14px; border-left:4px solid #22a06b;">
-      <h3 style="margin-top:0;">SharpeSystem structures</h3>
-      <ul>
-        <li>FL-300 request language</li>
-        <li>Legal phrasing courts expect</li>
-        <li>Logical order of facts</li>
-        <li>Declaration paragraphs</li>
-      </ul>
-    </div>
-
-  </div>
-
-  <div class="card" style="margin-top:16px; background:#f6f9ff;">
-    <strong>Result:</strong>
-    A clean, organized request the court can read quickly and act on —
-    instead of handwritten or scattered paperwork that risks rejection.
-  </div>
-
-  <div class="row" style="margin-top:20px; gap:10px;">
-    <a class="btn primary" href="?flow=rfo&stage=export">Next: Export</a>
-    <a class="btn" href="?flow=rfo&stage=start">Back</a>
-  </div>
   `;
 }
 
-function renderExport(ctx){
-  return `
-  <h2>Get your “Perfect Print” filing set</h2>
+function renderBuild(ctx) {
+  ctx.stageEl.innerHTML = `
+    <h2>Define requested orders</h2>
+    <p class="muted">
+      Tell the court exactly what you want changed and why.
+    </p>
 
-  <p class="muted">
-    You’ve entered your requests. SharpeSystem can now generate a
-    court-ready packet that clerks accept without readability or format issues.
-  </p>
-
-  <div class="grid-2" style="margin-top:16px; gap:14px;">
-
-    <div class="card" style="padding:14px; border-left:4px solid #5b8cff;">
-      <h3 style="margin-top:0;">What you receive</h3>
-      <ul>
-        <li>FL-300 mapped correctly</li>
-        <li>Typed declaration</li>
-        <li>Exhibit index</li>
-        <li>Filing checklist</li>
-      </ul>
+    <div class="card" style="margin-top:14px;">
+      <label class="field">
+        <span class="label">Orders requested</span>
+        <textarea class="input" rows="6"></textarea>
+      </label>
     </div>
+  `;
+}
 
-    <div class="card" style="padding:14px; border-left:4px solid #ff9f1c;">
-      <h3 style="margin-top:0;">Why it matters</h3>
-      <ul>
-        <li>No illegible handwriting</li>
-        <li>No missing fields</li>
-        <li>No clerk rejection</li>
-        <li>Faster filing visit</li>
-      </ul>
+function renderReview(ctx) {
+  ctx.stageEl.innerHTML = `
+    <h2>Review your filing</h2>
+    <p class="muted">
+      Confirm clarity and completeness before export.
+    </p>
+
+    <div class="card" style="margin-top:14px;">
+      <p>SharpeSystem will format this into court-ready structure.</p>
     </div>
+  `;
+}
 
-  </div>
+function renderExport(ctx) {
+  ctx.stageEl.innerHTML = `
+    <h2>Export your court-ready RFO</h2>
 
-  <div class="card" style="margin-top:16px; background:#fff8ef;">
-    Many users complete filing in a single courthouse trip —
-    avoiding re-visits caused by incomplete paperwork.
-  </div>
+    <p class="muted">
+      Public drafting is free. Exporting print-ready filings requires login.
+    </p>
 
-  <div class="row" style="margin-top:20px; gap:10px; flex-wrap:wrap;">
-    <a class="btn primary" href="/rfo/public-print.html">Preview readiness</a>
-    <a class="btn" href="/login.html?next=/rfo/print.html">Unlock print</a>
-    <a class="btn" href="?flow=rfo&stage=build">Back</a>
-  </div>
+    <div class="card" style="margin-top:14px;">
+      <div class="row" style="gap:10px; flex-wrap:wrap;">
+        <a class="btn primary" href="/rfo/public-print.html">Preview readiness</a>
+        <a class="btn" href="/login.html?next=/rfo/print.html">Login to print</a>
+        <a class="btn" href="/rfo/start.html">Back to start</a>
+      </div>
+    </div>
   `;
 }
