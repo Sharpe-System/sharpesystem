@@ -75,6 +75,11 @@
   </style>
 </head>
 <body>
+<script>
+if (!localStorage.getItem("ss:user")) {
+  location.href = "/login.html?next=" + encodeURIComponent(location.pathname + location.search);
+}
+</script>
 
   <div class="print-shell">
 
