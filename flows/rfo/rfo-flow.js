@@ -243,3 +243,37 @@ function renderExport(ctx) {
     </section>
   `;
 }
+
+function renderExport(ctx) {
+  const d = ctx.readDraftData?.() || {};
+  const r = d.rfo || {};
+
+  ctx.stageEl.innerHTML = `
+    <h2>Export your court-ready RFO</h2>
+
+    <p class="muted">
+      Your draft is saved locally on this device.
+      SharpeSystem can now generate court-ready filings and exhibits.
+    </p>
+
+    <div class="card" style="margin-top:14px;">
+      <p>
+        <strong>Public drafting is free.</strong><br>
+        Exporting filing-ready documents requires a SharpeSystem account.
+      </p>
+
+      <div class="row" style="gap:10px; margin-top:12px;">
+        <a class="btn primary"
+           href="/login.html?next=/rfo/print.html">
+           Login to Export
+        </a>
+
+        <a class="btn"
+           href="/rfo/start.html">
+           Back to draft
+        </a>
+      </div>
+    </div>
+  `;
+}
+
