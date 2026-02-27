@@ -1,6 +1,5 @@
 // /subscribe.js
-// Creates a checkout session via your Worker and redirects to the provider checkout URL.
-// Tier names must match Authconan tier model: free | basic | pro | attorney
+import { getAuthStateOnce } from "/firebase-config.js";
 
 const WORKER_BASE = "https://sharpe-pay.nd-sharpe.workers.dev";
 
@@ -8,6 +7,13 @@ function $(id){ return document.getElementById(id); }
 const msg = $("msg");
 
 function setMsg(t){ if (msg) msg.textContent = t || ""; }
+
+function getTierFromUrl() {
+  const u = new URL(window.location.href);
+  const t = (u.searchParams.get("tier") || "basic").toLowerCase();
+  if (t === "pro" || t === "attorney") return t;
+  return "basic";
+}
 
 document.addEventListener("DOMContentLoaded", () => {
   const btn = $("payBtn");
@@ -18,10 +24,19 @@ document.addEventListener("DOMContentLoaded", () => {
       btn.disabled = true;
       setMsg("Creating checkout…");
 
+      const tier = getTierFromUrl();
+
+      const state = await getAuthStateOnce();
+      const user = state?.user || null;
+
       const r = await fetch(`${WORKER_BASE}/create-checkout`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tier: "basic" })
+        body: JSON.stringify({
+          tier,
+          firebaseUid: user?.uid || null,
+          email: user?.email || null
+        })
       });
 
       const data = await r.json().catch(() => ({}));
