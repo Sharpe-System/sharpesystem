@@ -203,48 +203,6 @@ function opt(current, value, label) {
 }
 
 function renderExport(ctx) {
-  const d = read(ctx);
-  const r = d.rfo || {};
-
-  ctx.stageEl.innerHTML = `
-    <h2>Export</h2>
-    <p class="muted">You’re at the output step. This is where you jump to print-ready surfaces.</p>
-
-    <div class="card" style="margin-top:12px;">
-      <h3 style="margin:0 0 6px 0;">What gets produced</h3>
-      <ul style="margin:0 0 0 18px;">
-        <li>A clean summary of your inputs (for accuracy check)</li>
-        <li>A print gate / snapshot surface for generating filing-ready artifacts</li>
-      </ul>
-
-      <div class="hr" style="margin:12px 0;"></div>
-
-      <div class="row" style="gap:10px; flex-wrap:wrap;">
-        <a class="btn primary" href="/rfo/public-print.html">Open Print Gate</a>
-        <a class="btn" href="/snapshot.html?flow=rfo">Open Snapshot</a>
-        <a class="btn" href="/rfo/start.html">Back to RFO Start</a>
-      </div>
-
-      <div class="small soft" style="margin-top:10px;">
-        County: ${esc(r.county || "—")} &nbsp;•&nbsp; Case: ${esc(r.caseNumber || "—")} &nbsp;•&nbsp; Role: ${esc(r.role || "—")}
-      </div>
-    </div>
-
-    <section class="card" style="padding:14px; margin-top:12px;">
-      <h3 style="margin:0 0 6px 0;">Prefer agreement if it is realistic</h3>
-      <p class="muted" style="margin:0;">
-        If you can resolve terms without litigation, it is often cheaper and better for children.
-        If not, continue with export/print.
-      </p>
-      <div class="row" style="margin-top:12px; gap:10px; flex-wrap:wrap;">
-        <a class="btn" href="/amicable.html">Amicable Path</a>
-        <a class="btn" href="/peace-path.html">Peace Path</a>
-      </div>
-    </section>
-  `;
-}
-
-function renderExport(ctx) {
   const d = ctx.readDraftData?.() || {};
   const r = d.rfo || {};
 
@@ -262,16 +220,10 @@ function renderExport(ctx) {
         Exporting filing-ready documents requires a SharpeSystem account.
       </p>
 
-      <div class="row" style="gap:10px; margin-top:12px;">
-        <a class="btn primary"
-           href="/login.html?next=/rfo/print.html">
-           Login to Export
-        </a>
-
-        <a class="btn"
-           href="/rfo/start.html">
-           Back to draft
-        </a>
+      <div class="row" style="gap:10px; margin-top:12px; flex-wrap:wrap;">
+        <a class="btn primary" href="/rfo/public-print.html">Preview readiness</a>
+        <a class="btn" href="/login.html?next=/rfo/print.html">Login to print</a>
+        <a class="btn" href="/rfo/start.html">Back to draft</a>
       </div>
     </div>
   `;
