@@ -1,4 +1,3 @@
-<!-- /subscribe.html -->
 <!doctype html>
 <html lang="en">
 <head>
@@ -8,6 +7,7 @@
   <meta name="description" content="Subscription." />
   <link rel="stylesheet" href="/styles.css" />
 </head>
+
 <body class="shell">
   <div id="site-header"></div>
 
@@ -15,9 +15,17 @@
     <div class="container content">
       <section class="template-box">
         <h1>Subscribe</h1>
-        <p class="muted">Placeholder UI. Your subscribe.js owns the real flow.</p>
+        <p class="muted">Choose a plan to unlock paid features.</p>
+
+        <div class="cta-row" style="margin-top:12px;">
+          <button id="payBtn" class="button">Continue to Checkout</button>
+        </div>
+
+        <p id="msg" class="muted" style="margin-top:10px;"></p>
+
         <div class="cta-row" style="margin-top:12px;">
           <a class="button" href="/pricing.html">Plans</a>
+          <a class="button" href="/billing.html">Billing</a>
           <a class="button" href="/">Home</a>
         </div>
       </section>
@@ -28,11 +36,7 @@
   <script src="/header-loader.js"></script>
   <script src="/partials/header.js"></script>
   <script src="/i18n.js"></script>
-
-  <!-- Page module BEFORE gate -->
   <script type="module" src="/subscribe.js"></script>
-
-  <!-- Gate MUST be last -->
   <script type="module" src="/gate.js"></script>
 </body>
 </html>

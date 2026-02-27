@@ -39,6 +39,8 @@ import { getAuthStateOnce, getUserProfile } from "/firebase-config.js";
       path.startsWith("/dmv/") ||
       path === "/login.html" ||
       path === "/signup.html" ||
+      path === "/billing.html" ||
+      path === "/subscribe.html" ||
       path === "/high-conflict-risk-awareness.html" ||
       path === "/trees.html" ||
       path === "/status.html";
