@@ -292,3 +292,7 @@ html[data-theme="light"] .site-header,
 body[data-theme="light"] .site-header{
   background:rgba(246,247,251,.86);
 }
+
+.rfo-card{border:1px solid #2f6fed33;background:#2f6fed0d}
+.dvro-card{border:1px solid #6f42c133;background:#6f42c10d}
+.exparte-card{border:1px solid #dc354533;background:#dc35450d}
