@@ -43,6 +43,24 @@ function renderIntake(ctx) {
 
   ctx.stageEl.innerHTML = `
     <h2>RFO Interview</h2>
+    <div class="card" style="padding:14px; margin-top:12px;">
+      <h3 style="margin:0 0 6px 0;">What you are doing here</h3>
+      <p class="muted" style="margin:0;">
+        This interview captures the minimum case metadata needed to route you into a court-ready build path.
+        Your answers are saved locally on this device.
+      </p>
+      <div class="hr" style="margin:12px 0;"></div>
+      <ul style="margin:0 0 0 18px;">
+        <li><strong>Be precise</strong>: county, branch, case number, and your role must match your filings.</li>
+        <li><strong>Plain English is fine</strong>: you will refine language later in the build and review stages.</li>
+        <li><strong>Prefer agreement if realistic</strong>: Amicable and Peace Path are available before adversarial filing.</li>
+      </ul>
+      <div class="row" style="margin-top:12px; gap:10px; flex-wrap:wrap;">
+        <a class="btn" href="/amicable.html">Amicable Path</a>
+        <a class="btn" href="/peace-path.html">Peace Path</a>
+      </div>
+      <div class="small soft" style="margin-top:10px;">Not legal advice. Procedural guidance + document organization only.</div>
+    </div>
     <p class="muted">Answer in plain English. We’ll show the official form at the end.</p>
 
     <div class="card" style="margin-top:12px;">
