@@ -13,7 +13,7 @@ export const rfoFlow = {
     if (stage === "intake") return renderIntake(ctx);
     if (stage === "build") return renderBuild(ctx);
     if (stage === "review") return renderReview(ctx);
-    if (stage === "export") return ctx.renderExport();
+    if (stage === "export") return renderExport(ctx);
     return renderIntake(ctx);
   }
 };
