@@ -43,6 +43,24 @@ function renderIntake(ctx) {
 
   ctx.stageEl.innerHTML = `
     <h2>RFO Interview</h2>
+
+    <div class="card" style="margin-top:12px;">
+      <h3 style="margin:0 0 6px 0;">How SharpeSystem helps you file correctly</h3>
+      <p class="muted" style="margin:0 0 8px 0;">
+        Courts often reject filings because handwriting is unclear, required fields are missed,
+        or requests are stated in a way that cannot be processed by clerks.
+        SharpeSystem guides you step-by-step and generates a clean, court-ready version.
+      </p>
+      <ul style="margin:0; padding-left:18px;">
+        <li>Plain-English interview → mapped to FL-300 fields</li>
+        <li>Legible “perfect print” formatting</li>
+        <li>All required sections included</li>
+        <li>Clerk-friendly layout courts accept</li>
+      </ul>
+      <p class="muted" style="margin-top:8px;">
+        Most users complete intake in 3–5 minutes and avoid a rejected filing or repeat courthouse trip.
+      </p>
+    </div>
     <div class="card" style="padding:14px; margin-top:12px;">
       <h3 style="margin:0 0 6px 0;">What you are doing here</h3>
       <p class="muted" style="margin:0;">
