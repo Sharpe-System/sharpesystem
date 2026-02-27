@@ -1,12 +1,10 @@
 /* /core/app-controller.js
-   Canonical plugin-driven app controller (stable)
+   Stable app controller with return + sane nav
 */
-
 (function () {
   "use strict";
 
   function $(sel, root = document) { return root.querySelector(sel); }
-
   function esc(s) {
     return String(s ?? "")
       .replaceAll("&", "&amp;")
@@ -33,9 +31,9 @@
   }
 
   const url = new URL(location.href);
-  const returnTo = (url.searchParams.get("return") || "").trim();
   const flow = (url.searchParams.get("flow") || "rfo").trim();
-  const stageFromUrl = (url.searchParams.get("stage") || "intake").trim();
+  const stageFromUrl = (url.searchParams.get("stage") || "start").trim();
+  const returnTo = (url.searchParams.get("return") || "").trim();
 
   const stageEl = $("#stage");
   const titleEl = $("#flowTitle");
@@ -45,7 +43,7 @@
   const exitBtn = $("#btnExit");
 
   if (!stageEl || !prevBtn || !nextBtn) {
-    console.error("Controller missing DOM");
+    console.error("App controller missing DOM nodes");
     return;
   }
 
@@ -64,59 +62,84 @@
     } catch {}
   }
 
-  function setStage(nextStage) {
+  function setStage(nextStage, replace) {
     const u = new URL(location.href);
     u.searchParams.set("flow", flow);
     u.searchParams.set("stage", nextStage);
-    location.href = u.toString();
+    if (returnTo) u.searchParams.set("return", returnTo);
+    if (replace) location.replace(u.toString());
+    else location.href = u.toString();
+  }
+
+  function clamp(n, lo, hi) {
+    return Math.max(lo, Math.min(hi, n));
   }
 
   (async function main() {
     const flowPlugin = await loadFlow(flow);
-    if (!flowPlugin) {
-      stageEl.innerHTML = "<p>No flow plugin</p>";
+
+    const stages = Array.isArray(flowPlugin?.stages) && flowPlugin.stages.length
+      ? flowPlugin.stages
+      : ["start", "intake", "build", "review", "export"];
+
+    let stageIdx = stages.indexOf(stageFromUrl);
+    if (stageIdx < 0) {
+      setStage(stages[0], true);
       return;
     }
 
-    const stages = flowPlugin.stages || ["intake","build","review","export"];
-    let stageIdx = stages.indexOf(stageFromUrl);
-    if (stageIdx < 0) stageIdx = 0;
+    if (titleEl) titleEl.textContent = flowPlugin?.title ? flowPlugin.title : `Flow: ${flow}`;
+    if (subEl) subEl.textContent = `Stage: ${stages[stageIdx]}`;
 
-    if (titleEl) titleEl.textContent = flowPlugin.title || flow;
-    if (subEl) subEl.textContent = "Stage: " + stages[stageIdx];
+    function gotoStage(idx) {
+      const nextIdx = clamp(idx, 0, stages.length - 1);
+      setStage(stages[nextIdx], false);
+    }
+
+    function updateNavUI() {
+      prevBtn.disabled = stageIdx <= 0;
+      nextBtn.disabled = stageIdx >= (stages.length - 1);
+      nextBtn.textContent = stages[stageIdx] === "review" ? "Export" : "Next";
+      nextBtn.style.display = stages[stageIdx] === "export" ? "none" : "";
+    }
 
     prevBtn.onclick = () => {
-    if (stageIdx <= 0) {
-      location.href = returnTo || "/index.html";
-      return;
-    }
-    gotoStage(stageIdx - 1);
-  };
-nextBtn.onclick = () => {
-      if (stageIdx < stages.length - 1)
-        setStage(stages[stageIdx + 1]);
+      if (stageIdx <= 0) {
+        location.href = returnTo || "/index.html";
+        return;
+      }
+      gotoStage(stageIdx - 1);
     };
 
-    if (exitBtn)
-      if (exitBtn) exitBtn.onclick = () => { location.href = "/index.html"; };
-try {
-      flowPlugin.render(stages[stageIdx], {
-        stageEl,
-        flow,
-        stage: stages[stageIdx],
-        readDraftData,
-        writeDraftData
-      });
-    } catch (e) {
-      stageEl.innerHTML = "<pre>" + esc(e.stack || e) + "</pre>";
+    nextBtn.onclick = () => {
+      gotoStage(stageIdx + 1);
+    };
+
+    if (exitBtn) {
+      exitBtn.onclick = () => { location.href = "/index.html"; };
     }
 
-    nextBtn.textContent =
-      stages[stageIdx] === "review" ? "Export" : "Next";
+    try {
+      if (flowPlugin && typeof flowPlugin.render === "function") {
+        flowPlugin.render(stages[stageIdx], {
+          stageEl,
+          flow,
+          stage: stages[stageIdx],
+          readDraftData,
+          writeDraftData
+        });
+      } else {
+        stageEl.innerHTML = `
+          <h2>${esc(stages[stageIdx])}</h2>
+          <p class="muted">No flow plugin loaded for <code>${esc(flow)}</code>.</p>
+        `;
+      }
+    } catch (e) {
+      stageEl.innerHTML = `<pre style="white-space:pre-wrap;">${esc(String(e?.stack || e))}</pre>`;
+    }
 
-    prevBtn.disabled = stageIdx === 0;
-    nextBtn.disabled = stageIdx === stages.length - 1;
-
-  })();
-
+    updateNavUI();
+  })().catch((e) => {
+    stageEl.innerHTML = `<pre style="white-space:pre-wrap;">${esc(String(e?.stack || e))}</pre>`;
+  });
 })();
