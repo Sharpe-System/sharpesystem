@@ -46,38 +46,42 @@
         </p>
 
         <div class="grid-2" style="gap:12px;">
-          <div class="card" style="padding:12px;">
-            <h3 style="margin:0 0 6px 0;">Standard RFO</h3>
-            <p class="muted" style="margin:0 0 10px 0;">
-              Build intake → map FL-300 fields → organize exhibits → print gate.
-            </p>
-            <div class="row" style="gap:10px; flex-wrap:wrap;">
-              <a class="btn primary" href="/intake.html?flow=rfo">Start</a>
-              <a class="btn" href="/rfo/public-print.html">Print Gate</a>
-            </div>
 
-          <div class="card" style="padding:12px;">
-            </div>
-          </div>
-          </div>
+  <div class="card rfo-card" style="padding:12px;">
+    <h3 style="margin:0 0 6px 0;">Standard RFO</h3>
+    <p class="muted" style="margin:0 0 10px 0;">
+      Build intake → map FL-300 fields → organize exhibits → print gate.
+    </p>
+    <div class="row" style="gap:10px; flex-wrap:wrap;">
+      <a class="btn primary" href="/app.html?flow=rfo&stage=intake">Start</a>
+      <a class="btn" href="/rfo/public-print.html">Print Gate</a>
+    </div>
+  </div>
 
-          <div class="card" style="padding:12px;">
-            </div>
-          </div>
+  <div class="card dvro-card" style="padding:12px;">
+    <h3 style="margin:0 0 6px 0;">DVRO Response</h3>
+    <p class="muted" style="margin:0 0 10px 0;">
+      Respond to restraining order request → organize facts → prepare court response.
+    </p>
+    <div class="row" style="gap:10px; flex-wrap:wrap;">
+      <a class="btn secondary" href="/app.html?flow=dvro_response&stage=intake">Start DVRO</a>
+    </div>
+  </div>
 
-          <div class="card" style="padding:12px;">
-            <h3 style="margin:0 0 6px 0;">Ex Parte (Emergency)</h3>
-            <p class="muted" style="margin:0 0 10px 0;">
-              Multi-form bundle. Public mode saves locally. Print gate locks export until login/subscription.
-            </p>
-            <div class="row" style="gap:10px; flex-wrap:wrap;">
-              <a class="btn primary" href="/rfo/exparte-start.html">Ex Parte Start</a>
-              <a class="btn" href="/rfo/exparte-public-print.html">Ex Parte Print Gate</a>
-            </div>
-          </div>
-        </div>
+  <div class="card exparte-card" style="padding:12px;">
+    <h3 style="margin:0 0 6px 0;">Ex Parte (Emergency)</h3>
+    <p class="muted" style="margin:0 0 10px 0;">
+      Multi-form emergency bundle → declarations → notice → print gate.
+    </p>
+    <div class="row" style="gap:10px; flex-wrap:wrap;">
+      <a class="btn danger" href="/rfo/exparte-start.html">Ex Parte Start</a>
+      <a class="btn" href="/rfo/exparte-public-print.html">Print Gate</a>
+    </div>
+  </div>
 
-      </section>
+</div>
+
+</section>
 
     </div>
   </main>
