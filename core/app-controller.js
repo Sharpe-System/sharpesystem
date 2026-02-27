@@ -1,6 +1,12 @@
-import { $ } from "/core/utils.js";
+/* /core/app-controller.js
+   Canonical plugin-driven app controller (stable)
+*/
 
-async function main() {
+(function () {
+  "use strict";
+
+  function $(sel, root = document) { return root.querySelector(sel); }
+
   function esc(s) {
     return String(s ?? "")
       .replaceAll("&", "&amp;")
@@ -28,8 +34,7 @@ async function main() {
 
   const url = new URL(location.href);
   const flow = (url.searchParams.get("flow") || "rfo").trim();
-  const stageFromUrl = (url.searchParams.get("stage") || "start").trim();
-  const returnTo = (url.searchParams.get("return") || "").trim();
+  const stageFromUrl = (url.searchParams.get("stage") || "intake").trim();
 
   const stageEl = $("#stage");
   const titleEl = $("#flowTitle");
@@ -39,7 +44,7 @@ async function main() {
   const exitBtn = $("#btnExit");
 
   if (!stageEl || !prevBtn || !nextBtn) {
-    console.error("App controller: missing required DOM nodes.");
+    console.error("Controller missing DOM");
     return;
   }
 
@@ -49,9 +54,7 @@ async function main() {
     try {
       const raw = localStorage.getItem(DRAFT_KEY);
       return raw ? JSON.parse(raw) : {};
-    } catch {
-      return {};
-    }
+    } catch { return {}; }
   }
 
   function writeDraftData(data) {
@@ -60,60 +63,57 @@ async function main() {
     } catch {}
   }
 
-  function setStageParam(nextStage, replace = false) {
+  function setStage(nextStage) {
     const u = new URL(location.href);
     u.searchParams.set("flow", flow);
     u.searchParams.set("stage", nextStage);
-    if (returnTo) u.searchParams.set("return", returnTo);
-    if (replace) location.replace(u.toString());
-    else location.href = u.toString();
+    location.href = u.toString();
   }
 
-  const flowMod = await loadFlow(flow);
-  if (!flowMod) {
-    stageEl.innerHTML = "<p>Flow not found.</p>";
-    return;
-  }
-
-  const stages = flowMod.stages || [];
-  let stageIdx = stages.indexOf(stageFromUrl);
-  if (stageIdx < 0) stageIdx = 0;
-
-  function gotoStage(idx) {
-    idx = Math.max(0, Math.min(stages.length - 1, idx));
-    setStageParam(stages[idx]);
-  }
-
-  prevBtn.addEventListener("click", () => {
-    if (stageIdx <= 0 && returnTo) {
-      location.href = returnTo;
+  (async function main() {
+    const flowPlugin = await loadFlow(flow);
+    if (!flowPlugin) {
+      stageEl.innerHTML = "<p>No flow plugin</p>";
       return;
     }
-    gotoStage(stageIdx - 1);
-  });
 
-  nextBtn.addEventListener("click", () => gotoStage(stageIdx + 1));
+    const stages = flowPlugin.stages || ["intake","build","review","export"];
+    let stageIdx = stages.indexOf(stageFromUrl);
+    if (stageIdx < 0) stageIdx = 0;
 
-  exitBtn?.addEventListener("click", () => {
-    if (returnTo) location.href = returnTo;
-    else location.href = "/";
-  });
+    if (titleEl) titleEl.textContent = flowPlugin.title || flow;
+    if (subEl) subEl.textContent = "Stage: " + stages[stageIdx];
 
-  function render() {
-    const ctx = {
-      flow,
-      stage: stages[stageIdx],
-      stageEl,
-      readDraftData,
-      writeDraftData,
-      esc,
+    prevBtn.onclick = () => {
+      if (stageIdx > 0) setStage(stages[stageIdx - 1]);
     };
 
-    const out = flowMod.render?.(ctx, stages[stageIdx]);
-    if (typeof out === "string") stageEl.innerHTML = out;
-  }
+    nextBtn.onclick = () => {
+      if (stageIdx < stages.length - 1)
+        setStage(stages[stageIdx + 1]);
+    };
 
-  render();
-}
+    if (exitBtn)
+      exitBtn.onclick = () => location.href = "/rfo/start.html";
 
-main();
+    try {
+      flowPlugin.render(stages[stageIdx], {
+        stageEl,
+        flow,
+        stage: stages[stageIdx],
+        readDraftData,
+        writeDraftData
+      });
+    } catch (e) {
+      stageEl.innerHTML = "<pre>" + esc(e.stack || e) + "</pre>";
+    }
+
+    nextBtn.textContent =
+      stages[stageIdx] === "review" ? "Export" : "Next";
+
+    prevBtn.disabled = stageIdx === 0;
+    nextBtn.disabled = stageIdx === stages.length - 1;
+
+  })();
+
+})();
