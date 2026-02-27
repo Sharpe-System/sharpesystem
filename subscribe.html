@@ -1,201 +1,76 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Subscribe — SharpeSystem</title>
-  <meta name="description" content="Subscription." />
-  <link rel="stylesheet" href="/styles.css" />
+  <link rel="stylesheet" href="/styles.css">
+  <style>
+    .wrap{max-width:520px;margin:40px auto;padding:24px}
+    #card-container{min-height:60px;margin:16px 0}
+    #paySecurely{padding:12px 16px;font-size:16px}
+    .error{color:#c00;margin-top:12px}
+  </style>
 </head>
+<body>
+  <div class="wrap">
+    <h1>Upgrade to Pro</h1>
+    <div id="card-container"></div>
+    <button id="paySecurely" disabled>Pay Securely</button>
+    <div id="checkoutError" class="error"></div>
+  </div>
 
-<body class="shell">
-  <div id="site-header"></div>
+  <script>
+  async function loadSquareSdk(env){
+    const src = env==="production"
+      ? "https://web.squarecdn.com/v1/square.js"
+      : "https://sandbox.web.squarecdn.com/v1/square.js";
 
-  <main class="page">
-    <div class="container content">
-      <section class="card" style="padding:var(--pad);border-radius:18px;">
+    return new Promise((resolve,reject)=>{
+      if(window.Square) return resolve();
+      const s=document.createElement("script");
+      s.src=src;
+      s.async=true;
+      s.onload=resolve;
+      s.onerror=()=>reject(new Error("Square SDK load failed"));
+      document.head.appendChild(s);
+    });
+  }
 
-        <h1>Subscribe</h1>
-        <p class="muted">Pay here. Stay here. Unlock Perfect Print for this account.</p>
+  async function initPayments(){
+    const r = await fetch("/api/square/config",{credentials:"omit"});
+    if(!r.ok) throw new Error("Config fetch failed "+r.status);
+    const cfg = await r.json();
 
-        <div class="card" style="margin-top:16px;padding:18px;border-radius:18px;background:#f8fafc;">
-          <h2 style="margin-top:0;">Why this is worth paying for</h2>
-          <p style="font-size:15px;line-height:1.5;">
-            You are paying for court documents that come out correctly formatted and ready to file.
-            No guesswork. No confusing forms. No rejected paperwork.
-          </p>
-          <p style="font-size:15px;line-height:1.5;">
-            You explain what happened in your own words.
-            SharpeSystem helps write it clearly in the language judges expect.
-          </p>
-        </div>
+    if(!cfg || !cfg.appId || !cfg.locationId || !cfg.env){
+      throw new Error("Invalid Square config");
+    }
 
-        <div class="card" style="margin-top:14px;padding:18px;border-radius:18px;">
-          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;">
-            <div>
-              <div style="font-weight:800;">Selected plan</div>
-              <div id="tierLabel" class="muted">basic</div>
-            </div>
-            <div>
-              <div style="font-weight:800;">Price today</div>
-              <div id="priceLabel" class="muted">$25.00</div>
-            </div>
-          </div>
+    await loadSquareSdk(cfg.env);
 
-          <div class="hr"></div>
+    const payments = window.Square.payments(cfg.appId,cfg.locationId);
+    const card = await payments.card();
+    await card.attach("#card-container");
 
-          <div style="display:flex;gap:12px;flex-wrap:wrap;">
-            <a id="btnBasic" class="btn" style="border-radius:18px;padding:12px 14px;background:#6366f1;color:#fff;border:0;" href="/subscribe.html?tier=basic">Basic</a>
-            <a id="btnPro" class="btn" style="border-radius:18px;padding:12px 14px;background:#06b6d4;color:#fff;border:0;" href="/subscribe.html?tier=pro">Pro</a>
-          </div>
+    const btn = document.getElementById("paySecurely");
+    btn.disabled=false;
 
-          <div class="hr" style="margin-top:14px;"></div>
-
-          <div>
-            <div style="font-weight:800;margin-bottom:8px;">Payment</div>
-            <div id="card-container"></div>
-          </div>
-
-          <div style="margin-top:16px;">
-            <button id="payBtn" class="btn primary" style="padding:14px 18px;border-radius:18px;font-size:16px;">
-              Pay Securely
-            </button>
-          </div>
-
-          <p id="msg" class="muted" style="margin-top:12px;"></p>
-        </div>
-
-        <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;">
-          <a class="btn" style="border-radius:18px;" href="/pricing.html">Plans</a>
-          <a class="btn" style="border-radius:18px;" href="/billing.html">Billing</a>
-          <a class="btn" style="border-radius:18px;" href="/">Home</a>
-        </div>
-
-      </section>
-    </div>
-  </main>
-
-  <script src="/ui.js"></script>
-  <script src="/header-loader.js"></script>
-  <script src="/partials/header.js"></script>
-  <script src="/i18n.js"></script>
-
-  <script type="module">
-    import { getAuthStateOnce } from "/firebase-config.js";
-
-    const msg = document.getElementById("msg");
-    const payBtn = document.getElementById("payBtn");
-    const tierLabel = document.getElementById("tierLabel");
-    const priceLabel = document.getElementById("priceLabel");
-
-    function setMsg(t){ if (msg) msg.textContent = t || ""; }
-
-    function getTier() {
-      try {
-        const u = new URL(window.location.href);
-        const t = (u.searchParams.get("tier") || "basic").toLowerCase();
-        return (t === "basic" || t === "pro") ? t : "basic";
-      } catch {
-        return "basic";
+    btn.addEventListener("click",async ()=>{
+      const result = await card.tokenize();
+      if(result.status!=="OK"){
+        throw new Error(result.errors?.[0]?.message || "Tokenize failed");
       }
-    }
+      console.log("Square token",result.token);
+    });
+  }
 
-    function priceFor(tier) {
-      if (tier === "pro") return { cents: 4999, label: "$49.99" };
-      return { cents: 2500, label: "$25.00" };
-    }
-
-    function loadSquareScript(env) {
-      return new Promise((resolve, reject) => {
-        const isProd = String(env || "").toLowerCase() === "production";
-        const src = isProd
-          ? "https://web.squarecdn.com/v1/square.js"
-          : "https://sandbox.web.squarecdn.com/v1/square.js";
-
-        const s = document.createElement("script");
-        s.src = src;
-        s.async = true;
-        s.onload = resolve;
-        s.onerror = reject;
-        document.head.appendChild(s);
-      });
-    }
-
-    async function init() {
-      const tier = getTier();
-      const p = priceFor(tier);
-      if (tierLabel) tierLabel.textContent = tier;
-      if (priceLabel) priceLabel.textContent = p.label;
-
-      setMsg("Loading checkout…");
-
-      const cfgRes = await fetch("/api/square/config", { cache: "no-store" });
-      const cfg = await cfgRes.json().catch(() => null);
-      if (!cfgRes.ok || !cfg || !cfg.ok || !cfg.appId || !cfg.locationId) {
-        setMsg("Square config missing.");
-        return;
-      }
-
-      await loadSquareScript(cfg.env);
-
-      if (!window.Square || !Square.payments) {
-        setMsg("Square SDK failed to load.");
-        return;
-      }
-
-      const payments = Square.payments(cfg.appId, cfg.locationId);
-      const card = await payments.card();
-      await card.attach("#card-container");
-
-      setMsg("");
-
-      payBtn.addEventListener("click", async () => {
-        payBtn.disabled = true;
-        setMsg("Processing…");
-
-        try {
-          const state = await getAuthStateOnce();
-          const user = state?.user || null;
-
-          const tok = await card.tokenize();
-          if (tok.status !== "OK" || !tok.token) {
-            setMsg("Card error. Please try again.");
-            payBtn.disabled = false;
-            return;
-          }
-
-          const r = await fetch("/api/square/charge", {
-            method: "POST",
-            headers: { "content-type": "application/json; charset=utf-8" },
-            body: JSON.stringify({
-              token: tok.token,
-              tier,
-              firebaseUid: user?.uid || null,
-              email: user?.email || null
-            })
-          });
-
-          const data = await r.json().catch(() => ({}));
-          if (!r.ok || !data.ok) {
-            console.log("Charge error:", data);
-            setMsg("Payment failed. Please try again.");
-            payBtn.disabled = false;
-            return;
-          }
-
-          setMsg("Payment successful. Unlocking…");
-          window.location.href = "/billing.html?paid=1";
-        } catch (e) {
-          console.log(e);
-          setMsg("Payment error. Please try again.");
-          payBtn.disabled = false;
-        }
-      });
-    }
-
-    init().catch(() => setMsg("Checkout error."));
+  document.addEventListener("DOMContentLoaded",()=>{
+    initPayments().catch(e=>{
+      console.error(e);
+      const el=document.getElementById("checkoutError");
+      if(el) el.textContent=e.message;
+    });
+  });
   </script>
-
-  <script type="module" src="/gate.js"></script>
 </body>
 </html>
