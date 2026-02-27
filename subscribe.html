@@ -6,8 +6,6 @@
   <title>Secure Checkout — SharpeSystem</title>
   <meta name="description" content="Secure SharpeSystem subscription checkout." />
   <link rel="stylesheet" href="/styles.css" />
-
-  <!-- Square Web Payments SDK -->
   <script src="https://sandbox.web.squarecdn.com/v1/square.js"></script>
 </head>
 
@@ -19,21 +17,18 @@
 
       <section class="card" style="padding:var(--pad);border-radius:18px;">
         <h1>Secure Checkout</h1>
-        <p class="muted">
-          You’re unlocking Perfect Print export for this account.
-        </p>
+        <p class="muted">You’re unlocking Perfect Print export for this account.</p>
 
         <div class="hr"></div>
 
         <div class="card" style="padding:18px;border-radius:18px;">
           <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;">
             <div>
-              <div style="font-weight:700;">Selected tier</div>
+              <div style="font-weight:800;">Selected tier</div>
               <div id="tierLabel" class="muted">basic</div>
             </div>
-
             <div>
-              <div style="font-weight:700;">Price</div>
+              <div style="font-weight:800;">Price</div>
               <div id="priceLabel" class="muted">$—</div>
             </div>
           </div>
@@ -41,7 +36,7 @@
           <div class="hr"></div>
 
           <div>
-            <div style="font-weight:700;margin-bottom:8px;">Payment</div>
+            <div style="font-weight:800;margin-bottom:8px;">Payment</div>
             <div id="card-container"></div>
           </div>
 
@@ -59,9 +54,9 @@
         </div>
 
         <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;">
-          <a class="btn" href="/pricing.html">Change plan</a>
-          <a class="btn" href="/billing.html">Billing</a>
-          <a class="btn" href="/">Home</a>
+          <a class="btn" style="border-radius:18px;" href="/pricing.html">Change plan</a>
+          <a class="btn" style="border-radius:18px;" href="/billing.html">Billing</a>
+          <a class="btn" style="border-radius:18px;" href="/">Home</a>
         </div>
 
       </section>
@@ -72,33 +67,54 @@
   <script>
     (function(){
       try{
-        const u = new URL(window.location.href);
-        const tier = (u.searchParams.get("tier") || "basic").toLowerCase();
-        document.getElementById("tierLabel").textContent = tier;
-
-        const prices = {
-          basic: "$—",
-          pro: "$—",
-          attorney: "Contact"
-        };
-        document.getElementById("priceLabel").textContent = prices[tier] || "$—";
+        var u = new URL(window.location.href);
+        var t = (u.searchParams.get("tier") || "basic").toLowerCase();
+        var ok = (t === "basic" || t === "pro" || t === "attorney") ? t : "basic";
+        var prices = { basic: "$—", pro: "$—", attorney: "Contact" };
+        var tl = document.getElementById("tierLabel");
+        var pl = document.getElementById("priceLabel");
+        if (tl) tl.textContent = ok;
+        if (pl) pl.textContent = prices[ok] || "$—";
       } catch(e){}
     })();
   </script>
 
   <script>
     async function initSquare() {
-      const payments = Square.payments("APP_ID", "LOCATION_ID");
-      const card = await payments.card();
+      var msg = document.getElementById("msg");
+      var setMsg = function(t){ if (msg) msg.textContent = t || ""; };
+
+      var cfgRes = await fetch("/api/square/config", { cache: "no-store" });
+      var cfg = await cfgRes.json().catch(function(){ return null; });
+      if (!cfgRes.ok || !cfg || !cfg.ok || !cfg.appId || !cfg.locationId) {
+        setMsg("Square config missing.");
+        return;
+      }
+
+      var payments = Square.payments(cfg.appId, cfg.locationId);
+      var card = await payments.card();
       await card.attach("#card-container");
 
-      document.getElementById("payBtn").addEventListener("click", async () => {
-        const result = await card.tokenize();
-        if (result.status === "OK") {
-          console.log("Token:", result.token);
-          document.getElementById("msg").textContent = "Processing…";
-        } else {
-          document.getElementById("msg").textContent = "Card error.";
+      var btn = document.getElementById("payBtn");
+      if (!btn) return;
+
+      btn.addEventListener("click", async function(){
+        btn.disabled = true;
+        setMsg("Tokenizing…");
+        try {
+          var result = await card.tokenize();
+          if (result.status !== "OK") {
+            setMsg("Card error.");
+            btn.disabled = false;
+            return;
+          }
+          console.log("Square token:", result.token);
+          setMsg("Token OK. Next: charge endpoint.");
+          btn.disabled = false;
+        } catch (e) {
+          console.log(e);
+          setMsg("Payment init error.");
+          btn.disabled = false;
         }
       });
     }
