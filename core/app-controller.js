@@ -27,13 +27,12 @@
 
   async function loadFlow(flowId) {
     if (flowId === "rfo") {
+      const mod = await import("/flows/rfo/rfo-flow.js");
+      return mod.rfoFlow || null;
+    }
     if (flowId === "dvro_response") {
       const mod = await import("/flows/dvro_response/dvro-response-flow.js");
       return mod.dvroResponseFlow || null;
-    }
-
-      const mod = await import("/flows/rfo/rfo-flow.js");
-      return mod.rfoFlow || null;
     }
     if (flowId === "pleading") {
       const mod = await import("/flows/pleading/pleading-flow.js");
@@ -45,6 +44,8 @@
   const url = new URL(location.href);
   const flow = (url.searchParams.get("flow") || "rfo").trim();
   const stageFromUrl = (url.searchParams.get("stage") || "start").trim();
+  const returnTo = (url.searchParams.get("return") || "").trim();
+
 
   const stageEl = $("#stage");
   const titleEl = $("#flowTitle");
@@ -151,7 +152,11 @@
       }
 
       updateNavUI();
-    }
+    prevBtn.addEventListener("click", () => {
+      if (stageIdx <= 0 && returnTo) { location.href = returnTo; return; }
+      gotoStage(stageIdx - 1);
+    });
+
 
     prevBtn.addEventListener("click", () => gotoStage(stageIdx - 1));
     nextBtn.addEventListener("click", () => gotoStage(stageIdx + 1));
