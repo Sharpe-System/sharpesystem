@@ -27,6 +27,11 @@
 
   async function loadFlow(flowId) {
     if (flowId === "rfo") {
+    if (flowId === "dvro_response") {
+      const mod = await import("/flows/dvro_response/dvro-response-flow.js");
+      return mod.dvroResponseFlow || null;
+    }
+
       const mod = await import("/flows/rfo/rfo-flow.js");
       return mod.rfoFlow || null;
     }
