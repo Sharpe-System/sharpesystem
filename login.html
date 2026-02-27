@@ -52,5 +52,25 @@
 
   <!-- IMPORTANT: login.js owns auth. No gate.js on this page. -->
   <script type="module" src="/login.js"></script>
+
+<script>
+(() => {
+  const qs = new URLSearchParams(location.search);
+  const next = (qs.get("next") || "").trim();
+  if (!next) return;
+
+  const go = () => location.replace(next);
+
+  if (localStorage.getItem("ss:user")) { go(); return; }
+
+  let tries = 0;
+  const t = setInterval(() => {
+    tries++;
+    if (localStorage.getItem("ss:user")) { clearInterval(t); go(); }
+    if (tries > 200) clearInterval(t);
+  }, 250);
+})();
+</script>
+
 </body>
 </html>
