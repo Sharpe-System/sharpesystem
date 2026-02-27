@@ -1,6 +1,4 @@
-/* /core/app-controller.js
-   Stable app controller with return + sane nav
-*/
+/* /core/app-controller.js — stable nav w/ return */
 (function () {
   "use strict";
 
@@ -57,9 +55,7 @@
   }
 
   function writeDraftData(data) {
-    try {
-      localStorage.setItem(DRAFT_KEY, JSON.stringify(data || {}));
-    } catch {}
+    try { localStorage.setItem(DRAFT_KEY, JSON.stringify(data || {})); } catch {}
   }
 
   function setStage(nextStage, replace) {
@@ -71,9 +67,7 @@
     else location.href = u.toString();
   }
 
-  function clamp(n, lo, hi) {
-    return Math.max(lo, Math.min(hi, n));
-  }
+  function clamp(n, lo, hi) { return Math.max(lo, Math.min(hi, n)); }
 
   (async function main() {
     const flowPlugin = await loadFlow(flow);
@@ -83,12 +77,9 @@
       : ["start", "intake", "build", "review", "export"];
 
     let stageIdx = stages.indexOf(stageFromUrl);
-    if (stageIdx < 0) {
-      setStage(stages[0], true);
-      return;
-    }
+    if (stageIdx < 0) { setStage(stages[0], true); return; }
 
-    if (titleEl) titleEl.textContent = flowPlugin?.title ? flowPlugin.title : `Flow: ${flow}`;
+    if (titleEl) titleEl.textContent = flowPlugin?.title || `Flow: ${flow}`;
     if (subEl) subEl.textContent = `Stage: ${stages[stageIdx]}`;
 
     function gotoStage(idx) {
@@ -97,7 +88,9 @@
     }
 
     function updateNavUI() {
-      prevBtn.disabled = stageIdx <= 0;
+      // KEY FIX: allow Back click on first stage if returnTo exists
+      prevBtn.disabled = (stageIdx <= 0) && !returnTo;
+
       nextBtn.disabled = stageIdx >= (stages.length - 1);
       nextBtn.textContent = stages[stageIdx] === "review" ? "Export" : "Next";
       nextBtn.style.display = stages[stageIdx] === "export" ? "none" : "";
@@ -111,13 +104,9 @@
       gotoStage(stageIdx - 1);
     };
 
-    nextBtn.onclick = () => {
-      gotoStage(stageIdx + 1);
-    };
+    nextBtn.onclick = () => { gotoStage(stageIdx + 1); };
 
-    if (exitBtn) {
-      exitBtn.onclick = () => { location.href = "/index.html"; };
-    }
+    if (exitBtn) exitBtn.onclick = () => { location.href = "/index.html"; };
 
     try {
       if (flowPlugin && typeof flowPlugin.render === "function") {
@@ -129,10 +118,7 @@
           writeDraftData
         });
       } else {
-        stageEl.innerHTML = `
-          <h2>${esc(stages[stageIdx])}</h2>
-          <p class="muted">No flow plugin loaded for <code>${esc(flow)}</code>.</p>
-        `;
+        stageEl.innerHTML = `<h2>${esc(stages[stageIdx])}</h2><p class="muted">No flow plugin for <code>${esc(flow)}</code>.</p>`;
       }
     } catch (e) {
       stageEl.innerHTML = `<pre style="white-space:pre-wrap;">${esc(String(e?.stack || e))}</pre>`;
