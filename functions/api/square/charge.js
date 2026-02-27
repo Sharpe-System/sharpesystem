@@ -16,8 +16,8 @@ export async function onRequestPost(context) {
     }
 
     const amountMap = {
-      basic: 1000,   // $10
-      pro: 2900      // $29
+      basic: 2500,   // $10
+      pro: 4999      // $29
     };
 
     const amount = amountMap[tier] || 1000;
