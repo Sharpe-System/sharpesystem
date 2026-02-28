@@ -258,9 +258,9 @@ function renderCapture(ctx) {
       </span>
 
       <div class="row" style="gap:10px; flex-wrap:wrap; margin-top:10px;">
-        <button class="btn" type="button" data-ai="explain" data-field="story">Explain</button>
-        <button class="btn" type="button" data-ai="options" data-field="story">Examples</button>
-        <button class="btn primary" type="button" data-ai="draft" data-field="story">Help me say this</button>
+        <button class="ss-btn ss-btn-neutral" type="button" data-ai="explain" data-field="story">Explain</button>
+        <button class="ss-btn ss-btn-secondary" type="button" data-ai="options" data-field="story">Examples</button>
+        <button class="ss-btn ss-btn-primary" type="button" data-ai="draft" data-field="story">Help me say this</button>
       </div>
     </label>
   </div>
@@ -276,9 +276,9 @@ function renderCapture(ctx) {
       </span>
 
       <div class="row" style="gap:10px; flex-wrap:wrap; margin-top:10px;">
-        <button class="btn" type="button" data-ai="explain" data-field="child_impact">Explain</button>
-        <button class="btn" type="button" data-ai="options" data-field="child_impact">Examples</button>
-        <button class="btn primary" type="button" data-ai="draft" data-field="child_impact">Help me say this</button>
+        <button class="ss-btn ss-btn-neutral" type="button" data-ai="explain" data-field="child_impact">Explain</button>
+        <button class="ss-btn ss-btn-secondary" type="button" data-ai="options" data-field="child_impact">Examples</button>
+        <button class="ss-btn ss-btn-primary" type="button" data-ai="draft" data-field="child_impact">Help me say this</button>
       </div>
     </label>
   </div>
@@ -299,9 +299,9 @@ function renderCapture(ctx) {
       </span>
 
       <div class="row" style="gap:10px; flex-wrap:wrap; margin-top:10px;">
-        <button class="btn" type="button" data-ai="explain" data-field="change_request">Explain</button>
-        <button class="btn" type="button" data-ai="options" data-field="change_request">Examples</button>
-        <button class="btn primary" type="button" data-ai="draft" data-field="change_request">Help me say this</button>
+        <button class="ss-btn ss-btn-neutral" type="button" data-ai="explain" data-field="change_request">Explain</button>
+        <button class="ss-btn ss-btn-secondary" type="button" data-ai="options" data-field="change_request">Examples</button>
+        <button class="ss-btn ss-btn-primary" type="button" data-ai="draft" data-field="change_request">Help me say this</button>
       </div>
     </label>
   </div>
@@ -317,9 +317,38 @@ function renderCapture(ctx) {
       </span>
 
       <div class="row" style="gap:10px; flex-wrap:wrap; margin-top:10px;">
-        <button class="btn" type="button" data-ai="explain" data-field="best_interest">Explain</button>
-        <button class="btn" type="button" data-ai="options" data-field="best_interest">Examples</button>
-        <button class="btn primary" type="button" data-ai="draft" data-field="best_interest">Help me say this</button>
+        <button class="ss-btn ss-btn-neutral" type="button" data-ai="explain" data-field="best_interest">Explain</button>
+        <button class="ss-btn ss-btn-secondary" type="button" data-ai="options" data-field="best_interest">Examples</button>
+        <button class="ss-btn ss-btn-primary" type="button" data-ai="draft" data-field="best_interest">Help me say this</button>
+      </div>
+    </label>
+  <div class="ss-card" style="margin-top:12px;">
+    <h3 style="margin:0 0 8px 0;">Specific orders</h3>
+    <p class="muted" style="margin:0 0 10px 0;">
+      If you know the details, describe them. If not, rough ideas are fine.
+    </p>
+
+    <label class="field">
+      <span class="label">Parenting schedule or custody change</span>
+      <textarea class="input" id="rfo_schedule_detail" rows="5"
+        placeholder="Days, times, exchanges, holidays, or custody structure."></textarea>
+
+      <div class="row" style="gap:10px; flex-wrap:wrap; margin-top:10px;">
+        <button class="ss-btn ss-btn-neutral" type="button" data-ai="explain" data-field="schedule_detail">Explain</button>
+        <button class="ss-btn ss-btn-secondary" type="button" data-ai="options" data-field="schedule_detail">Examples</button>
+        <button class="ss-btn ss-btn-primary" type="button" data-ai="draft" data-field="schedule_detail">Help me say this</button>
+      </div>
+    </label>
+
+    <label class="field" style="margin-top:10px;">
+      <span class="label">Other orders requested</span>
+      <textarea class="input" id="rfo_other_orders" rows="4"
+        placeholder="Communication rules, exchange location, travel, decision-making, etc."></textarea>
+
+      <div class="row" style="gap:10px; flex-wrap:wrap; margin-top:10px;">
+        <button class="ss-btn ss-btn-neutral" type="button" data-ai="explain" data-field="other_orders">Explain</button>
+        <button class="ss-btn ss-btn-secondary" type="button" data-ai="options" data-field="other_orders">Examples</button>
+        <button class="ss-btn ss-btn-primary" type="button" data-ai="draft" data-field="other_orders">Help me say this</button>
       </div>
     </label>
   </div>
@@ -327,6 +356,8 @@ function renderCapture(ctx) {
 
   const map = {
     story: "#rfo_story",
+    scheduleDetail: "#rfo_schedule_detail",
+    otherOrders: "#rfo_other_orders",
     childImpact: "#rfo_child_impact",
     changeRequest: "#rfo_change_request",
     bestInterest: "#rfo_best_interest"
@@ -366,9 +397,9 @@ function renderBuild(ctx) {
         </span>
 
         <div class="row" style="gap:10px; flex-wrap:wrap; margin-top:10px;">
-          <button class="btn" type="button" data-ai="explain" data-field="orders">Explain</button>
-          <button class="btn" type="button" data-ai="options" data-field="orders">Examples</button>
-          <button class="btn primary" type="button" data-ai="draft" data-field="orders">Draft for me</button>
+          <button class="ss-btn ss-btn-neutral" type="button" data-ai="explain" data-field="orders">Explain</button>
+          <button class="ss-btn ss-btn-secondary" type="button" data-ai="options" data-field="orders">Examples</button>
+          <button class="ss-btn ss-btn-primary" type="button" data-ai="draft" data-field="orders">Draft for me</button>
         </div>
 
         <div id="ai_panel_build" class="card" style="margin-top:10px; display:none;">
