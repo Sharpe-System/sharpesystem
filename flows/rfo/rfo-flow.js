@@ -240,158 +240,110 @@ function renderCapture(ctx) {
   const c = draft.rfo.case;
 
   host.innerHTML = `
-    <div class="ss-card">
-      <h2 style="margin:0 0 6px 0;">Case details</h2>
-      <p class="muted" style="margin:0;">
-        This section is boring on purpose. It’s how the court and the form recognize your case.
-      </p>
-    </div>
+  <div class="ss-card">
+    <h2 style="margin:0 0 6px 0;">Help me understand what’s been happening</h2>
+    <p class="muted" style="margin:0;">
+      You can describe events in plain language. You don’t need legal wording.
+    </p>
+  </div>
 
-    <div class="ss-card" style="margin-top:12px;">
-      <h3 style="margin:0 0 8px 0;">Court</h3>
-      <p class="muted" style="margin:0 0 10px 0;">
-        If you don’t know something, leave it blank. We can still continue.
-      </p>
+  <div class="ss-card" style="margin-top:12px;">
+    <label class="field">
+      <span class="label">What has been going on that led you here?</span>
+      <textarea class="input" id="rfo_story" rows="7"
+        placeholder="Describe recent events, ongoing problems, or changes affecting your child or schedule."></textarea>
 
-      <label class="field">
-        <span class="label">County (example: Orange)</span>
-        <input class="input" id="rfo_county" placeholder="County" />
-        <span class="muted" style="display:block; margin-top:6px;">
-          Why this matters: it determines the correct court label and formatting.
-        </span>
-      </label>
+      <span class="muted" style="display:block; margin-top:6px;">
+        Missed visits, conflict patterns, schedule problems, or child needs changes all belong here.
+      </span>
 
-      <label class="field" style="margin-top:10px;">
-        <span class="label">Case number</span>
-        <input class="input" id="rfo_case_number" placeholder="Example: 30D012345" />
-        <span class="muted" style="display:block; margin-top:6px;">
-          Why this matters: the court uses this to attach your request to the existing file.
-        </span>
-      </label>
+      <div class="row" style="gap:10px; flex-wrap:wrap; margin-top:10px;">
+        <button class="btn" type="button" data-ai="explain" data-field="story">Explain</button>
+        <button class="btn" type="button" data-ai="options" data-field="story">Examples</button>
+        <button class="btn primary" type="button" data-ai="draft" data-field="story">Help me say this</button>
+      </div>
+    </label>
+  </div>
 
-      <label class="field" style="margin-top:10px;">
-        <span class="label">Court location / branch (optional)</span>
-        <input class="input" id="rfo_branch" placeholder="Example: Lamoreaux" />
-      </label>
-    </div>
+  <div class="ss-card" style="margin-top:12px;">
+    <label class="field">
+      <span class="label">How has this affected your child or parenting time?</span>
+      <textarea class="input" id="rfo_child_impact" rows="5"
+        placeholder="Changes in stability, stress, school, health, routines, or time with each parent."></textarea>
 
-    <div class="ss-card" style="margin-top:12px;">
-      <h3 style="margin:0 0 8px 0;">People</h3>
+      <span class="muted" style="display:block; margin-top:6px;">
+        Courts focus on child impact. Even small effects matter.
+      </span>
 
-      <label class="field">
-        <span class="label">Your role</span>
-        <select class="input" id="rfo_role">
-          <option value="">Select…</option>
-          <option value="petitioner">Petitioner</option>
-          <option value="respondent">Respondent</option>
-          <option value="other">Other / not sure</option>
-        </select>
-        <span class="muted" style="display:block; margin-top:6px;">
-          If you’re not sure, pick “Other / not sure.” We’ll keep moving.
-        </span>
-      </label>
+      <div class="row" style="gap:10px; flex-wrap:wrap; margin-top:10px;">
+        <button class="btn" type="button" data-ai="explain" data-field="child_impact">Explain</button>
+        <button class="btn" type="button" data-ai="options" data-field="child_impact">Examples</button>
+        <button class="btn primary" type="button" data-ai="draft" data-field="child_impact">Help me say this</button>
+      </div>
+    </label>
+  </div>
 
-      <label class="field" style="margin-top:10px;">
-        <span class="label">Other parent / other party name (optional)</span>
-        <input class="input" id="rfo_other_party" placeholder="Name" />
-      </label>
+  <div class="ss-card" style="margin-top:12px;">
+    <h3 style="margin:0 0 8px 0;">What would you like changed?</h3>
+    <p class="muted" style="margin:0 0 10px 0;">
+      Tell the court what outcome would make things work better.
+    </p>
 
-      <label class="field" style="margin-top:10px;">
-        <span class="label">Children (optional)</span>
-        <textarea class="input" id="rfo_children" rows="3" placeholder="Names + ages, one per line"></textarea>
-      </label>
-    </div>
+    <label class="field">
+      <span class="label">Describe the change you’re asking for</span>
+      <textarea class="input" id="rfo_change_request" rows="6"
+        placeholder="Example: Modify the parenting schedule to…, Clarify exchange location…, Adjust decision-making…"></textarea>
 
-    <div class="ss-card" style="margin-top:12px;">
-      <h3 style="margin:0 0 8px 0;">What’s been happening (we’ll help)</h3>
-      <p class="muted" style="margin:0 0 10px 0;">
-        This is the part people freeze on. Plain language is fine.
-      </p>
+      <span class="muted" style="display:block; margin-top:6px;">
+        Specific requests are easier for courts to grant.
+      </span>
 
-      <label class="field">
-        <span class="label">What has been happening?</span>
-        <textarea class="input" id="rfo_story" rows="6" placeholder="Describe recent events or ongoing issues."></textarea>
-        <span class="muted" style="display:block; margin-top:6px;">
-          What to include: dates if you have them, patterns, missed exchanges, conflict points, child impact.
-        </span>
+      <div class="row" style="gap:10px; flex-wrap:wrap; margin-top:10px;">
+        <button class="btn" type="button" data-ai="explain" data-field="change_request">Explain</button>
+        <button class="btn" type="button" data-ai="options" data-field="change_request">Examples</button>
+        <button class="btn primary" type="button" data-ai="draft" data-field="change_request">Help me say this</button>
+      </div>
+    </label>
+  </div>
 
-        <div class="row" style="gap:10px; flex-wrap:wrap; margin-top:10px;">
-          <button class="btn" type="button" data-ai="explain" data-field="story">Explain</button>
-          <button class="btn" type="button" data-ai="options" data-field="story">Examples</button>
-          <button class="btn primary" type="button" data-ai="draft" data-field="story">Draft for me</button>
-        </div>
+  <div class="ss-card" style="margin-top:12px;">
+    <label class="field">
+      <span class="label">Why would this change help your child?</span>
+      <textarea class="input" id="rfo_best_interest" rows="5"
+        placeholder="How the change improves stability, safety, routine, or wellbeing."></textarea>
 
-        <div id="ai_panel" class="card" style="margin-top:10px; display:none;">
-          <div class="muted" id="ai_panel_title" style="margin-bottom:8px;"></div>
-          <div id="ai_panel_body" style="white-space:pre-wrap;"></div>
-        </div>
-      </label>
-    </div>
+      <span class="muted" style="display:block; margin-top:6px;">
+        Courts decide based on the child’s best interest.
+      </span>
+
+      <div class="row" style="gap:10px; flex-wrap:wrap; margin-top:10px;">
+        <button class="btn" type="button" data-ai="explain" data-field="best_interest">Explain</button>
+        <button class="btn" type="button" data-ai="options" data-field="best_interest">Examples</button>
+        <button class="btn primary" type="button" data-ai="draft" data-field="best_interest">Help me say this</button>
+      </div>
+    </label>
+  </div>
   `;
 
-  // initial values
-  setValue(host, "#rfo_county", c.county || "");
-  setValue(host, "#rfo_case_number", c.caseNumber || "");
-  setValue(host, "#rfo_branch", c.branch || "");
-  setValue(host, "#rfo_role", c.role || "");
-  setValue(host, "#rfo_other_party", c.otherParty || "");
-  setValue(host, "#rfo_children", c.children || "");
-  setValue(host, "#rfo_story", c.story || "");
+  const map = {
+    story: "#rfo_story",
+    childImpact: "#rfo_child_impact",
+    changeRequest: "#rfo_change_request",
+    bestInterest: "#rfo_best_interest"
+  };
 
-  // draft writers (only on user action)
-  const fields = [
-    ["#rfo_county", "county"],
-    ["#rfo_case_number", "caseNumber"],
-    ["#rfo_branch", "branch"],
-    ["#rfo_role", "role"],
-    ["#rfo_other_party", "otherParty"],
-    ["#rfo_children", "children"],
-    ["#rfo_story", "story"]
-  ];
-
-  fields.forEach(([sel, key]) => {
+  Object.entries(map).forEach(([key, sel]) => {
     const el = host.querySelector(sel);
     if (!el) return;
+    el.value = c[key] || "";
     el.addEventListener("input", () => {
       const d = getRfoDraft(ctx);
-      d.rfo.case[key] = readValue(host, sel);
+      d.rfo.case[key] = el.value.trim();
       writeRfoDraft(ctx, d);
-    });
-    el.addEventListener("change", () => {
-      const d = getRfoDraft(ctx);
-      d.rfo.case[key] = readValue(host, sel);
-      writeRfoDraft(ctx, d);
-    });
-  });
-
-  // AI panel placeholder (no AI calls yet; canon-safe surface)
-  const panel = host.querySelector("#ai_panel");
-  const panelTitle = host.querySelector("#ai_panel_title");
-  const panelBody = host.querySelector("#ai_panel_body");
-
-  host.querySelectorAll("button[data-ai]").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const mode = btn.getAttribute("data-ai");
-      const field = btn.getAttribute("data-field");
-
-      if (!panel || !panelTitle || !panelBody) return;
-
-      panel.style.display = "";
-      const label =
-        mode === "explain" ? "Explain (plain language)" :
-        mode === "options" ? "Examples (common patterns)" :
-        "Draft (apply-ready text)";
-
-      panelTitle.textContent = `${label} — coming online soon`;
-      panelBody.textContent =
-        "This is the placeholder surface for Field Assist.\n\n" +
-        "Next implementation step:\n" +
-        "- Public: explain + limited examples\n" +
-        "- Subscriber: full drafts + apply-to-field\n\n" +
-        `Requested: mode=${mode}, field=${field}`;
     });
   });
 }
+
 
 function renderBuild(ctx) {
   const host = ctx.stageEl;
