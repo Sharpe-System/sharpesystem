@@ -257,9 +257,9 @@ function renderCapture(ctx) {
         Missed visits, conflict patterns, schedule problems, or child needs changes all belong here.
       </span>
 
-      <div class="row" style="gap:10px; flex-wrap:wrap; margin-top:10px;">
-        <button class="ss-btn ss-btn-neutral" type="button" data-ai="explain" data-field="story">Explain</button>
-        <button class="ss-btn ss-btn-secondary" type="button" data-ai="options" data-field="story">Examples</button>
+      <div class="row ss-ai-row">
+        <button class="ss-btn ss-btn-neutral" style="margin-right:6px;" type="button" data-ai="explain" data-field="story">Explain</button>
+        <button class="ss-btn ss-btn-secondary" style="margin-right:6px;" type="button" data-ai="options" data-field="story">Examples</button>
         <button class="ss-btn ss-btn-primary" type="button" data-ai="draft" data-field="story">Help me say this</button>
       </div>
     </label>
@@ -275,9 +275,9 @@ function renderCapture(ctx) {
         Courts focus on child impact. Even small effects matter.
       </span>
 
-      <div class="row" style="gap:10px; flex-wrap:wrap; margin-top:10px;">
-        <button class="ss-btn ss-btn-neutral" type="button" data-ai="explain" data-field="child_impact">Explain</button>
-        <button class="ss-btn ss-btn-secondary" type="button" data-ai="options" data-field="child_impact">Examples</button>
+      <div class="row ss-ai-row">
+        <button class="ss-btn ss-btn-neutral" style="margin-right:6px;" type="button" data-ai="explain" data-field="child_impact">Explain</button>
+        <button class="ss-btn ss-btn-secondary" style="margin-right:6px;" type="button" data-ai="options" data-field="child_impact">Examples</button>
         <button class="ss-btn ss-btn-primary" type="button" data-ai="draft" data-field="child_impact">Help me say this</button>
       </div>
     </label>
@@ -298,9 +298,9 @@ function renderCapture(ctx) {
         Specific requests are easier for courts to grant.
       </span>
 
-      <div class="row" style="gap:10px; flex-wrap:wrap; margin-top:10px;">
-        <button class="ss-btn ss-btn-neutral" type="button" data-ai="explain" data-field="change_request">Explain</button>
-        <button class="ss-btn ss-btn-secondary" type="button" data-ai="options" data-field="change_request">Examples</button>
+      <div class="row ss-ai-row">
+        <button class="ss-btn ss-btn-neutral" style="margin-right:6px;" type="button" data-ai="explain" data-field="change_request">Explain</button>
+        <button class="ss-btn ss-btn-secondary" style="margin-right:6px;" type="button" data-ai="options" data-field="change_request">Examples</button>
         <button class="ss-btn ss-btn-primary" type="button" data-ai="draft" data-field="change_request">Help me say this</button>
       </div>
     </label>
@@ -316,9 +316,9 @@ function renderCapture(ctx) {
         Courts decide based on the child’s best interest.
       </span>
 
-      <div class="row" style="gap:10px; flex-wrap:wrap; margin-top:10px;">
-        <button class="ss-btn ss-btn-neutral" type="button" data-ai="explain" data-field="best_interest">Explain</button>
-        <button class="ss-btn ss-btn-secondary" type="button" data-ai="options" data-field="best_interest">Examples</button>
+      <div class="row ss-ai-row">
+        <button class="ss-btn ss-btn-neutral" style="margin-right:6px;" type="button" data-ai="explain" data-field="best_interest">Explain</button>
+        <button class="ss-btn ss-btn-secondary" style="margin-right:6px;" type="button" data-ai="options" data-field="best_interest">Examples</button>
         <button class="ss-btn ss-btn-primary" type="button" data-ai="draft" data-field="best_interest">Help me say this</button>
       </div>
     </label>
@@ -333,9 +333,9 @@ function renderCapture(ctx) {
       <textarea class="input" id="rfo_schedule_detail" rows="5"
         placeholder="Days, times, exchanges, holidays, or custody structure."></textarea>
 
-      <div class="row" style="gap:10px; flex-wrap:wrap; margin-top:10px;">
-        <button class="ss-btn ss-btn-neutral" type="button" data-ai="explain" data-field="schedule_detail">Explain</button>
-        <button class="ss-btn ss-btn-secondary" type="button" data-ai="options" data-field="schedule_detail">Examples</button>
+      <div class="row ss-ai-row">
+        <button class="ss-btn ss-btn-neutral" style="margin-right:6px;" type="button" data-ai="explain" data-field="schedule_detail">Explain</button>
+        <button class="ss-btn ss-btn-secondary" style="margin-right:6px;" type="button" data-ai="options" data-field="schedule_detail">Examples</button>
         <button class="ss-btn ss-btn-primary" type="button" data-ai="draft" data-field="schedule_detail">Help me say this</button>
       </div>
     </label>
@@ -345,9 +345,9 @@ function renderCapture(ctx) {
       <textarea class="input" id="rfo_other_orders" rows="4"
         placeholder="Communication rules, exchange location, travel, decision-making, etc."></textarea>
 
-      <div class="row" style="gap:10px; flex-wrap:wrap; margin-top:10px;">
-        <button class="ss-btn ss-btn-neutral" type="button" data-ai="explain" data-field="other_orders">Explain</button>
-        <button class="ss-btn ss-btn-secondary" type="button" data-ai="options" data-field="other_orders">Examples</button>
+      <div class="row ss-ai-row">
+        <button class="ss-btn ss-btn-neutral" style="margin-right:6px;" type="button" data-ai="explain" data-field="other_orders">Explain</button>
+        <button class="ss-btn ss-btn-secondary" style="margin-right:6px;" type="button" data-ai="options" data-field="other_orders">Examples</button>
         <button class="ss-btn ss-btn-primary" type="button" data-ai="draft" data-field="other_orders">Help me say this</button>
       </div>
     </label>
@@ -396,9 +396,9 @@ function renderBuild(ctx) {
           If you’re unsure what belongs here, that’s exactly what Field Assist is for.
         </span>
 
-        <div class="row" style="gap:10px; flex-wrap:wrap; margin-top:10px;">
-          <button class="ss-btn ss-btn-neutral" type="button" data-ai="explain" data-field="orders">Explain</button>
-          <button class="ss-btn ss-btn-secondary" type="button" data-ai="options" data-field="orders">Examples</button>
+        <div class="row ss-ai-row">
+          <button class="ss-btn ss-btn-neutral" style="margin-right:6px;" type="button" data-ai="explain" data-field="orders">Explain</button>
+          <button class="ss-btn ss-btn-secondary" style="margin-right:6px;" type="button" data-ai="options" data-field="orders">Examples</button>
           <button class="ss-btn ss-btn-primary" type="button" data-ai="draft" data-field="orders">Draft for me</button>
         </div>
 
