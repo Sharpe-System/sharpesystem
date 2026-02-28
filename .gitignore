@@ -5,3 +5,8 @@ node_modules
 
 # Cloudflare build artifacts
 _worker.bundle
+
+tools/pdf/*.pdf
+tools/pdf/*.png
+tools/pdf/out/
+tools/pdf/*-out.pdf

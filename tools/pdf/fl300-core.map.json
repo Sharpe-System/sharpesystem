@@ -1,0 +1,34 @@
+{
+  "pdf": {
+    "sha256": "6f16108a11af5fb6474fbca722e78cbdb5171f0b6072c84ccebd9c2d6977f513"
+  },
+  "targets": [
+    {
+      "id": "case_number",
+      "source": "case.number",
+      "type": "text",
+      "mode": "coords",
+      "page": 0,
+      "rect": [410, 742, 160, 14],
+      "font": { "size": 10 }
+    },
+    {
+      "id": "petitioner",
+      "source": "party.petitioner",
+      "type": "text",
+      "mode": "coords",
+      "page": 0,
+      "rect": [90, 692, 240, 14],
+      "font": { "size": 10 }
+    },
+    {
+      "id": "respondent",
+      "source": "party.respondent",
+      "type": "text",
+      "mode": "coords",
+      "page": 0,
+      "rect": [90, 662, 240, 14],
+      "font": { "size": 10 }
+    }
+  ]
+}
