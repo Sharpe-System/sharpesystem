@@ -424,3 +424,59 @@ body[data-theme="light"] .site-header{
 .ss-btn-warn { background: #d97706 !important; border-color: #d97706 !important; color: #fff !important; }
 .ss-btn-danger { background: #dc2626 !important; border-color: #dc2626 !important; color: #fff !important; }
 
+
+/* ---------- BUTTON CANON OVERRIDE (do not edit lightly) ---------- */
+/* Goal: all .btn render as consistent pill buttons across site, regardless of earlier CSS. */
+
+a.btn,
+button.btn,
+.btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  padding: 10px 12px !important;
+  border-radius: 999px !important;
+  border: 1px solid var(--btn-border) !important;
+  background: var(--btn-secondary-bg) !important;
+  color: var(--btn-secondary-fg) !important;
+  text-decoration: none !important;
+  font-weight: 750 !important;
+  cursor: pointer !important;
+  user-select: none !important;
+  transition: transform .02s ease, background .12s ease, border-color .12s ease, color .12s ease, opacity .12s ease !important;
+}
+
+a.btn:hover,
+button.btn:hover,
+.btn:hover {
+  transform: translateY(-1px) !important;
+}
+
+.btn.primary { background: var(--btn-primary-bg) !important; border-color: var(--btn-primary-border) !important; color: var(--btn-primary-fg) !important; }
+.btn.secondary { background: var(--btn-secondary-bg) !important; border-color: var(--btn-secondary-border) !important; color: var(--btn-secondary-fg) !important; }
+.btn.neutral { background: var(--btn-neutral-bg) !important; border-color: var(--btn-neutral-border) !important; color: var(--btn-neutral-fg) !important; }
+.btn.success { background: var(--btn-success-bg) !important; border-color: var(--btn-success-border) !important; color: var(--btn-success-fg) !important; }
+.btn.warn { background: var(--btn-warn-bg) !important; border-color: var(--btn-warn-border) !important; color: var(--btn-warn-fg) !important; }
+.btn.danger { background: var(--btn-danger-bg) !important; border-color: var(--btn-danger-border) !important; color: var(--btn-danger-fg) !important; }
+
+/* Alias compatibility (if any page still uses .button) */
+a.button,
+button.button,
+.button {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  padding: 10px 12px !important;
+  border-radius: 999px !important;
+  border: 1px solid var(--btn-border) !important;
+  background: var(--btn-secondary-bg) !important;
+  color: var(--btn-secondary-fg) !important;
+  text-decoration: none !important;
+  font-weight: 750 !important;
+}
+
+.button.primary { background: var(--btn-primary-bg) !important; border-color: var(--btn-primary-border) !important; color: var(--btn-primary-fg) !important; }
+/* ---------- END BUTTON CANON OVERRIDE ---------- */
+
