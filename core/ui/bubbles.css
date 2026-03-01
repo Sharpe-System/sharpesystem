@@ -1,0 +1,163 @@
+/* === SS BUBBLE CANON START === */
+/* Canon: PURE GLASS bubbles everywhere.
+   - No rings (no colored ring band)
+   - Color is a gentle overall tint + faint glow (still glass)
+   - Avoid warm hues near red/orange/coral/yellow
+   - Red reserved exclusively for the Red E brand mark */
+
+/* Tokens */
+:root{
+  --ss-bub-pad-y: 8px;
+  --ss-bub-pad-x: 14px;
+  --ss-bub-radius: 999px;
+
+  --ss-glass-hi: rgba(255,255,255,.22);
+  --ss-glass-mid: rgba(255,255,255,.10);
+  --ss-glass-edge: rgba(35,35,40,.70);
+
+  /* Default */
+  --ss-glass-tint: rgba(110,120,135,.22);
+  --ss-glass-glow: rgba(110,120,135,.20);
+
+  /* Palette tokens (30) — SAFE cool/neutral only */
+  --ss-tint-graphite: rgba( 90, 90, 95,.22);  --ss-glow-graphite: rgba( 90, 90, 95,.18);
+  --ss-tint-smoke:    rgba(115,125,140,.22);  --ss-glow-smoke:    rgba(115,125,140,.18);
+  --ss-tint-steel:    rgba(140,150,165,.22);  --ss-glow-steel:    rgba(140,150,165,.18);
+  --ss-tint-slate:    rgba( 85,105,135,.22);  --ss-glow-slate:    rgba( 85,105,135,.18);
+  --ss-tint-ash:      rgba(150,155,160,.18);  --ss-glow-ash:      rgba(150,155,160,.14);
+  --ss-tint-ink:      rgba( 70, 80, 95,.22);  --ss-glow-ink:      rgba( 70, 80, 95,.18);
+
+  --ss-tint-cyan:     rgba( 70,210,255,.22);  --ss-glow-cyan:     rgba( 70,210,255,.18);
+  --ss-tint-ice:      rgba(155,240,255,.18);  --ss-glow-ice:      rgba(155,240,255,.14);
+  --ss-tint-aqua:     rgba( 80,240,220,.22);  --ss-glow-aqua:     rgba( 80,240,220,.18);
+  --ss-tint-seafoam:  rgba(120,255,225,.18);  --ss-glow-seafoam:  rgba(120,255,225,.14);
+  --ss-tint-azure:    rgba( 95,190,255,.22);  --ss-glow-azure:    rgba( 95,190,255,.18);
+  --ss-tint-glacier:  rgba(170,220,255,.18);  --ss-glow-glacier:  rgba(170,220,255,.14);
+
+  --ss-tint-teal:     rgba( 55,165,150,.22);  --ss-glow-teal:     rgba( 55,165,150,.18);
+  --ss-tint-mint:     rgba(110,230,170,.18);  --ss-glow-mint:     rgba(110,230,170,.14);
+  --ss-tint-jade:     rgba( 70,190,145,.22);  --ss-glow-jade:     rgba( 70,190,145,.18);
+  --ss-tint-emerald:  rgba( 55,190,110,.22);  --ss-glow-emerald:  rgba( 55,190,110,.18);
+  --ss-tint-forest:   rgba( 60,130, 90,.22);  --ss-glow-forest:   rgba( 60,130, 90,.18);
+  --ss-tint-sage:     rgba(140,200,160,.18);  --ss-glow-sage:     rgba(140,200,160,.14);
+
+  --ss-tint-sky:      rgba(110,185,255,.22);  --ss-glow-sky:      rgba(110,185,255,.18);
+  --ss-tint-blue:     rgba( 95,150,255,.22);  --ss-glow-blue:     rgba( 95,150,255,.18);
+  --ss-tint-cobalt:   rgba( 80,120,255,.22);  --ss-glow-cobalt:   rgba( 80,120,255,.18);
+  --ss-tint-denim:    rgba( 85,115,175,.22);  --ss-glow-denim:    rgba( 85,115,175,.18);
+  --ss-tint-navy:     rgba( 60, 85,145,.22);  --ss-glow-navy:     rgba( 60, 85,145,.18);
+  --ss-tint-lapis:    rgba( 75,110,210,.22);  --ss-glow-lapis:    rgba( 75,110,210,.18);
+
+  --ss-tint-violet:   rgba(165,120,255,.22);  --ss-glow-violet:   rgba(165,120,255,.18);
+  --ss-tint-lilac:    rgba(200,175,255,.18);  --ss-glow-lilac:    rgba(200,175,255,.14);
+  --ss-tint-amethyst: rgba(145,105,230,.22);  --ss-glow-amethyst: rgba(145,105,230,.18);
+  --ss-tint-plum:     rgba(120, 95,175,.22);  --ss-glow-plum:     rgba(120, 95,175,.18);
+  --ss-tint-indigo:   rgba(110,120,255,.22);  --ss-glow-indigo:   rgba(110,120,255,.18);
+  --ss-tint-iris:     rgba(155,140,255,.18);  --ss-glow-iris:     rgba(155,140,255,.14);
+}
+
+/* Canon bubble */
+.ss-bubble,
+a.ss-bubble,
+button.ss-bubble{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding: var(--ss-bub-pad-y) var(--ss-bub-pad-x);
+  border-radius: var(--ss-bub-radius);
+  font-weight: 800;
+  letter-spacing: .15px;
+  text-decoration:none;
+
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+
+  border:1px solid rgba(255,255,255,.16);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.20),
+    0 3px 10px rgba(0,0,0,.35),
+    0 0 18px var(--ss-glass-glow);
+
+  color:#f2f3f5;
+  background:
+    radial-gradient(circle at 50% 50%,
+      var(--ss-glass-hi) 0%,
+      var(--ss-glass-mid) 46%,
+      var(--ss-glass-tint) 80%,
+      var(--ss-glass-edge) 100%);
+}
+
+/* Palette classes */
+.ss-glass-graphite{ --ss-glass-tint: var(--ss-tint-graphite); --ss-glass-glow: var(--ss-glow-graphite); }
+.ss-glass-smoke   { --ss-glass-tint: var(--ss-tint-smoke);    --ss-glass-glow: var(--ss-glow-smoke); }
+.ss-glass-steel   { --ss-glass-tint: var(--ss-tint-steel);    --ss-glass-glow: var(--ss-glow-steel); }
+.ss-glass-slate   { --ss-glass-tint: var(--ss-tint-slate);    --ss-glass-glow: var(--ss-glow-slate); }
+.ss-glass-ash     { --ss-glass-tint: var(--ss-tint-ash);      --ss-glass-glow: var(--ss-glow-ash); }
+.ss-glass-ink     { --ss-glass-tint: var(--ss-tint-ink);      --ss-glass-glow: var(--ss-glow-ink); }
+
+.ss-glass-cyan    { --ss-glass-tint: var(--ss-tint-cyan);     --ss-glass-glow: var(--ss-glow-cyan); }
+.ss-glass-ice     { --ss-glass-tint: var(--ss-tint-ice);      --ss-glass-glow: var(--ss-glow-ice); }
+.ss-glass-aqua    { --ss-glass-tint: var(--ss-tint-aqua);     --ss-glass-glow: var(--ss-glow-aqua); }
+.ss-glass-seafoam { --ss-glass-tint: var(--ss-tint-seafoam);  --ss-glass-glow: var(--ss-glow-seafoam); }
+.ss-glass-azure   { --ss-glass-tint: var(--ss-tint-azure);    --ss-glass-glow: var(--ss-glow-azure); }
+.ss-glass-glacier { --ss-glass-tint: var(--ss-tint-glacier);  --ss-glass-glow: var(--ss-glow-glacier); }
+
+.ss-glass-teal    { --ss-glass-tint: var(--ss-tint-teal);     --ss-glass-glow: var(--ss-glow-teal); }
+.ss-glass-mint    { --ss-glass-tint: var(--ss-tint-mint);     --ss-glass-glow: var(--ss-glow-mint); }
+.ss-glass-jade    { --ss-glass-tint: var(--ss-tint-jade);     --ss-glass-glow: var(--ss-glow-jade); }
+.ss-glass-emerald { --ss-glass-tint: var(--ss-tint-emerald);  --ss-glass-glow: var(--ss-glow-emerald); }
+.ss-glass-forest  { --ss-glass-tint: var(--ss-tint-forest);   --ss-glass-glow: var(--ss-glow-forest); }
+.ss-glass-sage    { --ss-glass-tint: var(--ss-tint-sage);     --ss-glass-glow: var(--ss-glow-sage); }
+
+.ss-glass-sky     { --ss-glass-tint: var(--ss-tint-sky);      --ss-glass-glow: var(--ss-glow-sky); }
+.ss-glass-blue    { --ss-glass-tint: var(--ss-tint-blue);     --ss-glass-glow: var(--ss-glow-blue); }
+.ss-glass-cobalt  { --ss-glass-tint: var(--ss-tint-cobalt);   --ss-glass-glow: var(--ss-glow-cobalt); }
+.ss-glass-denim   { --ss-glass-tint: var(--ss-tint-denim);    --ss-glass-glow: var(--ss-glow-denim); }
+.ss-glass-navy    { --ss-glass-tint: var(--ss-tint-navy);     --ss-glass-glow: var(--ss-glow-navy); }
+.ss-glass-lapis   { --ss-glass-tint: var(--ss-tint-lapis);    --ss-glass-glow: var(--ss-glow-lapis); }
+
+.ss-glass-violet  { --ss-glass-tint: var(--ss-tint-violet);   --ss-glass-glow: var(--ss-glow-violet); }
+.ss-glass-lilac   { --ss-glass-tint: var(--ss-tint-lilac);    --ss-glass-glow: var(--ss-glow-lilac); }
+.ss-glass-amethyst{ --ss-glass-tint: var(--ss-tint-amethyst); --ss-glass-glow: var(--ss-glow-amethyst); }
+.ss-glass-plum    { --ss-glass-tint: var(--ss-tint-plum);     --ss-glass-glow: var(--ss-glow-plum); }
+.ss-glass-indigo  { --ss-glass-tint: var(--ss-tint-indigo);   --ss-glass-glow: var(--ss-glow-indigo); }
+.ss-glass-iris    { --ss-glass-tint: var(--ss-tint-iris);     --ss-glass-glow: var(--ss-glow-iris); }
+
+/* Global alias: convert existing button system into bubbles (A) */
+.btn, .button{
+  /* opt-in behavior without rewriting HTML everywhere */
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding: var(--ss-bub-pad-y) var(--ss-bub-pad-x);
+  border-radius: var(--ss-bub-radius);
+  font-weight: 800;
+  letter-spacing: .15px;
+  text-decoration:none;
+
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+
+  border:1px solid rgba(255,255,255,.16);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.20),
+    0 3px 10px rgba(0,0,0,.35),
+    0 0 18px var(--ss-glass-glow);
+
+  color:#f2f3f5;
+  background:
+    radial-gradient(circle at 50% 50%,
+      var(--ss-glass-hi) 0%,
+      var(--ss-glass-mid) 46%,
+      var(--ss-glass-tint) 80%,
+      var(--ss-glass-edge) 100%);
+}
+
+/* Semantic defaults for existing variants */
+.btn.primary, .button.primary { --ss-glass-tint: var(--ss-tint-cobalt);  --ss-glass-glow: var(--ss-glow-cobalt); }
+.btn.secondary, .button.secondary { --ss-glass-tint: var(--ss-tint-smoke); --ss-glass-glow: var(--ss-glow-smoke); }
+.btn.success, .button.success { --ss-glass-tint: var(--ss-tint-emerald); --ss-glass-glow: var(--ss-glow-emerald); }
+.btn.neutral, .button.neutral { --ss-glass-tint: var(--ss-tint-slate);   --ss-glass-glow: var(--ss-glow-slate); }
+
+/* === SS BUBBLE CANON END === */
+
