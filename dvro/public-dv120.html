@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>RFO — DV-120 (Public) — SharpeSystem</title>
+  <meta name="description" content="Public DV-120 mapping (local-only) with MC-030 overflow handling." />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+
+<body class="shell">
+  <div id="site-header"></div>
+
+  <main class="page">
+    <div class="container content">
+
+      <section class="card" style="padding:var(--pad);">
+        <div class="row" style="justify-content:space-between; gap:12px; flex-wrap:wrap;">
+          <div>
+            <h1 style="margin:0;">RFO — DV-120 (Public)</h1>
+            <p class="muted" style="margin:6px 0 0 0;">
+              Public mode uses the court’s exact forms. Long declarations auto-attach pleading paper.
+            </p>
+          </div>
+          <div class="row" style="gap:10px;">
+            <button class="btn" id="btnSave" type="button">Save</button>
+            <a class="btn" href="/dvro/public-print.html">Print (Public)</a>
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
+        <!-- PeacePath -->
+        <section class="card" style="padding:14px; margin-bottom:14px;">
+          <h2 style="margin:0 0 6px 0;">Before you file</h2>
+          <p class="muted" style="margin:0;">
+            Filing is escalation. If agreement is possible, consider amicable routes first.
+          </p>
+          <div class="row" style="margin-top:10px; gap:10px;">
+            <a class="btn" href="/amicable.html">Amicable</a>
+            <a class="btn" href="/peace-path.html">PeacePath</a>
+          </div>
+        </section>
+
+        <h3 style="margin-top:0;">Case / parties (minimal)</h3>
+
+        <div class="grid-2" style="gap:12px;">
+          <label class="field">
+            <span class="label">Case Number</span>
+            <input class="input" id="caseNumber" type="text" placeholder="17D009277" />
+          </label>
+
+          <label class="field">
+            <span class="label">County</span>
+            <input class="input" id="county" type="text" placeholder="Orange" />
+          </label>
+
+          <label class="field">
+            <span class="label">Petitioner</span>
+            <input class="input" id="petitioner" type="text" placeholder="Full legal name" />
+          </label>
+
+          <label class="field">
+            <span class="label">Respondent</span>
+            <input class="input" id="respondent" type="text" placeholder="Full legal name" />
+          </label>
+        </div>
+
+        <div class="hr"></div>
+
+        <h3 style="margin-top:0;">Orders requested (short)</h3>
+
+        <label class="field">
+          <span class="label">Orders requested (plain English)</span>
+          <div class="row" style="gap:8px; align-items:center; margin:6px 0 8px 0; flex-wrap:wrap;">
+            <button class="btn" type="button" data-ai="explain" data-field="dv120.ordersRequested">Explain</button>
+            <button class="btn" type="button" data-ai="options" data-field="dv120.ordersRequested">Options</button>
+            <button class="btn" type="button" data-ai="draft" data-field="dv120.ordersRequested" data-apply-to="ordersRequested">Draft</button>
+            <span class="muted">Click Draft, then tap a draft card to apply it.</span>
+          </div>
+          <textarea class="input" id="ordersRequested" rows="5"
+            placeholder="Custody/visitation/support/fees/other orders you want"></textarea>
+        </label>
+
+        <label class="field" style="margin-top:12px;">
+          <span class="label">Why the order is needed (short)</span>
+          <textarea class="input" id="whyNeeded" rows="5"
+            placeholder="Short explanation—long declaration goes below"></textarea>
+        </label>
+
+        <div class="hr"></div>
+
+        <h3 style="margin-top:0;">Declaration (MC-030 overflow aware)</h3>
+
+        <div class="card" style="padding:12px; margin-bottom:12px;">
+          <div class="row" style="justify-content:space-between; gap:12px; flex-wrap:wrap; align-items:flex-start;">
+            <div>
+              <h4 style="margin:0 0 6px 0;">Overflow control</h4>
+              <p class="muted" style="margin:0;">
+                If your declaration is too long for MC-030, SharpeSystem will auto-generate a pleading paper attachment and
+                reduce MC-030 to a summary + “See attached pleading paper.”
+              </p>
+            </div>
+            <div class="row" style="gap:10px; flex-wrap:wrap;">
+              <label class="row" style="gap:8px; align-items:center; margin:0;">
+                <input type="checkbox" id="autoOverflow" />
+                <span class="muted">Auto-attach pleading paper when long</span>
+              </label>
+              <a class="btn" href="/dvro/pleading-paper.html">Open Pleading Paper</a>
+            </div>
+          </div>
+          <div class="small soft" style="margin-top:10px;">
+            Status: <span id="overflowStatus">Checking…</span>
+          </div>
+        </div>
+
+        <label class="field">
+          <span class="label">Facts (long form)</span>
+          <textarea class="input" id="facts" rows="8"
+            placeholder="Chronological facts and context"></textarea>
+        </label>
+
+        <label class="field" style="margin-top:12px;">
+          <span class="label">Recent incidents (long form)</span>
+          <textarea class="input" id="recent" rows="6"
+            placeholder="Most recent developments"></textarea>
+        </label>
+
+        <label class="field" style="margin-top:12px;">
+          <span class="label">Necessity (long form)</span>
+          <textarea class="input" id="necessity" rows="6"
+            placeholder="Why the court must act"></textarea>
+        </label>
+
+        <label class="field" style="margin-top:12px;">
+          <span class="label">Relief (long form)</span>
+          <textarea class="input" id="relief" rows="6"
+            placeholder="Exact relief requested"></textarea>
+        </label>
+
+        <div class="hr"></div>
+
+        <h3 style="margin-top:0;">MC-030 output</h3>
+        <label class="field">
+          <span class="label">MC-030 Text (auto-generated)</span>
+          <textarea class="input" id="mc030Text" rows="8" readonly></textarea>
+        </label>
+
+        <div class="small soft" style="margin-top:12px;">
+          Keys: <code>ss_dvro_dv120_v1</code>, <code>ss_rfo_decl_v1</code>, <code>ss_pleading_paper_v1</code>
+        </div>
+
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Canon public stack -->
+  <script src="/ui.js"></script>
+  <script src="/header-loader.js"></script>
+  <script src="/partials/header.js"></script>
+  <script src="/i18n.js"></script>
+
+  <script src="/dvro/rfo-overflow.js"></script>
+  <script src="/dvro/rfo-public-dv120.js"></script>
+</body>
+</html>
