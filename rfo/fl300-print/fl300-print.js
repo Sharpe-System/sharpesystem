@@ -165,21 +165,19 @@
   }
 
   function boot() {
-    const draft = readLocalDraft();
-    if (!draft || typeof draft !== "object") {
-      renderNoDraft();
-      return;
-    }
+  const draft = readLocalDraft();
 
-    hydratePanel(draft);
-
-    const btn = $("#btnGen");
-    if (btn) btn.addEventListener("click", () => generateFilledPdf(draft));
+  if (!draft || typeof draft !== "object") {
+    renderNoDraft();
+    return;
   }
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", boot);
-  } else {
-    boot();
-  }
+  hydratePanel(draft);
+
+  // AUTO-GENERATE immediately (doorway behavior)
+  generateFilledPdf(draft);
+
+  // hide manual button (legacy)
+  const btn = $("#btnGen");
+  if (btn) btn.style.display = "none";
 })();
