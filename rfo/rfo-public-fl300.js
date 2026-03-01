@@ -182,11 +182,27 @@
 
     // Public twin contract (used by rfo-public-print.js)
     try {
-      save(KEY_PUB_FL300, {
-        ...core,
+      // Canonical FL-300 shape (matches fl300-core.map.json sources)
+      const canon = {
+        case: { number: core.caseNumber || "" },
+        party: {
+          petitioner: core.petitioner || "",
+          respondent: core.respondent || ""
+        },
+        // keep raw fields too (future mapping expansion)
+        ordersRequested: core.ordersRequested || "",
+        whyNeeded: core.whyNeeded || "",
+        decl: {
+          facts: decl.facts || "",
+          recent: decl.recent || "",
+          necessity: decl.necessity || "",
+          relief: decl.relief || ""
+        },
         version: 1,
         updatedAt: iso()
-      });
+      };
+
+      save(KEY_PUB_FL300, canon);
 
       const preview = buildPublicDraft(core, decl);
       save(KEY_PUB_DRAFT, {

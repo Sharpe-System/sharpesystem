@@ -2,7 +2,7 @@
 (function () {
   "use strict";
 
-  const KEY = "ss:draft:rfo:v1";
+  const KEY = "ss_rfo_public_fl300_v1";
 
   function $(sel, root = document) {
     return root.querySelector(sel);
@@ -67,9 +67,9 @@
     setDownload("");
     setDebug({
       ok: false,
-      note: `No local draft found at localStorage["${KEY}"].`,
-      action: "Return to public intake and complete at least County, then Continue to Print.",
-      intakeUrl: "/rfo/public-intake.html",
+      note: `No public FL-300 found at localStorage["${KEY}"].`,
+      action: "Return to Public FL-300 and click Save, then come back here.",
+      intakeUrl: "/rfo/public-fl300.html",
     });
 
     const list = $("#inputList");
@@ -77,7 +77,7 @@
       list.innerHTML = `
         <div><strong>No draft found.</strong></div>
         <div style="margin-top:10px;">
-          <a class="btn primary" href="/rfo/public-intake.html">Go to Public Intake</a>
+          <a class="btn primary" href="/rfo/public-fl300.html">Go to Public FL-300</a>
         </div>
         <div class="muted" style="margin-top:10px;">
           Expected key: <code>${esc(KEY)}</code>
@@ -90,7 +90,10 @@
   }
 
   function hydratePanel(draft) {
-    const r = draft?.rfo || {};
+    const r = draft || {};
+    const cnum = (r.case && r.case.number) ? r.case.number : (r.caseNumber || "");
+    const pet = (r.party && r.party.petitioner) ? r.party.petitioner : (r.petitioner || "");
+    const resp = (r.party && r.party.respondent) ? r.party.respondent : (r.respondent || "");
 
     const list = $("#inputList");
     if (list) {
@@ -99,7 +102,7 @@
         <div style="margin-top:10px; line-height:1.35;">
           <div><strong>County</strong>: ${esc(r.county || "—")}</div>
           <div><strong>Branch</strong>: ${esc(r.branch || "—")}</div>
-          <div><strong>Case #</strong>: ${esc(r.caseNumber || "—")}</div>
+          <div><strong>Case #</strong>: ${esc(cnum || "—")}</div>
           <div><strong>Role</strong>: ${esc(r.role || "—")}</div>
           <div><strong>Custody</strong>: ${r.reqCustody ? "Yes" : "No"}</div>
           <div><strong>Support</strong>: ${r.reqSupport ? "Yes" : "No"}</div>
@@ -125,7 +128,7 @@
       const res = await fetch("/api/render/fl300", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ rfo: (draft?.rfo || {}) }),
+        body: JSON.stringify({ rfo: (draft || {}) }),
       });
 
       if (!res.ok) {
@@ -163,7 +166,7 @@
 
   function boot() {
     const draft = readLocalDraft();
-    if (!draft || !draft.rfo || typeof draft.rfo !== "object") {
+    if (!draft || typeof draft !== "object") {
       renderNoDraft();
       return;
     }
