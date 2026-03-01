@@ -24,7 +24,7 @@
           </div>
           <div class="row" style="gap:10px;">
             <button class="btn" id="btnSave" type="button">Save</button>
-            <a class="btn" href="/snapshot.html?flow=rfo">Print Gate</a>
+            <a class="btn" href="/rfo/public-print.html">Print (Public)</a>
           </div>
         </div>
 
@@ -72,6 +72,12 @@
 
         <label class="field">
           <span class="label">Orders requested (plain English)</span>
+          <div class="row" style="gap:8px; align-items:center; margin:6px 0 8px 0; flex-wrap:wrap;">
+            <button class="btn" type="button" data-ai="explain" data-field="fl300.ordersRequested">Explain</button>
+            <button class="btn" type="button" data-ai="options" data-field="fl300.ordersRequested">Options</button>
+            <button class="btn" type="button" data-ai="draft" data-field="fl300.ordersRequested" data-apply-to="ordersRequested">Draft</button>
+            <span class="muted">Click Draft, then tap a draft card to apply it.</span>
+          </div>
           <textarea class="input" id="ordersRequested" rows="5"
             placeholder="Custody/visitation/support/fees/other orders you want"></textarea>
         </label>

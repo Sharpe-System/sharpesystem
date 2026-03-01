@@ -13,6 +13,37 @@
   function $(id){return document.getElementById(id);}
   function load(k){try{return JSON.parse(localStorage.getItem(k)||"null");}catch{return null;}}
 
+  function save(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
+
+  function migrateFromNewKeys() {
+    const pubFl = load(KEY_FL300);
+    const pubDraft = load(KEY_DRAFT);
+    if (pubFl && pubDraft) return;
+
+    const newFl = load("ss_rfo_fl300_v1");
+    const newDecl = load("ss_rfo_decl_v1");
+    if (!newFl && !newDecl) return;
+
+    if (!pubFl && newFl) save(KEY_FL300, newFl);
+
+    if (!pubDraft) {
+      const parts = [];
+      if (newFl) {
+        if (newFl.ordersRequested) parts.push("ORDERS REQUESTED\n" + String(newFl.ordersRequested||""));
+        if (newFl.whyNeeded) parts.push("WHY NEEDED\n" + String(newFl.whyNeeded||""));
+      }
+      if (newDecl) {
+        if (newDecl.facts) parts.push("FACTS\n" + String(newDecl.facts||""));
+        if (newDecl.recent) parts.push("RECENT\n" + String(newDecl.recent||""));
+        if (newDecl.necessity) parts.push("NECESSITY\n" + String(newDecl.necessity||""));
+        if (newDecl.relief) parts.push("RELIEF\n" + String(newDecl.relief||""));
+      }
+      const text = parts.join("\n\n").trim();
+      save(KEY_DRAFT, { text, version: 1, updatedAt: (new Date()).toISOString() });
+    }
+  }
+
+
   function setStatus(el, ok, label){
     if(!el) return;
     el.textContent = ok ? "✓ " + label : "✗ " + label;
@@ -39,6 +70,7 @@
   }
 
   function init(){
+    migrateFromNewKeys();
     buildPacketStatus();
 
     $("btnCopyDraft")?.addEventListener("click",()=>{
