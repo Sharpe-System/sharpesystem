@@ -36,22 +36,48 @@
   function sanitizeReturnTo(rt) {
     rt = String(rt || "").trim();
     if (!rt) return "";
+
     // must be same-origin absolute path
     if (!rt.startsWith("/")) return "";
-    // block protocol-relative and external-ish patterns
+
+    // block protocol-relative / external-ish
     if (rt.includes("//") || rt.includes("://") || rt.toLowerCase().startsWith("http")) return "";
+
     // block re-entry into controller and controller-like params
     const low = rt.toLowerCase();
     if (low.includes("/app.html") || low.includes("flow=") || low.includes("stage=")) return "";
+
+    // block self-return (prevents bouncing to same URL)
+    const here = (location.pathname + location.search).toLowerCase();
+    if (low === here) return "";
+
     return rt;
   }
 
-  const safeReturnTo = sanitizeReturnTo(returnTo);
-  if (returnTo && !safeReturnTo) {
-    // strip unsafe return param once to prevent nav loops
+  // If multiple return params exist, any unsafe value nukes return entirely
+  const allReturns = url.searchParams.getAll("return") || [];
+  let safeReturnTo = "";
+  if (allReturns.length > 1) {
+    let ok = true;
+    for (const r of allReturns) {
+      const sr = sanitizeReturnTo(r);
+      if (!sr) { ok = false; break; }
+      // prefer first safe only
+      if (!safeReturnTo) safeReturnTo = sr;
+    }
+    if (!ok) safeReturnTo = "";
+    // collapse to a single sanitized param (or none) to prevent loops
     url.searchParams.delete("return");
+    if (safeReturnTo) url.searchParams.set("return", safeReturnTo);
     location.replace(url.toString());
     return;
+  } else {
+    safeReturnTo = sanitizeReturnTo(returnTo);
+    if (returnTo && !safeReturnTo) {
+      url.searchParams.delete("return");
+      location.replace(url.toString());
+      return;
+    }
   }
 
   const stageEl = $("#stage");
