@@ -7,7 +7,7 @@ export const dvroResponseFlow = {
     if (stage === "intake") return renderIntake(ctx);
     if (stage === "build") return renderBuild(ctx);
     if (stage === "review") return renderReview(ctx);
-    if (stage === "export") return ctx.renderExport();
+    if (stage === "export") return renderExport(ctx);
     return renderIntake(ctx);
   }
 };
@@ -134,4 +134,40 @@ function wireSave(ctx, map) {
 function opt(current, value, label) {
   const sel = String(current ?? "") === String(value) ? "selected" : "";
   return `<option value="${esc(value)}" ${sel}>${esc(label)}</option>`;
+}
+
+function renderExport(ctx){
+  const d = read(ctx);
+  const r = d.dvro_response || {};
+
+  ctx.stageEl.innerHTML = `
+    <h2>DVRO Response — Export</h2>
+    <div class="card" style="margin-top:12px;">
+      <div style="opacity:.92;line-height:1.45;">
+        You are at the final step. Your response has been safely gathered.
+        Export preparation is ready. The document connection is being completed
+        so you can download your DVRO response packet here.
+      </div>
+
+      <hr style="margin:12px 0;opacity:.25;">
+
+      <div><strong>County:</strong> ${esc(r.county || "—")}</div>
+      <div><strong>Case #:</strong> ${esc(r.caseNumber || "—")}</div>
+      <div><strong>Role:</strong> ${esc(r.role || "—")}</div>
+
+      <div style="margin-top:12px;opacity:.85;">
+        Status: export screen ready · packet link next
+      </div>
+
+      <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn" id="dvro_back">Back</button>
+        <button class="btn" id="dvro_exit">Exit</button>
+      </div>
+    </div>
+  `;
+
+  const back = document.querySelector("#dvro_back");
+  const exit = document.querySelector("#dvro_exit");
+  if (back) back.onclick = () => history.back();
+  if (exit) exit.onclick = () => location.href = "/start.html";
 }
