@@ -7,6 +7,19 @@
   <title>RFO — Print Gate (Public) — SharpeSystem</title>
   <meta name="description" content="Public print gate: preview readiness, lock export/print until login/subscription. Includes PeacePath off-ramp." />
   <link rel="stylesheet" href="/styles.css" />
+
+  <script>
+    (function(){
+      try {
+        var u = new URL(location.href);
+        u.hash = "";
+        location.replace("/gate/print.html?flow=rfo&doc=fl300");
+      } catch (e) {
+        location.href = "/gate/print.html?flow=rfo&doc=fl300";
+      }
+    })();
+  </script>
+
 </head>
 
 <body class="shell">

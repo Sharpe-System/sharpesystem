@@ -602,8 +602,7 @@ function renderExport(ctx) {
     <div class="ss-card" style="margin-top:12px;">
       <div class="row" style="gap:10px; flex-wrap:wrap;">
         <a class="btn neutral" href="/app.html?flow=rfo&stage=review">Back to review</a>
-        <a class="btn success" href="/rfo/public-print.html">Open Print (public)</a>
-        <a class="btn success" href="/gate/print.html?flow=rfo&doc=fl300">Print</a>
+<a class="btn success" href="/gate/print.html?flow=rfo&doc=fl300">Print</a>
       </div>
     </div>
   `;

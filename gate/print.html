@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Print</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <main class="app-shell" style="max-width:900px;margin:40px auto;padding:20px;">
+    <div class="ss-card">
+      <h2 style="margin:0 0 6px 0;">Print</h2>
+      <p class="muted" style="margin:0;">Preparing your document…</p>
+    </div>
+
+    <div id="gateMsg" class="ss-card" style="margin-top:12px; display:none;"></div>
+
+    <div class="ss-card" style="margin-top:12px;">
+      <div class="row" style="gap:10px; flex-wrap:wrap;">
+        <a class="btn neutral" id="btnBack" href="/app.html?flow=rfo&stage=review">Back</a>
+        <a class="btn success" id="btnContinue" href="/rfo/fl300-print/">Continue</a>
+      </div>
+      <p class="muted" style="margin:10px 0 0 0;">
+        If this doesn’t move forward automatically, click Continue.
+      </p>
+    </div>
+  </main>
+
+  <script type="module" src="/gate/print.js"></script>
+</body>
+</html>
