@@ -33,6 +33,53 @@ function getRfoDraft(ctx) {
 
 function writeRfoDraft(ctx, draft) {
   ctx.writeDraftData(draft);
+  try { savePublicTwin(ctx, draft); } catch (_) {}
+}
+
+const KEY_PUB_FL300 = "ss_rfo_public_fl300_v1";
+const KEY_PUB_DRAFT = "ss_rfo_public_draft_v1";
+
+function lsSave(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(_){} }
+function s(v){ return String(v ?? ""); }
+function t(v){ return s(v).trim(); }
+function iso(){ try{ return new Date().toISOString(); }catch(_){ return ""; } }
+
+function buildPublicDraftFromApp(d){
+  const parts = [];
+  const core = d?.rfo?.core || {};
+  const c = d?.rfo?.case || {};
+  const build = d?.rfo?.build || {};
+  if (build.orders) parts.push("ORDERS REQUESTED\n" + s(build.orders));
+  if (c.changeRequest) parts.push("CHANGE REQUEST\n" + s(c.changeRequest));
+  if (c.story) parts.push("FACTS\n" + s(c.story));
+  if (c.childImpact) parts.push("CHILD IMPACT\n" + s(c.childImpact));
+  if (c.bestInterest) parts.push("BEST INTEREST\n" + s(c.bestInterest));
+  if (c.scheduleDetail) parts.push("SCHEDULE DETAIL\n" + s(c.scheduleDetail));
+  if (c.otherOrders) parts.push("OTHER ORDERS\n" + s(c.otherOrders));
+  return parts.join("\n\n").trim();
+}
+
+function savePublicTwin(ctx, d){
+  if (!d || !d.rfo) return;
+  if (!d.rfo.core || typeof d.rfo.core !== "object") d.rfo.core = {};
+  const core = d.rfo.core;
+  const canon = {
+    case: { number: core.caseNumber || "" },
+    party: { petitioner: core.petitioner || "", respondent: core.respondent || "" },
+    ordersRequested: (d?.rfo?.build?.orders || ""),
+    whyNeeded: (d?.rfo?.case?.bestInterest || ""),
+    decl: {
+      facts: (d?.rfo?.case?.story || ""),
+      recent: (d?.rfo?.case?.childImpact || ""),
+      necessity: (d?.rfo?.case?.changeRequest || ""),
+      relief: (d?.rfo?.case?.otherOrders || "")
+    },
+    version: 1,
+    updatedAt: iso()
+  };
+  lsSave(KEY_PUB_FL300, canon);
+  const text = buildPublicDraftFromApp(d);
+  lsSave(KEY_PUB_DRAFT, { text, version: 1, updatedAt: iso() });
 }
 
 function setValue(root, sel, value) {
@@ -238,8 +285,34 @@ function renderCapture(ctx) {
   const host = ctx.stageEl;
   const draft = getRfoDraft(ctx);
   const c = draft.rfo.case;
+  if (!draft.rfo.core || typeof draft.rfo.core !== "object") draft.rfo.core = {};
+  const core = draft.rfo.core;
 
   host.innerHTML = `
+
+  <div class="ss-card">
+    <h2 style="margin:0 0 6px 0;">Case details (for the FL-300 caption)</h2>
+    <p class="muted" style="margin:0;">These are the 3 fields the PDF fills today (we’ll expand later).</p>
+    <div class="row" style="gap:12px; flex-wrap:wrap; margin-top:10px;">
+      <label class="field" style="min-width:220px; flex:1;">
+        <span class="label">Case number</span>
+        <input class="input" id="rfo_case_number" placeholder="Example: 23D000123" />
+      </label>
+      <label class="field" style="min-width:220px; flex:1;">
+        <span class="label">County</span>
+        <input class="input" id="rfo_county" placeholder="Example: Orange" />
+      </label>
+      <label class="field" style="min-width:220px; flex:1;">
+        <span class="label">Petitioner</span>
+        <input class="input" id="rfo_petitioner" placeholder="Full name" />
+      </label>
+      <label class="field" style="min-width:220px; flex:1;">
+        <span class="label">Respondent</span>
+        <input class="input" id="rfo_respondent" placeholder="Full name" />
+      </label>
+    </div>
+  </div>
+
   <div class="ss-card">
     <h2 style="margin:0 0 6px 0;">Help me understand what’s been happening</h2>
     <p class="muted" style="margin:0;">
@@ -258,9 +331,9 @@ function renderCapture(ctx) {
       </span>
 
       <div class="row ss-ai-row">
-        <button class="ss-btn ss-btn-neutral" style="margin-right:6px;" type="button" data-ai="explain" data-field="story">Explain</button>
-        <button class="ss-btn ss-btn-secondary" style="margin-right:6px;" type="button" data-ai="options" data-field="story">Examples</button>
-        <button class="ss-btn ss-btn-primary" type="button" data-ai="draft" data-field="story">Help me say this</button>
+        <button class="btn" style="margin-right:6px;" type="button" data-ai="explain" data-field="story">Explain</button>
+        <button class="btn secondary" style="margin-right:6px;" type="button" data-ai="options" data-field="story">Examples</button>
+        <button class="btn primary" type="button" data-ai="draft" data-field="story">Help me say this</button>
       </div>
     </label>
   </div>
@@ -276,9 +349,9 @@ function renderCapture(ctx) {
       </span>
 
       <div class="row ss-ai-row">
-        <button class="ss-btn ss-btn-neutral" style="margin-right:6px;" type="button" data-ai="explain" data-field="child_impact">Explain</button>
-        <button class="ss-btn ss-btn-secondary" style="margin-right:6px;" type="button" data-ai="options" data-field="child_impact">Examples</button>
-        <button class="ss-btn ss-btn-primary" type="button" data-ai="draft" data-field="child_impact">Help me say this</button>
+        <button class="btn" style="margin-right:6px;" type="button" data-ai="explain" data-field="child_impact">Explain</button>
+        <button class="btn secondary" style="margin-right:6px;" type="button" data-ai="options" data-field="child_impact">Examples</button>
+        <button class="btn primary" type="button" data-ai="draft" data-field="child_impact">Help me say this</button>
       </div>
     </label>
   </div>
@@ -299,9 +372,9 @@ function renderCapture(ctx) {
       </span>
 
       <div class="row ss-ai-row">
-        <button class="ss-btn ss-btn-neutral" style="margin-right:6px;" type="button" data-ai="explain" data-field="change_request">Explain</button>
-        <button class="ss-btn ss-btn-secondary" style="margin-right:6px;" type="button" data-ai="options" data-field="change_request">Examples</button>
-        <button class="ss-btn ss-btn-primary" type="button" data-ai="draft" data-field="change_request">Help me say this</button>
+        <button class="btn" style="margin-right:6px;" type="button" data-ai="explain" data-field="change_request">Explain</button>
+        <button class="btn secondary" style="margin-right:6px;" type="button" data-ai="options" data-field="change_request">Examples</button>
+        <button class="btn primary" type="button" data-ai="draft" data-field="change_request">Help me say this</button>
       </div>
     </label>
   </div>
@@ -317,9 +390,9 @@ function renderCapture(ctx) {
       </span>
 
       <div class="row ss-ai-row">
-        <button class="ss-btn ss-btn-neutral" style="margin-right:6px;" type="button" data-ai="explain" data-field="best_interest">Explain</button>
-        <button class="ss-btn ss-btn-secondary" style="margin-right:6px;" type="button" data-ai="options" data-field="best_interest">Examples</button>
-        <button class="ss-btn ss-btn-primary" type="button" data-ai="draft" data-field="best_interest">Help me say this</button>
+        <button class="btn" style="margin-right:6px;" type="button" data-ai="explain" data-field="best_interest">Explain</button>
+        <button class="btn secondary" style="margin-right:6px;" type="button" data-ai="options" data-field="best_interest">Examples</button>
+        <button class="btn primary" type="button" data-ai="draft" data-field="best_interest">Help me say this</button>
       </div>
     </label>
   <div class="ss-card" style="margin-top:12px;">
@@ -334,9 +407,9 @@ function renderCapture(ctx) {
         placeholder="Days, times, exchanges, holidays, or custody structure."></textarea>
 
       <div class="row ss-ai-row">
-        <button class="ss-btn ss-btn-neutral" style="margin-right:6px;" type="button" data-ai="explain" data-field="schedule_detail">Explain</button>
-        <button class="ss-btn ss-btn-secondary" style="margin-right:6px;" type="button" data-ai="options" data-field="schedule_detail">Examples</button>
-        <button class="ss-btn ss-btn-primary" type="button" data-ai="draft" data-field="schedule_detail">Help me say this</button>
+        <button class="btn" style="margin-right:6px;" type="button" data-ai="explain" data-field="schedule_detail">Explain</button>
+        <button class="btn secondary" style="margin-right:6px;" type="button" data-ai="options" data-field="schedule_detail">Examples</button>
+        <button class="btn primary" type="button" data-ai="draft" data-field="schedule_detail">Help me say this</button>
       </div>
     </label>
 
@@ -346,9 +419,9 @@ function renderCapture(ctx) {
         placeholder="Communication rules, exchange location, travel, decision-making, etc."></textarea>
 
       <div class="row ss-ai-row">
-        <button class="ss-btn ss-btn-neutral" style="margin-right:6px;" type="button" data-ai="explain" data-field="other_orders">Explain</button>
-        <button class="ss-btn ss-btn-secondary" style="margin-right:6px;" type="button" data-ai="options" data-field="other_orders">Examples</button>
-        <button class="ss-btn ss-btn-primary" type="button" data-ai="draft" data-field="other_orders">Help me say this</button>
+        <button class="btn" style="margin-right:6px;" type="button" data-ai="explain" data-field="other_orders">Explain</button>
+        <button class="btn secondary" style="margin-right:6px;" type="button" data-ai="options" data-field="other_orders">Examples</button>
+        <button class="btn primary" type="button" data-ai="draft" data-field="other_orders">Help me say this</button>
       </div>
     </label>
   </div>
@@ -373,6 +446,29 @@ function renderCapture(ctx) {
       writeRfoDraft(ctx, d);
     });
   });
+
+  // caption fields
+  setValue(host, "#rfo_case_number", core.caseNumber || "");
+  setValue(host, "#rfo_county", core.county || "");
+  setValue(host, "#rfo_petitioner", core.petitioner || "");
+  setValue(host, "#rfo_respondent", core.respondent || "");
+
+  [
+    ["#rfo_case_number", "caseNumber"],
+    ["#rfo_county", "county"],
+    ["#rfo_petitioner", "petitioner"],
+    ["#rfo_respondent", "respondent"]
+  ].forEach(([sel, k]) => {
+    const el = host.querySelector(sel);
+    if (!el) return;
+    el.addEventListener("input", () => {
+      const d = getRfoDraft(ctx);
+      if (!d.rfo.core || typeof d.rfo.core !== "object") d.rfo.core = {};
+      d.rfo.core[k] = el.value.trim();
+      writeRfoDraft(ctx, d);
+    });
+  });
+
 }
 
 
@@ -397,9 +493,9 @@ function renderBuild(ctx) {
         </span>
 
         <div class="row ss-ai-row">
-          <button class="ss-btn ss-btn-neutral" style="margin-right:6px;" type="button" data-ai="explain" data-field="orders">Explain</button>
-          <button class="ss-btn ss-btn-secondary" style="margin-right:6px;" type="button" data-ai="options" data-field="orders">Examples</button>
-          <button class="ss-btn ss-btn-primary" type="button" data-ai="draft" data-field="orders">Draft for me</button>
+          <button class="btn" style="margin-right:6px;" type="button" data-ai="explain" data-field="orders">Explain</button>
+          <button class="btn secondary" style="margin-right:6px;" type="button" data-ai="options" data-field="orders">Examples</button>
+          <button class="btn primary" type="button" data-ai="draft" data-field="orders">Draft for me</button>
         </div>
 
         <div id="ai_panel_build" class="card" style="margin-top:10px; display:none;">
