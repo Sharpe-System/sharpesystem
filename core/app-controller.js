@@ -37,6 +37,47 @@
     rt = String(rt || "").trim();
     if (!rt) return "";
 
+    if (!rt.startsWith("/")) return "";
+    if (rt.includes("//") || rt.includes("://") || rt.toLowerCase().startsWith("http")) return "";
+
+    const low = rt.toLowerCase();
+    if (low.includes("/app.html") || low.includes("flow=") || low.includes("stage=")) return "";
+
+    const here = (location.pathname + location.search).toLowerCase();
+    if (low === here) return "";
+
+    return rt;
+  }
+
+  const allReturns = url.searchParams.getAll("return") || [];
+  let safeReturnTo = "";
+
+  if (allReturns.length > 1) {
+    let ok = true;
+    for (const r of allReturns) {
+      const sr = sanitizeReturnTo(r);
+      if (!sr) { ok = false; break; }
+      if (!safeReturnTo) safeReturnTo = sr;
+    }
+    if (!ok) safeReturnTo = "";
+
+    url.searchParams.delete("return");
+    if (safeReturnTo) url.searchParams.set("return", safeReturnTo);
+    location.replace(url.toString());
+    return;
+  } else {
+    safeReturnTo = sanitizeReturnTo(returnTo);
+    if (returnTo && !safeReturnTo) {
+      url.searchParams.delete("return");
+      location.replace(url.toString());
+      return;
+    }
+  }
+
+  function sanitizeReturnTo(rt) {
+    rt = String(rt || "").trim();
+    if (!rt) return "";
+
     // must be same-origin absolute path
     if (!rt.startsWith("/")) return "";
 
