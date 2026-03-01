@@ -35,7 +35,7 @@ function renderIntake(ctx) {
   const d = read(ctx);
   const r = d.dvro_response;
 
-  ctx.stageEl.innerHTML = `
+  ctx.renderShell?.(); ctx.stageEl.innerHTML = `
     <h2>DVRO Response — Case Info</h2>
     <div class="card" style="margin-top:12px;">
       <label class="label">Court county</label>
@@ -64,7 +64,7 @@ function renderBuild(ctx) {
   const d = read(ctx);
   const r = d.dvro_response;
 
-  ctx.stageEl.innerHTML = `
+  ctx.renderShell?.(); ctx.stageEl.innerHTML = `
     <h2>Response</h2>
     <div class="card" style="margin-top:12px;">
       <label class="label">Your response to allegations</label>
@@ -94,7 +94,7 @@ function renderReview(ctx) {
   const d = read(ctx);
   const r = d.dvro_response;
 
-  ctx.stageEl.innerHTML = `
+  ctx.renderShell?.(); ctx.stageEl.innerHTML = `
     <h2>Review</h2>
     <div class="card" style="margin-top:12px;">
       <div><strong>County:</strong> ${esc(r.county || "—")}</div>
@@ -140,7 +140,7 @@ function renderExport(ctx){
   const d = read(ctx);
   const r = d.dvro_response || {};
 
-  ctx.stageEl.innerHTML = `
+  ctx.renderShell?.(); ctx.stageEl.innerHTML = `
     <h2>DVRO Response — Export</h2>
     <div class="card" style="margin-top:12px;">
       <div style="opacity:.92;line-height:1.45;">
