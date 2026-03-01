@@ -596,7 +596,7 @@ function renderExport(ctx) {
   ctx.stageEl.innerHTML = `
     <div class="ss-card">
       <h2 style="margin:0 0 6px 0;">Export</h2>
-      <p class="muted" style="margin:0;">For now, export routes to the working public print surface for fast testing.</p>
+      <p class="muted" style="margin:0;">One click to print for beta. No login gate.</p>
     </div>
 
     <div class="ss-card" style="margin-top:12px;">
