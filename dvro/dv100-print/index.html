@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>DV-100 — Print</title>
+  <link rel="stylesheet" href="/rfo/rfo.css" />
+  <link rel="stylesheet" href="/styles.css" />
+  <style>
+    .grid {
+      display: grid;
+      grid-template-columns: 420px 1fr;
+      gap: 14px;
+      align-items: start;
+      padding: 14px;
+    }
+    .card {
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: 14px;
+      padding: 14px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.35);
+    }
+    .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .btn { padding: 10px 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.06); color: inherit; cursor: pointer; text-decoration: none; }
+    .btn.primary { background: rgba(96,165,250,.20); border-color: rgba(96,165,250,.45); }
+    .btn.disabled { opacity: .45; pointer-events: none; }
+    .muted { opacity: .70; font-size: 13px; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size: 12px; white-space: pre-wrap; }
+    iframe { width: 100%; height: 78vh; border: 0; border-radius: 14px; background: rgba(0,0,0,.25); }
+    @media (max-width: 980px) {
+      .grid { grid-template-columns: 1fr; }
+      iframe { height: 60vh; }
+    }
+  </style>
+</head>
+<body class="shell">
+  <div id="site-header"></div>
+
+  <main class="page">
+    <div class="row" style="justify-content:space-between; padding: 14px 14px 0 14px;">
+      <div class="row" style="gap:10px;">
+        <a class="btn" href="/rfo/public-intake.html">Back to Intake</a>
+        <span class="muted">Template: <code>/templates/jcc/dv100/tpl.pdf</code></span>
+      </div>
+
+      <div class="row" style="gap:10px;">
+        
+        <a id="btnDownload" class="btn disabled" href="#" aria-disabled="true">Download PDF</a>
+      </div>
+    </div>
+
+    <div class="grid">
+      <section class="card">
+        <h3 style="margin:0 0 8px 0;">Input (from local draft)</h3>
+        <div id="missingDraft" class="card" style="display:none; padding:12px; margin:10px 0 0 0;">
+          <div class="muted">No draft found.</div>
+          <div class="row" style="margin-top:10px;">
+            <a class="btn primary" href="/rfo/public-intake.html">Go to Public Intake</a>
+          </div>
+        </div>
+
+        <div id="inputList" class="mono" style="margin-top:10px;"></div>
+
+        <div style="margin-top:12px;">
+          <div class="muted">Status</div>
+          <div id="pdfStatus" class="mono">—</div>
+        </div>
+
+        <div style="margin-top:12px;">
+          <div class="muted">Debug</div>
+          
+        </div>
+
+        <div class="muted" style="margin-top:10px;">
+          Rule: black text, no shrink-to-fit. Overflow logic comes next.
+        </div>
+      </section>
+
+      <section class="card">
+        <h3 style="margin:0 0 8px 0;">DV-100 PDF output</h3>
+        <div class="muted" style="margin-bottom:10px;">Preview</div>
+        <iframe id="pdfPreview" title="Filled DV-100 preview"></iframe>
+      </section>
+    </div>
+  </main>
+
+  <script src="/ui.js" defer></script>
+  <script src="/header-loader.js" defer></script>
+  <script src="/partials/header.js" defer></script>
+  <script src="/i18n.js" defer></script>
+
+  <script src="/rfo/dv100-print/dv100-print.js" defer></script>
+
+<script>
+window.SS_AUTO_GENERATE_PDF = true;
+document.addEventListener("DOMContentLoaded", () => {
+  if (btn) btn.click();
+});
+</script>
+</body>
+</html>

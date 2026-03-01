@@ -33,6 +33,27 @@
   const stageFromUrl = (url.searchParams.get("stage") || "start").trim();
   const returnTo = (url.searchParams.get("return") || "").trim();
 
+  function sanitizeReturnTo(rt) {
+    rt = String(rt || "").trim();
+    if (!rt) return "";
+    // must be same-origin absolute path
+    if (!rt.startsWith("/")) return "";
+    // block protocol-relative and external-ish patterns
+    if (rt.includes("//") || rt.includes("://") || rt.toLowerCase().startsWith("http")) return "";
+    // block re-entry into controller and controller-like params
+    const low = rt.toLowerCase();
+    if (low.includes("/app.html") || low.includes("flow=") || low.includes("stage=")) return "";
+    return rt;
+  }
+
+  const safeReturnTo = sanitizeReturnTo(returnTo);
+  if (returnTo && !safeReturnTo) {
+    // strip unsafe return param once to prevent nav loops
+    url.searchParams.delete("return");
+    location.replace(url.toString());
+    return;
+  }
+
   const stageEl = $("#stage");
   const titleEl = $("#flowTitle");
   const subEl = $("#flowSub");
@@ -62,7 +83,7 @@
     const u = new URL(location.href);
     u.searchParams.set("flow", flow);
     u.searchParams.set("stage", nextStage);
-    if (returnTo) u.searchParams.set("return", returnTo);
+    if (safeReturnTo) u.searchParams.set("return", safeReturnTo);
     if (replace) location.replace(u.toString());
     else location.href = u.toString();
   }
@@ -89,7 +110,7 @@
 
     function updateNavUI() {
       // KEY FIX: allow Back click on first stage if returnTo exists
-      prevBtn.disabled = (stageIdx <= 0) && !returnTo;
+      prevBtn.disabled = (stageIdx <= 0) && !safeReturnTo;
 
       nextBtn.disabled = stageIdx >= (stages.length - 1);
       nextBtn.textContent = stages[stageIdx] === "review" ? "Export" : "Next";
@@ -98,7 +119,7 @@
 
     prevBtn.onclick = () => {
       if (stageIdx <= 0) {
-        location.href = returnTo || "/index.html";
+        location.href = safeReturnTo || "/index.html";
         return;
       }
       gotoStage(stageIdx - 1);
@@ -117,6 +138,12 @@
           readDraftData,
           writeDraftData
         });
+
+        try {
+          const mod = await import('/core/assist/assist.js');
+          if (mod && mod.mountAssist) mod.mountAssist(stageEl, { flow, stage: stages[stageIdx] });
+        } catch (_) {}
+
       } else {
         stageEl.innerHTML = `<h2>${esc(stages[stageIdx])}</h2><p class="muted">No flow plugin for <code>${esc(flow)}</code>.</p>`;
       }

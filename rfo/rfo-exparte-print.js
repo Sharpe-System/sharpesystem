@@ -159,9 +159,19 @@ async function downloadPdfViaWorker(formId, packet) {
 async function init() {
   const user = await getAuthStateOnce();
   if (!user) {
-    $("status").textContent = "Login required.";
+    const go = (url) => { try { location.href = url; } catch (_) {} };
+
+    $("status").textContent = "Sign in or subscribe to print.";
     $("importStatus").textContent = "Not logged in.";
-    $("readyStatus").textContent = "Not logged in.";
+    $("readyStatus").textContent = "Locked.";
+
+    const b300 = $("btnGen300");
+    const b305 = $("btnGen305");
+    const bboth = $("btnGenBoth");
+    if (b300) { b300.textContent = "Subscribe to print FL-300"; b300.onclick = () => go("/billing.html"); }
+    if (b305) { b305.textContent = "Subscribe to print FL-305"; b305.onclick = () => go("/billing.html"); }
+    if (bboth) { bboth.textContent = "Subscribe to print both"; bboth.onclick = () => go("/billing.html"); }
+
     return;
   }
 

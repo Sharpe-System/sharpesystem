@@ -24,7 +24,19 @@
       renderer: "/rfo/fl300-print/",
       requiredKey: "ss_rfo_public_fl300_v1",
       missingDataGoTo: "/app.html?flow=rfo&stage=capture"
+    ,
+    "dvro:dv100": {
+      renderer: "/dvro/dv100-print/",
+      requiredKey: "ss_dvro_dv-100_v1",
+      missingDataGoTo: "/app.html?flow=dvro&stage=capture"
     }
+  },
+    "criminal:packet": {
+      renderer: "/criminal/packet-print/",
+      requiredKey: "ss_criminal_packet_v1",
+      missingDataGoTo: "/app.html?flow=criminal&stage=capture"
+    }
+  }
   };
 
   const key = `${flow}:${doc}`;
