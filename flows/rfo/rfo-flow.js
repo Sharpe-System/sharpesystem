@@ -549,20 +549,41 @@ function renderBuild(ctx) {
 }
 
 function renderReview(ctx) {
-  ctx.stageEl.innerHTML = `
-    <div class="ss-card">
-      <h2 style="margin:0 0 6px 0;">Review</h2>
-      <p class="muted" style="margin:0;">
-        We’ll summarize what you entered and check for obvious gaps before export.
-      </p>
-    </div>
+  let pub = null;
+  try { pub = JSON.parse(localStorage.getItem("ss_rfo_public_fl300_v1") || "null"); } catch (_) { pub = null; }
 
-    <div class="ss-card" style="margin-top:12px;">
-      <p style="margin:0;">
-        This page will become the “clarity pass” before the final packet.
-      </p>
-    </div>
-  `;
+  if (!pub) {
+    ctx.stageEl.innerHTML = ""
+      + "<div class=\"ss-card\">"
+      + "<h2 style=\"margin:0 0 6px 0;\">Review</h2>"
+      + "<p class=\"muted\" style=\"margin:0;\">No data yet. Go back to Capture and type a few fields.</p>"
+      + "</div>";
+    return;
+  }
+
+  const cnum = (pub.case && pub.case.number) ? pub.case.number : "";
+  const pet = (pub.party && pub.party.petitioner) ? pub.party.petitioner : "";
+  const resp = (pub.party && pub.party.respondent) ? pub.party.respondent : "";
+  const orders = pub.ordersRequested || "";
+  const why = pub.whyNeeded || "";
+
+  ctx.stageEl.innerHTML = ""
+    + "<div class=\"ss-card\">"
+    + "<h2 style=\"margin:0 0 6px 0;\">Review</h2>"
+    + "<div style=\"line-height:1.5;\">"
+    + "<div><strong>Case #:</strong> " + esc(cnum) + "</div>"
+    + "<div><strong>Petitioner:</strong> " + esc(pet) + "</div>"
+    + "<div><strong>Respondent:</strong> " + esc(resp) + "</div>"
+    + "</div>"
+    + "</div>"
+    + "<div class=\"ss-card\" style=\"margin-top:12px;\">"
+    + "<div><strong>Orders Requested</strong></div>"
+    + "<div style=\"white-space:pre-wrap;\">" + esc(orders) + "</div>"
+    + "</div>"
+    + "<div class=\"ss-card\" style=\"margin-top:12px;\">"
+    + "<div><strong>Why Needed</strong></div>"
+    + "<div style=\"white-space:pre-wrap;\">" + esc(why) + "</div>"
+    + "</div>";
 }
 
 function renderExport(ctx) {
@@ -576,7 +597,7 @@ function renderExport(ctx) {
 
     <div class="ss-card" style="margin-top:12px;">
       <div class="row" style="gap:10px; flex-wrap:wrap;">
-        <a class="btn" href="/app.html?flow=rfo&stage=review">Back to review</a>
+        <a class="btn neutral" href="/app.html?flow=rfo&stage=review">Back to review</a>
         <a class="btn primary" href="/login.html?next=/rfo/print.html">Login to print</a>
       </div>
     </div>
