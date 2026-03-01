@@ -477,3 +477,72 @@ button.button,
 .button.primary { background: var(--btn-primary-bg) !important; border-color: var(--btn-primary-border) !important; color: var(--btn-primary-fg) !important; }
 /* ---------- END BUTTON CANON OVERRIDE ---------- */
 
+/* === SS BUBBLE CANON START === */
+/* Canon: Pure Glass bubbles. Red reserved for brand mark only (Red E).
+   No warm hues (orange/coral/red). Keep nav/UI in cool/neutral range. */
+
+:root{
+  /* Bubble geometry */
+  --ss-bub-pad-y: 8px;
+  --ss-bub-pad-x: 14px;
+  --ss-bub-radius: 999px;
+
+  /* Pure glass lighting */
+  --ss-glass-hi: rgba(255,255,255,.22);
+  --ss-glass-mid: rgba(255,255,255,.10);
+  --ss-glass-low: rgba(120,130,145,.14);
+  --ss-glass-edge: rgba(35,35,40,.70);
+
+  /* Default tint (graphite) */
+  --ss-glass-tint: rgba(90,90,95,.18);
+}
+
+/* Base class: apply to any bubble/button that should look like SharpeSystem */
+.ss-bubble,
+a.ss-bubble,
+button.ss-bubble{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding: var(--ss-bub-pad-y) var(--ss-bub-pad-x);
+  border-radius: var(--ss-bub-radius);
+  font-weight: 800;
+  letter-spacing: .15px;
+  text-decoration:none;
+
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+
+  border:1px solid rgba(255,255,255,.16);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.20),
+    0 3px 10px rgba(0,0,0,.35);
+
+  color:#f2f3f5;
+  background:
+    radial-gradient(circle at 50% 50%,
+      var(--ss-glass-hi) 0%,
+      var(--ss-glass-mid) 38%,
+      var(--ss-glass-tint) 70%,
+      var(--ss-glass-edge) 100%);
+}
+
+/* Color modifiers (SAFE SET: cool + neutral only) */
+.ss-glass-graphite{ --ss-glass-tint: rgba(90,90,95,.18); }
+.ss-glass-smoke   { --ss-glass-tint: rgba(120,130,140,.16); }
+.ss-glass-steel   { --ss-glass-tint: rgba(145,155,170,.14); }
+
+.ss-glass-cyan    { --ss-glass-tint: rgba(60,210,255,.16); }
+.ss-glass-aqua    { --ss-glass-tint: rgba(70,240,215,.16); }
+.ss-glass-teal    { --ss-glass-tint: rgba(45,165,150,.16); }
+.ss-glass-mint    { --ss-glass-tint: rgba(90,230,170,.16); }
+.ss-glass-green   { --ss-glass-tint: rgba(60,190,95,.16); }
+
+.ss-glass-violet  { --ss-glass-tint: rgba(170,110,255,.16); }
+.ss-glass-magenta { --ss-glass-tint: rgba(255,90,235,.14); } /* stays away from red, more purple */
+.ss-glass-indigo  { --ss-glass-tint: rgba(110,120,255,.16); }
+.ss-glass-blue    { --ss-glass-tint: rgba(85,150,255,.16); }
+
+/* Explicitly do NOT define warm hues here (yellow/amber/orange/coral/red). */
+/* === SS BUBBLE CANON END === */
+

@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SharpeSystem Bubble Canon — Pure Glass (Safe Colors)</title>
+<link rel="stylesheet" href="/styles.css" />
+<style>
+:root{
+  --bg:#0f1115;
+  --cardTop: rgba(255,255,255,.08);
+  --cardBot: rgba(255,255,255,.04);
+  --cardBorder: rgba(255,255,255,.12);
+  --text:#e8e8ea;
+  --muted:#9aa3b2;
+}
+body{
+  margin:0;
+  padding:36px;
+  background:var(--bg);
+  color:var(--text);
+  font-family:Montserrat,Poppins,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+}
+h1{margin:0 0 8px 0}
+p{margin:0 0 18px 0;color:var(--muted)}
+.section{margin-top:44px}
+.row{display:flex;flex-wrap:wrap;gap:18px}
+.card{
+  background: linear-gradient(180deg, var(--cardTop), var(--cardBot));
+  border:1px solid var(--cardBorder);
+  border-radius:16px;
+  padding:18px;
+  min-width:210px;
+}
+.label{font-size:13px;color:var(--muted);margin-bottom:12px}
+.hr{height:1px;background:rgba(255,255,255,.10);margin:22px 0}
+.small{font-size:12px;color:var(--muted)}
+</style>
+</head>
+<body>
+
+<h1>SharpeSystem Bubble Canon — Pure Glass</h1>
+<p>SAFE palette only: neutrals + cool spectrum. No red/orange/coral. Red stays exclusive to the Red E mark.</p>
+
+<div class="section">
+<h2>Neutrals (Canon lives here)</h2>
+<div class="row">
+  <div class="card"><div class="label">Graphite (canon)</div><span class="ss-bubble ss-glass-graphite">Next</span></div>
+  <div class="card"><div class="label">Smoke</div><span class="ss-bubble ss-glass-smoke">Next</span></div>
+  <div class="card"><div class="label">Steel</div><span class="ss-bubble ss-glass-steel">Next</span></div>
+</div>
+</div>
+
+<div class="section">
+<h2>Cool Spectrum (Allowed)</h2>
+<div class="row">
+  <div class="card"><div class="label">Cyan</div><span class="ss-bubble ss-glass-cyan">Next</span></div>
+  <div class="card"><div class="label">Aqua</div><span class="ss-bubble ss-glass-aqua">Next</span></div>
+  <div class="card"><div class="label">Teal</div><span class="ss-bubble ss-glass-teal">Next</span></div>
+  <div class="card"><div class="label">Mint</div><span class="ss-bubble ss-glass-mint">Next</span></div>
+  <div class="card"><div class="label">Green</div><span class="ss-bubble ss-glass-green">Next</span></div>
+</div>
+</div>
+
+<div class="section">
+<h2>Purple / Blue (Choose either later if you want; both shown for range)</h2>
+<div class="row">
+  <div class="card"><div class="label">Violet</div><span class="ss-bubble ss-glass-violet">Next</span></div>
+  <div class="card"><div class="label">Magenta (purple-leaning)</div><span class="ss-bubble ss-glass-magenta">Next</span></div>
+  <div class="card"><div class="label">Indigo</div><span class="ss-bubble ss-glass-indigo">Next</span></div>
+  <div class="card"><div class="label">Blue</div><span class="ss-bubble ss-glass-blue">Next</span></div>
+</div>
+</div>
+
+<div class="hr"></div>
+<div class="small">Canon class: <code>.ss-bubble</code>. Color modifiers: <code>.ss-glass-*</code>. No warm hues defined.</div>
+
+</body>
+</html>
