@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Peace Path</title>
+  <link rel="stylesheet" href="./peace-path.css" />
+</head>
+<body>
+  <main class="pp">
+    <header class="pp__header">
+      <div class="pp__brand">
+        <div class="pp__mark" aria-hidden="true"></div>
+        <div class="pp__brandText">
+          <div class="pp__title">Peace Path</div>
+          <div class="pp__subtitle">Lower temperature. Clear words. Safer decisions.</div>
+        </div>
+      </div>
+
+      <nav class="pp__nav">
+        <a class="pp__link" href="/index.html">Home</a>
+        <a class="pp__link" href="#tools">Tools</a>
+        <a class="pp__link" href="#messages">Messages</a>
+        <a class="pp__link" href="#plan">Plan</a>
+      </nav>
+    </header>
+
+    <div class="pp__focus" aria-hidden="true"></div>
+
+    <section class="pp__hero">
+      <div class="pp__heroCard pp__card--a">
+        <div class="pp__heroKicker">A calmer lane, right now.</div>
+        <h1 class="pp__heroH1">When you’re flooded, we slow it down.</h1>
+        <p class="pp__heroP">
+          This space treats both parties equally. It does not push reconciliation or separation.
+          It helps you communicate in a way that reduces escalation and protects everyone’s dignity.
+        </p>
+
+        <div class="pp__heroActions">
+          <button class="pp__btn pp__btnPrimary" id="btnStartPause">Start a 90-second pause</button>
+          <button class="pp__btn" id="btnQuickScript">Generate a calm message</button>
+        </div>
+
+        <div class="pp__pillRow">
+          <div class="pp__pill">No blame language</div>
+          <div class="pp__pill">Short, neutral, specific</div>
+          <div class="pp__pill">Time before replies</div>
+          <div class="pp__pill">Own your behavior</div>
+        </div>
+      </div>
+
+      <aside class="pp__sideCard pp__card--b" id="tools">
+        <div class="pp__sideTitle">Reset Tools</div>
+
+        <div class="pp__tool">
+          <div class="pp__toolHead">
+            <div class="pp__toolName">90-second nervous system reset</div>
+            <div class="pp__toolMeta" id="pauseMeta">Ready</div>
+          </div>
+          <div class="pp__progress">
+            <div class="pp__progressBar" id="pauseBar"></div>
+          </div>
+          <div class="pp__toolBody">
+            <div class="pp__breath">
+              <div class="pp__breathRing" id="breathRing" aria-hidden="true"></div>
+              <div class="pp__breathText">
+                <div class="pp__breathCue" id="breathCue">Inhale…</div>
+                <div class="pp__breathTimer" id="pauseTimer">01:30</div>
+              </div>
+            </div>
+            <div class="pp__toolHint">
+              Posture tall. Jaw unclenched. Hands open. Exhale longer than inhale.
+            </div>
+          </div>
+          <div class="pp__toolActions">
+            <button class="pp__btn pp__btnSmall" id="btnPauseToggle">Start</button>
+            <button class="pp__btn pp__btnSmall" id="btnPauseReset">Reset</button>
+          </div>
+        </div>
+
+        <div class="pp__tool">
+          <div class="pp__toolHead">
+            <div class="pp__toolName">Decision guardrail</div>
+            <div class="pp__toolMeta">2 checks</div>
+          </div>
+          <div class="pp__toolBody">
+            <label class="pp__check">
+              <input type="checkbox" id="chkNoSend" />
+              <span>I will not send anything for 20 minutes.</span>
+            </label>
+            <label class="pp__check">
+              <input type="checkbox" id="chkOneGoal" />
+              <span>I can name one practical goal for the next message.</span>
+            </label>
+            <div class="pp__toolHint">
+              If either box is unchecked: pause, hydrate, and delay.
+            </div>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <section class="pp__grid" id="messages">
+      <div class="pp__card pp__card--c">
+        <div class="pp__cardHead">
+          <div>
+            <div class="pp__cardTitle">Message Builder</div>
+            <div class="pp__cardSub">Neutral, advocate-level de-escalation language.</div>
+          </div>
+          <button class="pp__btn pp__btnSmall" id="btnCopy">Copy</button>
+        </div>
+
+        <div class="pp__row">
+          <label class="pp__label">
+            Situation
+            <select class="pp__select" id="selScenario">
+              <option value="exchange">Child exchange coordination</option>
+              <option value="schedule">Schedule change request</option>
+              <option value="boundary">Boundary / no-contact logistics</option>
+              <option value="money">Expense / reimbursement</option>
+              <option value="tone">Repair after harsh words</option>
+            </select>
+          </label>
+
+          <label class="pp__label">
+            Tone
+            <select class="pp__select" id="selTone">
+              <option value="neutral">Neutral & brief</option>
+              <option value="warm">Warm & steady</option>
+              <option value="firm">Firm & non-reactive</option>
+            </select>
+          </label>
+        </div>
+
+        <label class="pp__label">
+          One practical goal (single sentence)
+          <input class="pp__input" id="inpGoal" placeholder="Example: Confirm exchange time and location for Sunday." />
+        </label>
+
+        <label class="pp__label">
+          Facts only (no adjectives, no motives)
+          <textarea class="pp__textarea" id="inpFacts" rows="5" placeholder="Example: Sunday is a no-school day. Both parties have court that morning. Usual exchange is 6PM at the station."></textarea>
+        </label>
+
+        <div class="pp__row">
+          <label class="pp__label">
+            Requested action (clear ask)
+            <input class="pp__input" id="inpAsk" placeholder="Example: Please confirm a 6PM exchange at the usual location." />
+          </label>
+        </div>
+
+        <label class="pp__label">
+          Draft output
+          <textarea class="pp__textarea pp__textareaOutput" id="outDraft" rows="9" readonly></textarea>
+        </label>
+
+        <div class="pp__row pp__rowWrap">
+          <button class="pp__btn" id="btnBuild">Build message</button>
+          <button class="pp__btn" id="btnShorten">Shorten</button>
+          <button class="pp__btn" id="btnSoften">Soften</button>
+          <button class="pp__btn" id="btnFirm">Make firm</button>
+        </div>
+
+        <div class="pp__note">
+          <strong>Rule of thumb:</strong> if you feel the urge to “teach a lesson,” you’re flooded—pause first.
+        </div>
+      </div>
+
+      <div class="pp__card pp__card--d" id="plan">
+        <div class="pp__cardHead">
+          <div>
+            <div class="pp__cardTitle">Micro-Mediation Plan</div>
+            <div class="pp__cardSub">A repeatable structure that avoids the spiral.</div>
+          </div>
+        </div>
+
+        <ol class="pp__steps">
+          <li><strong>Stop:</strong> 90 seconds. Exhale longer. Hands unclench.</li>
+          <li><strong>Own:</strong> “Here’s what I can control” (time, tone, clarity).</li>
+          <li><strong>State facts:</strong> dates, times, logistics. No diagnoses, no motives.</li>
+          <li><strong>Make one ask:</strong> one decision at a time.</li>
+          <li><strong>Offer one option:</strong> a reasonable alternative.</li>
+          <li><strong>Exit clean:</strong> “If I don’t hear back by X, I will proceed with Y.”</li>
+        </ol>
+
+        <div class="pp__divider"></div>
+
+        <div class="pp__panel">
+          <div class="pp__panelTitle">Conflict temperature scale</div>
+          <div class="pp__scale">
+            <button class="pp__chip" data-temp="1">1–2 calm</button>
+            <button class="pp__chip" data-temp="3">3–4 tense</button>
+            <button class="pp__chip" data-temp="5">5–6 flooded</button>
+            <button class="pp__chip" data-temp="7">7–8 explosive</button>
+            <button class="pp__chip" data-temp="9">9–10 unsafe</button>
+          </div>
+          <div class="pp__panelBody" id="tempAdvice">
+            Choose your level to get a recommended next step.
+          </div>
+        </div>
+
+        <div class="pp__footerNote">
+          If you are in immediate danger, contact local emergency services.
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="/peace/peace-path.js"></script>
+</body>
+</html>
