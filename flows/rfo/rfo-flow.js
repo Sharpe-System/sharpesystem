@@ -583,6 +583,12 @@ function renderReview(ctx) {
     + "<div class=\"ss-card\" style=\"margin-top:12px;\">"
     + "<div><strong>Why Needed</strong></div>"
     + "<div style=\"white-space:pre-wrap;\">" + esc(why) + "</div>"
+    + "</div>"
+    + "<div class=\"ss-card\" style=\"margin-top:12px;\">"
+    + "<div class=\"row\" style=\"gap:10px; flex-wrap:wrap;\">"
+    + "<a class=\"btn neutral\" href=\"/rfo/public-fl300.html\" target=\"_blank\">Open FL-300 mapper (public)</a>"
+    + "<a class=\"btn success\" href=\"/rfo/public-print.html\" target=\"_blank\">Open Print (public)</a>"
+    + "</div>"
     + "</div>";
 }
 
@@ -590,15 +596,14 @@ function renderExport(ctx) {
   ctx.stageEl.innerHTML = `
     <div class="ss-card">
       <h2 style="margin:0 0 6px 0;">Export</h2>
-      <p class="muted" style="margin:0;">
-        Exporting print-ready filings is a gated step. Drafting stays available.
-      </p>
+      <p class="muted" style="margin:0;">For now, export routes to the working public print surface for fast testing.</p>
     </div>
 
     <div class="ss-card" style="margin-top:12px;">
       <div class="row" style="gap:10px; flex-wrap:wrap;">
         <a class="btn neutral" href="/app.html?flow=rfo&stage=review">Back to review</a>
-        <a class="btn primary" href="/login.html?next=/rfo/print.html">Login to print</a>
+        <a class="btn success" href="/rfo/public-print.html" target="_blank">Open Print (public)</a>
+        <a class="btn warn" href="/rfo/fl300-print/" target="_blank">Open FL-300 PDF renderer</a>
       </div>
     </div>
   `;
