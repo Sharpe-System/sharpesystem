@@ -91,5 +91,13 @@
   <script src="/i18n.js" defer></script>
 
   <script src="/rfo/fl300-print/fl300-print.js" defer></script>
+
+<script>
+window.SS_AUTO_GENERATE_PDF = true;
+document.addEventListener("DOMContentLoaded", () => {
+  const btn = document.getElementById("btnGenerate");
+  if (btn) btn.click();
+});
+</script>
 </body>
 </html>
